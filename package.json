@@ -1,0 +1,18 @@
+{
+  "name": "TSCv2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cubing": "^0.20.2",
+    "parcel": "^2.0.0-rc.0",
+    "tmi.js": "^1.8.5"
+  },
+  "devDependencies": {},
+  "description": ""
+}
