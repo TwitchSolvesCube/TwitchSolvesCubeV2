@@ -1,7 +1,12 @@
+* {
+	font-family: 'Rubik';
+	font-style: normal;
+}
+
 html,
 body,
 twisty-player{
-  position: relative;
+  position: fixed;
   width: 85%;
   height: 85%;
   top: 50%;
@@ -9,4 +14,32 @@ twisty-player{
   transform: translate(-50%, -50%);
   vertical-align: middle;
   background: #6441A5;
+}
+
+#time{
+	color: #FFF;
+	position: fixed; 
+	top: -15vh; 
+	right: -23vh;
+	font-size: 10vh;
+	font-weight: 400;
+}
+
+#moves{
+	color: #FFF;
+	position: fixed; 
+  	top: -5vh;
+	right: -23vh;
+	font-size: 10vh;
+	font-weight: 400;
+}
+
+/* Bottom Centered only works with relative position? */
+#user{
+	color: #FFF;
+	position: relative;
+	text-align: center;
+	bottom: -74vh;
+	font-size: 10vh;
+	font-weight: 400;
 }
