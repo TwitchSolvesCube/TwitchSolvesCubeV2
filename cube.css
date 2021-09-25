@@ -1,6 +1,8 @@
 * {
 	font-family: 'Rubik';
 	font-style: normal;
+	-webkit-text-stroke-width: 2px;
+    -webkit-text-stroke-color: black;
 }
 
 html,
@@ -16,7 +18,7 @@ twisty-player{
   background: #6441A5;
 }
 
-#time{
+#timeSinceSolved{
 	color: #FFF;
 	position: fixed; 
 	top: -15vh; 
@@ -25,7 +27,7 @@ twisty-player{
 	font-weight: 400;
 }
 
-#moves{
+#moveCount{
 	color: #FFF;
 	position: fixed; 
   	top: -5vh;
@@ -35,7 +37,7 @@ twisty-player{
 }
 
 /* Bottom Centered only works with relative position? */
-#user{
+#userTurn{
 	color: #FFF;
 	position: relative;
 	text-align: center;
