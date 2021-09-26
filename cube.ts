@@ -6,20 +6,25 @@ import { randomScrambleForEvent } from "cubing/scramble";
 import { cube3x3x3, experimentalCube3x3x3KPuzzle } from "cubing/puzzles";
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle";
 
+//Top right timer
 var timeSinceSolved = 0;
 var timeLabel = document.getElementById("timeSinceSolved");
 
+//Top right moves counter
 var totalMoves = 0;
 var movesLabel = document.getElementById("moveCount");
 movesLabel.innerHTML = pad(totalMoves);
 
-var turnTime = 60;
+//Bottom center user turn
+var turnTime = 10;
 var currentTurn = false;
 var userLabel = document.getElementById("userTurn");
 
+//Timers
 let timeSinceSolvedTimer;
 let userTurnTimer;
 
+//Array of all supported moves
 const moves333 =
   ["R", "R'", "R2", "r", "r'", "r2",
     "L", "L'", "L2", "l", "l'", "l2",
@@ -34,22 +39,25 @@ const moves333 =
     "y", "y'", "y2",
     "z", "z'", "y2"];
 
+var scramble;
+var isSolved = false;
+
 const queue = new Array();
 var turns = true;
 
 const kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
-const player = new TwistyPlayer({ //https://experiments.cubing.net/cubing.js/twisty/twisty-player-v1.html
+const player = new TwistyPlayer({
   puzzle: "3x3x3",
   hintFacelets: "floating",
   backView: "top-right",
   background: "none",
   "controlPanel": "none",
-  // "experimental-camera-latitude-limits": "none" //This could be useful?
 });
 
+//Updates top right timer
 function timeSS() {
-  ++timeSinceSolved;
   timeLabel.innerHTML = pad(parseInt(timeSinceSolved / 60)) + ":" + pad(timeSinceSolved % 60); //Error? but works
+  ++timeSinceSolved;
 }
 
 function pad(val) {
@@ -61,15 +69,29 @@ function pad(val) {
   }
 }
 
-//Animate scramble
 async function newScramble() {
-  //How to get scramble to string? Want to animate scramble
-  const scramble = await randomScrambleForEvent("333");
-  player.alg = scramble;
-  kpuzzle.applyAlg(player.alg);
-  document.body.appendChild(player);
+  scramble = await randomScrambleForEvent("333");
 
-  timeSinceSolvedTimer = setInterval(timeSS, 1000);
+  //Turn scramble string into an array
+  const scramArray = scramble.toString().split(' ');
+  console.log(scramArray);
+
+  //"Animates" scramble
+  var i = -1;
+  var intervalID = setInterval(function() {
+    ++i;
+    if (i >= scramArray.length - 1) {
+      clearInterval(intervalID);
+      timeSinceSolved = 0;
+      timeSinceSolvedTimer = setInterval(timeSS, 1000);
+    }
+    const newMove = new Move(scramArray[i]);
+    player.experimentalAddMove(newMove);
+    kpuzzle.applyMove(newMove);
+    console.log(scramArray[i]);
+  }, 100);
+
+  document.body.appendChild(player);
 }
 
 const client = new tmi.Client({
@@ -88,7 +110,6 @@ const client = new tmi.Client({
 client.connect().catch(console.error);
 client.on("message", (channel, tags, message, self) => {
   if (self) return;
-
   var msg = message.toLowerCase();
 
   //Command names not to interfere with current TSCv1
@@ -108,27 +129,19 @@ client.on("message", (channel, tags, message, self) => {
     }
     doCubeMoves(channel, tags, message);
   }
-  //Debug
+  // Debug
   // doCubeMoves(channel, tags, message);
-  console.log(queue);
+  // console.log(queue);
 });
 
+//Updates bottom center user label
 function userTurnTime(channel, tags, message) {
-  if (turnTime > 0) {
+  if (turnTime >= 0) {
     userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt(turnTime / 60)) + ":" + pad(turnTime % 60); //Error? but works
     --turnTime;
   }
   else {
-    turnTime = 60;
-    currentTurn = false;
-    userLabel.innerHTML = "";
-    client.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
-    if (queue.length > 0) {
-      client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
-    }
-    else {
-      clearInterval(userTurnTimer);
-    }
+    removeCurrentPlayer(channel, tags, message, true);
   }
 }
 
@@ -174,12 +187,20 @@ function leaveQueue(channel, tags, message) {
   }
 }
 
-function removeCurrentPlayer(channel, tags, message) {
-  turnTime = 60;
+function removeCurrentPlayer(channel, tags, message, timeup = true) {
+  //Reset turnTime, clear label, stop user timer, remove player
+  turnTime = 300;
   currentTurn = false;
   userLabel.innerHTML = "";
-  clearInterval(userTurnTimer);
-  queue.shift();
+
+  if (timeup) {
+    client.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
+  }
+  else {
+    queue.shift();
+  }
+
+  //If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
     client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
   }
@@ -189,6 +210,7 @@ function removeCurrentPlayer(channel, tags, message) {
 }
 
 function doCubeMoves(channel, tags, message) {
+  //Player commands/settings
   if (message === "scramble") {
     newScramble();
   }
@@ -201,20 +223,29 @@ function doCubeMoves(channel, tags, message) {
   if (message === "!side-by-side") {
     player.backView = "side-by-side";
   }
+  
+  if (!isSolved) {
+    //Apply moves to player and kpuzzle
+    const newMove = new Move(moves333.find(elem => elem === message));
+    player.experimentalAddMove(newMove);
+    kpuzzle.applyMove(newMove);
 
-  const newMove = new Move(moves333.find(elem => elem === message));
-  player.experimentalAddMove(newMove);
-  kpuzzle.applyMove(newMove);
-
-  ++totalMoves;
-  movesLabel.innerHTML = pad(totalMoves);
-
-  var isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
-  console.log("Is cube solved? " + isSolved);
+    isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
+    console.log("Is cube solved? " + isSolved);
+  }
+  //Pause for 20 seconds to view Solved State
   if (isSolved) {
     clearInterval(timeSinceSolvedTimer);
-    newScramble();
+    setTimeout(function(){
+      timeSinceSolved = 0;
+      newScramble();
+      isSolved = false;
+    }, 20*1000)
   }
+
+  //Update top right moves
+  ++totalMoves;
+  movesLabel.innerHTML = pad(totalMoves);
 
   //This would be better but gets stuck in a loop once an error catches
   // This error gets thrown from kpuzzple.ts 
@@ -228,4 +259,5 @@ function doCubeMoves(channel, tags, message) {
   //This would be better because with other puzzles we don't need to know the moves
 }
 
+//Starts cube scrambled
 newScramble();
