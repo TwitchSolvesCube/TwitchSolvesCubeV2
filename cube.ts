@@ -20,20 +20,20 @@ var userLabel = document.getElementById("userTurn");
 let timeSinceSolvedTimer;
 let userTurnTimer;
 
-const moves333 = 
-  [ "R", "R'", "R2", "r", "r'", "r2",
-    "L", "L'", "L2", "l", "l'", "l2", 
+const moves333 =
+  ["R", "R'", "R2", "r", "r'", "r2",
+    "L", "L'", "L2", "l", "l'", "l2",
     "F", "F'", "F2", "f", "f'", "f2",
-    "B", "B'", "B2", "b", "b'", "b2", 
-    "D", "D'", "D2", "d", "d'", "d2", 
+    "B", "B'", "B2", "b", "b'", "b2",
+    "D", "D'", "D2", "d", "d'", "d2",
     "U", "U'", "U2", "u", "u'", "u2",
     "E", "E'", "E2",
     "S", "S'", "S2",
     "M", "M'", "M2",
     "x", "x'", "x2",
     "y", "y'", "y2",
-    "z", "z'", "y2" ];
-    
+    "z", "z'", "y2"];
+
 const queue = new Array();
 var turns = true;
 
@@ -73,36 +73,36 @@ async function newScramble() {
 }
 
 const client = new tmi.Client({
-	options: { debug: true, messagesLogLevel: "info" },
-	connection: {
-		reconnect: true,
-		secure: true
-	},
-	identity: {
-		username: BOT_USERNAME,
-		password: TOKEN
-	},
-	channels: [CHANNEL_NAME]
+  options: { debug: true, messagesLogLevel: "info" },
+  connection: {
+    reconnect: true,
+    secure: true
+  },
+  identity: {
+    username: BOT_USERNAME,
+    password: TOKEN
+  },
+  channels: [CHANNEL_NAME]
 });
 
 client.connect().catch(console.error);
-client.on('message', (channel, tags, message, self) => {
-	if(self) return;
+client.on("message", (channel, tags, message, self) => {
+  if (self) return;
 
   var msg = message.toLowerCase();
 
   //Command names not to interfere with current TSCv1
-  if (msg == "!qq"){
+  if (msg === "!qq") {
     client.say(channel, `${queue}`);
   }
-  if (msg == "!jq"){
+  if (msg === "!jq") {
     joinQueue(channel, tags, message);
   }
-  if (msg == "!lq"){
+  if (msg === "!lq") {
     leaveQueue(channel, tags, message);
   }
-  if (queue[0] == tags.username){
-    if (currentTurn == false){
+  if (queue[0] === tags.username) {
+    if (currentTurn == false) {
       userTurnTimer = setInterval(() => userTurnTime(channel, tags, message), 1000);
       currentTurn = true;
     }
@@ -114,91 +114,91 @@ client.on('message', (channel, tags, message, self) => {
 });
 
 function userTurnTime(channel, tags, message) {
-  if (turnTime > 0){
+  if (turnTime > 0) {
     userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt(turnTime / 60)) + ":" + pad(turnTime % 60); //Error? but works
     --turnTime;
   }
-  else{
+  else {
     turnTime = 60;
     currentTurn = false;
     userLabel.innerHTML = "";
     client.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
-    if (queue.length > 0){
+    if (queue.length > 0) {
       client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     }
-    else{
+    else {
       clearInterval(userTurnTimer);
     }
   }
 }
 
-function joinQueue(channel, tags, message){
-  if (turns == true){
-    if (queue.length == 0){
+function joinQueue(channel, tags, message) {
+  if (turns === true) {
+    if (queue.length === 0) {
       queue.push(tags.username);
       client.say(channel, `@${tags.username}, it\'s your turn! Do !leaveQ when done`);
     }
-    else if (queue[0] == tags.username){
+    else if (queue[0] === tags.username) {
       client.say(channel, `@${tags.username}, it\'s currently your turn!`);
     }
-    else if (queue.find(name => name == tags.username) == undefined){
+    else if (queue.find(name => name === tags.username) == undefined) {
       queue.push(tags.username);
       client.say(channel, `@${tags.username}, you have joined the queue! There is ${queue.length - 1} person in front of you`);
     }
-    else if (queue.find(name => name == tags.username) == tags.username){
+    else if (queue.find(name => name === tags.username) == tags.username) {
       client.say(channel, `@${tags.username}, you\'re already in the queue please wait :)`);
     }
   }
-  else{
+  else {
     client.say(channel, "The cube is currently in Vote mode no need to !joinq just type a move in chat");
   }
 }
 
-function leaveQueue(channel, tags, message){
-  if (turns == true){
-    if (queue.find(name => name == tags.username) == tags.username){
-      if (queue[0] == tags.username){
+function leaveQueue(channel, tags, message) {
+  if (turns === true) {
+    if (queue.find(name => name === tags.username) === tags.username) {
+      if (queue[0] === tags.username) {
         removeCurrentPlayer(channel, tags, message);
       }
-      else{
+      else {
         queue.splice(queue.indexOf(tags.username), 1)
       }
       client.say(channel, `@${tags.username}, you have now left the queue`);
     }
-    else{
+    else {
       client.say(channel, `@${tags.username}, you are not in the queue. Type !joinQ to join`);
     }
   }
-  else{
+  else {
     client.say(channel, "The cube is currently in Vote mode no need to !leaveq just type a move in chat");
   }
 }
 
-function removeCurrentPlayer(channel, tags, message){
-    turnTime = 60;
-    currentTurn = false;
-    userLabel.innerHTML = "";
+function removeCurrentPlayer(channel, tags, message) {
+  turnTime = 60;
+  currentTurn = false;
+  userLabel.innerHTML = "";
+  clearInterval(userTurnTimer);
+  queue.shift();
+  if (queue.length > 0) {
+    client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
+  }
+  else {
     clearInterval(userTurnTimer);
-    queue.shift();
-    if (queue.length > 0){
-      client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
-    }
-    else{
-      clearInterval(userTurnTimer);
-    }
+  }
 }
 
-function doCubeMoves(channel, tags, message){
-  if (message == "scramble"){
+function doCubeMoves(channel, tags, message) {
+  if (message === "scramble") {
     newScramble();
   }
-  if (message == "!none"){
+  if (message === "!none") {
     player.backView = "none";
   }
-  if (message == "!top-right"){
+  if (message === "!top-right") {
     player.backView = "top-right";
   }
-  if (message == "!side-by-side"){
+  if (message === "!side-by-side") {
     player.backView = "side-by-side";
   }
 
@@ -209,9 +209,9 @@ function doCubeMoves(channel, tags, message){
   ++totalMoves;
   movesLabel.innerHTML = pad(totalMoves);
 
-  var isSolved = experimentalIs3x3x3Solved(kpuzzle.state,{ ignoreCenterOrientation: true });
+  var isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
   console.log("Is cube solved? " + isSolved);
-  if (isSolved){
+  if (isSolved) {
     clearInterval(timeSinceSolvedTimer);
     newScramble();
   }
