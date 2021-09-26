@@ -1,7 +1,7 @@
 * {
 	font-family: 'Rubik';
 	font-style: normal;
-	-webkit-text-stroke-width: 2px;
+	-webkit-text-stroke-width: 1px;
     -webkit-text-stroke-color: black;
 }
 
@@ -42,6 +42,6 @@ twisty-player{
 	position: relative;
 	text-align: center;
 	bottom: -74vh;
-	font-size: 10vh;
+	font-size: 7vh;
 	font-weight: 400;
 }
