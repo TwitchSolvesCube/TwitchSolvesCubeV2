@@ -1,30 +1,30 @@
 import tmi from "tmi.js"
 import { BOT_USERNAME, TOKEN, CHANNEL_NAME } from "./config"
-import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty"
-import { Alg, AlgBuilder, Move } from "cubing/alg";
-import { randomScrambleForEvent } from "cubing/scramble";
-import { cube3x3x3, experimentalCube3x3x3KPuzzle } from "cubing/puzzles";
-import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle";
+import { TwistyPlayer } from "cubing/twisty"
+import { Alg, AlgBuilder, Move } from "cubing/alg"
+import { randomScrambleForEvent } from "cubing/scramble"
+import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
+import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
 
-//Top right timer
+// Top right timer
 var timeSinceSolved = 0;
 var timeLabel = document.getElementById("timeSinceSolved");
 
-//Top right moves counter
+// Top right moves counter
 var totalMoves = 0;
 var movesLabel = document.getElementById("moveCount");
 movesLabel.innerHTML = pad(totalMoves);
 
-//Bottom center user turn
-var turnTime = 10;
+// Bottom center user turn
+var turnTime = 300;
 var currentTurn = false;
 var userLabel = document.getElementById("userTurn");
 
-//Timers
+// Timers
 let timeSinceSolvedTimer;
 let userTurnTimer;
 
-//Array of all supported moves
+// Array of all supported moves
 const moves333 =
   ["R", "R'", "R2", "r", "r'", "r2",
     "L", "L'", "L2", "l", "l'", "l2",
@@ -46,15 +46,9 @@ const queue = new Array();
 var turns = true;
 
 const kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
-const player = new TwistyPlayer({
-  puzzle: "3x3x3",
-  hintFacelets: "floating",
-  backView: "top-right",
-  background: "none",
-  "controlPanel": "none",
-});
+var player;
 
-//Updates top right timer
+// Updates top right timer
 function timeSS() {
   timeLabel.innerHTML = pad(parseInt(timeSinceSolved / 60)) + ":" + pad(timeSinceSolved % 60); //Error? but works
   ++timeSinceSolved;
@@ -70,18 +64,27 @@ function pad(val) {
 }
 
 async function newScramble() {
-  scramble = await randomScrambleForEvent("333");
+  // Starts new player, replaces old one
+  player = document.body.appendChild(new TwistyPlayer({
+    puzzle: "3x3x3",
+    hintFacelets: "floating",
+    backView: "top-right",
+    background: "none",
+    "controlPanel": "none",
+  }));
 
-  //Turn scramble string into an array
+  scramble = await randomScrambleForEvent("333");
+  // Turn scramble string into an array
   const scramArray = scramble.toString().split(' ');
   console.log(scramArray);
 
-  //"Animates" scramble
+  // "Animates" scramble
   var i = -1;
-  var intervalID = setInterval(function() {
+  var intervalID = setInterval(function () {
     ++i;
     if (i >= scramArray.length - 1) {
       clearInterval(intervalID);
+      clearInterval(timeSinceSolvedTimer);
       timeSinceSolved = 0;
       timeSinceSolvedTimer = setInterval(timeSS, 1000);
     }
@@ -91,7 +94,13 @@ async function newScramble() {
     console.log(scramArray[i]);
   }, 100);
 
-  document.body.appendChild(player);
+  totalMoves = 0;
+  movesLabel.innerHTML = pad(totalMoves);
+
+  // Debug
+  // const newMove = new Move(scramArray[0]);
+  // player.experimentalAddMove(newMove);
+  // kpuzzle.applyMove(newMove);
 }
 
 const client = new tmi.Client({
@@ -112,9 +121,14 @@ client.on("message", (channel, tags, message, self) => {
   if (self) return;
   var msg = message.toLowerCase();
 
-  //Command names not to interfere with current TSCv1
+  // Command names not to interfere with current TSCv1
   if (msg === "!qq") {
-    client.say(channel, `${queue}`);
+    if (queue.length > 0) {
+      client.say(channel, `${queue}`);
+    }
+    else {
+      client.say(channel, `There's currently no one in the queue, do !joinq`);
+    }
   }
   if (msg === "!jq") {
     joinQueue(channel, tags, message);
@@ -122,6 +136,7 @@ client.on("message", (channel, tags, message, self) => {
   if (msg === "!lq") {
     leaveQueue(channel, tags, message);
   }
+
   if (queue[0] === tags.username) {
     if (currentTurn == false) {
       userTurnTimer = setInterval(() => userTurnTime(channel, tags, message), 1000);
@@ -129,12 +144,13 @@ client.on("message", (channel, tags, message, self) => {
     }
     doCubeMoves(channel, tags, message);
   }
+
   // Debug
   // doCubeMoves(channel, tags, message);
   // console.log(queue);
 });
 
-//Updates bottom center user label
+// Updates bottom center user label
 function userTurnTime(channel, tags, message) {
   if (turnTime >= 0) {
     userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt(turnTime / 60)) + ":" + pad(turnTime % 60); //Error? but works
@@ -187,8 +203,8 @@ function leaveQueue(channel, tags, message) {
   }
 }
 
-function removeCurrentPlayer(channel, tags, message, timeup = true) {
-  //Reset turnTime, clear label, stop user timer, remove player
+function removeCurrentPlayer(channel, tags, message, timeup = false) {
+  // Reset turnTime, clear label, stop user timer, remove player
   turnTime = 300;
   currentTurn = false;
   userLabel.innerHTML = "";
@@ -200,7 +216,7 @@ function removeCurrentPlayer(channel, tags, message, timeup = true) {
     queue.shift();
   }
 
-  //If someone is in queue the @ user else clear user label
+  // If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
     client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
   }
@@ -210,54 +226,99 @@ function removeCurrentPlayer(channel, tags, message, timeup = true) {
 }
 
 function doCubeMoves(channel, tags, message) {
-  //Player commands/settings
-  if (message === "scramble") {
+  // Player commands/settings
+  var msg = message.toLowerCase();
+  if (msg === "scramble") {
     newScramble();
   }
-  if (message === "!none") {
+  if (msg === "!none") {
     player.backView = "none";
   }
-  if (message === "!top-right") {
+  if (msg === "!top-right") {
     player.backView = "top-right";
   }
-  if (message === "!side-by-side") {
+  if (msg === "!side-by-side") {
     player.backView = "side-by-side";
   }
-  
+
   if (!isSolved) {
+    msg = message.replace("`", "\'").replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
+      .replace("X", "x").replace("Y", "y").replace("Z", "z")
+      .replace("m", "M").replace("e", "E").replace("s", "S");
+
     //Apply moves to player and kpuzzle
-    const newMove = new Move(moves333.find(elem => elem === message));
-    player.experimentalAddMove(newMove);
-    kpuzzle.applyMove(newMove);
+    if (moves333.find(elem => elem === msg) != undefined) {
+      const newMove = new Move(moves333.find(elem => elem === msg));
+      player.experimentalAddMove(newMove);
+      kpuzzle.applyMove(newMove);
+
+      // Update top right moves
+      ++totalMoves;
+      movesLabel.innerHTML = pad(totalMoves);
+    }
+
+    // This would be better but gets stuck in a loop once an error catches
+    // This error gets thrown from kpuzzple.ts 
+    //  "throw new Error("Unknown move: " + move.toString());"
+    // try{
+    //   player.experimentalAddMove(new Move(String(message)));
+    // }
+    // catch(Error){
+    //   console.log("Invalid Move or Not a Move");
+    // }
+    // This would be better because with other puzzles we don't need to know the moves
 
     isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
     console.log("Is cube solved? " + isSolved);
   }
-  //Pause for 20 seconds to view Solved State
   if (isSolved) {
-    clearInterval(timeSinceSolvedTimer);
-    setTimeout(function(){
+    // Do a little spin
+    setTimeout(function () { player.backView = "none" }, 1000)
+    spinCamera({ numSpins: 4, durationMs: 6000 });
+
+    // Pause for 15 seconds to view Solved State
+    setTimeout(function () {
+      // Reconstruction of Solve
+      // player.experimentalModel.twizzleLink().then(
+      //   function (value) {
+      //     console.log(value)
+      //     client.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
+      //   },
+      //   function (error) { }
+      // );
+
+      // Reset
       timeSinceSolved = 0;
       newScramble();
       isSolved = false;
-    }, 20*1000)
+    }, 15 * 1000)
   }
-
-  //Update top right moves
-  ++totalMoves;
-  movesLabel.innerHTML = pad(totalMoves);
-
-  //This would be better but gets stuck in a loop once an error catches
-  // This error gets thrown from kpuzzple.ts 
-  //  "throw new Error("Unknown move: " + move.toString());"
-  // try{
-  //   player.experimentalAddMove(new Move(String(message)));
-  // }
-  // catch(Error){
-  //   console.log("Invalid Move or Not a Move");
-  // }
-  //This would be better because with other puzzles we don't need to know the moves
 }
 
-//Starts cube scrambled
+export function smootherStep(x: number): number {
+  return x * x * x * (10 - x * (15 - 6 * x));
+}
+
+function spinCamera(options?: { numSpins?: number, durationMs: number }): void {
+  const durationMs = options?.durationMs ?? 2000;
+  const start = performance.now();
+  const end = start + durationMs;
+  let lastFraction = 0;
+  const animFrame = async (now: number) => {
+    if (now > end) {
+      now = end;
+    }
+    const currentFraction = (now - start) / durationMs;
+    const elapsed = smootherStep(currentFraction) - smootherStep(lastFraction);
+    const deltaDegrees = 360 * (options?.numSpins ?? 2) * elapsed;
+    player.cameraLongitude = (await player.experimentalModel.orbitCoordinatesProp.get()).longitude + deltaDegrees;
+    lastFraction = currentFraction;
+    if (now !== end) {
+      requestAnimationFrame(animFrame)
+    }
+  }
+  requestAnimationFrame(animFrame);
+}
+
+// Starts cube scrambled
 newScramble();

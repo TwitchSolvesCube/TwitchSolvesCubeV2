@@ -1,6 +1,6 @@
 {
   "name": "TSCv2",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cubing": "^0.20.2",
+    "cubing": "^0.21.0-pre1",
     "parcel": "^2.0.0-rc.0",
     "tmi.js": "^1.8.5",
     "twitch-js": "^2.0.0-beta.42"
