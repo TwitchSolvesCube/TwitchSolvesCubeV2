@@ -1,16 +1,20 @@
 {
   "name": "TSCv2",
   "version": "0.0.2",
-  "main": "index.js",
+  "main": "cube.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx parcel cube.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@twurple/api": "^5.0.7",
+    "@twurple/auth": "^5.0.7",
+    "@twurple/chat": "^5.0.7",
     "cubing": "^0.21.0-pre1",
-    "parcel": "^2.0.0-rc.0",
+    "parcel": "^2.0.0",
     "tmi.js": "^1.8.5",
     "twitch-js": "^2.0.0-beta.42"
   },
