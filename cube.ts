@@ -1,6 +1,9 @@
-import tmi from "tmi.js"
-import { BOT_USERNAME, TOKEN, CHANNEL_NAME } from "./config"
-import { TwistyPlayer } from "cubing/twisty"
+import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp } from "./tokens.json";
+import { RefreshingAuthProvider } from "@twurple/auth";
+import { ChatClient } from '@twurple/chat';
+import { ApiClient } from '@twurple/api';
+
+import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty"
 import { Alg, AlgBuilder, Move } from "cubing/alg"
 import { randomScrambleForEvent } from "cubing/scramble"
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
@@ -44,6 +47,7 @@ var isSolved = false;
 
 const queue = new Array();
 var turns = true;
+var speedNotation = false;
 
 const kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 var player;
@@ -70,7 +74,7 @@ async function newScramble() {
     hintFacelets: "floating",
     backView: "top-right",
     background: "none",
-    "controlPanel": "none",
+    controlPanel: "none",
   }));
 
   scramble = await randomScrambleForEvent("333");
@@ -91,7 +95,7 @@ async function newScramble() {
     const newMove = new Move(scramArray[i]);
     player.experimentalAddMove(newMove);
     kpuzzle.applyMove(newMove);
-    console.log(scramArray[i]);
+    // console.log(scramArray[i]);
   }, 100);
 
   totalMoves = 0;
@@ -103,46 +107,48 @@ async function newScramble() {
   // kpuzzle.applyMove(newMove);
 }
 
-const client = new tmi.Client({
-  options: { debug: true, messagesLogLevel: "info" },
-  connection: {
-    reconnect: true,
-    secure: true
+const authProvider = new RefreshingAuthProvider(
+  {
+    clientId,
+    clientSecret
   },
-  identity: {
-    username: BOT_USERNAME,
-    password: TOKEN
-  },
-  channels: [CHANNEL_NAME]
-});
+  {
+    accessToken,
+    refreshToken,
+    scope,
+    expiresIn,
+    obtainmentTimestamp
+  }
+);
 
-client.connect().catch(console.error);
-client.on("message", (channel, tags, message, self) => {
-  if (self) return;
+const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
+
+chatClient.connect().catch(console.error);
+chatClient.onMessage((channel, user, message) => {
   var msg = message.toLowerCase();
 
   // Command names not to interfere with current TSCv1
   if (msg === "!qq") {
     if (queue.length > 0) {
-      client.say(channel, `${queue}`);
+      chatClient.say(channel, `${queue}`);
     }
     else {
-      client.say(channel, `There's currently no one in the queue, do !joinq`);
+      chatClient.say(channel, `There's currently no one in the queue, do !joinq`);
     }
   }
   if (msg === "!jq") {
-    joinQueue(channel, tags, message);
+    joinQueue(channel, user, message);
   }
   if (msg === "!lq") {
-    leaveQueue(channel, tags, message);
+    leaveQueue(channel, user, message);
   }
 
-  if (queue[0] === tags.username) {
+  if (queue[0] === user) {
     if (currentTurn == false) {
-      userTurnTimer = setInterval(() => userTurnTime(channel, tags, message), 1000);
+      userTurnTimer = setInterval(() => userTurnTime(channel, message), 1000);
       currentTurn = true;
     }
-    doCubeMoves(channel, tags, message);
+    doCubeMoves(channel, message);
   }
 
   // Debug
@@ -151,66 +157,67 @@ client.on("message", (channel, tags, message, self) => {
 });
 
 // Updates bottom center user label
-function userTurnTime(channel, tags, message) {
+function userTurnTime(channel, message) {
   if (turnTime >= 0) {
     userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt(turnTime / 60)) + ":" + pad(turnTime % 60); //Error? but works
     --turnTime;
   }
   else {
-    removeCurrentPlayer(channel, tags, message, true);
+    removeCurrentPlayer(channel, message, true);
   }
 }
 
-function joinQueue(channel, tags, message) {
+function joinQueue(channel, user, message) {
   if (turns === true) {
     if (queue.length === 0) {
-      queue.push(tags.username);
-      client.say(channel, `@${tags.username}, it\'s your turn! Do !leaveQ when done`);
+      queue.push(user);
+      chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
     }
-    else if (queue[0] === tags.username) {
-      client.say(channel, `@${tags.username}, it\'s currently your turn!`);
+    else if (queue[0] === user) {
+      chatClient.say(channel, `@${user}, it\'s currently your turn!`);
     }
-    else if (queue.find(name => name === tags.username) == undefined) {
-      queue.push(tags.username);
-      client.say(channel, `@${tags.username}, you have joined the queue! There is ${queue.length - 1} person in front of you`);
+    else if (queue.find(name => name === user) == undefined) {
+      queue.push(user);
+      chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} person in front of you`);
     }
-    else if (queue.find(name => name === tags.username) == tags.username) {
-      client.say(channel, `@${tags.username}, you\'re already in the queue please wait :)`);
+    else if (queue.find(name => name === user) == user) {
+      chatClient.say(channel, `@${user}, you\'re already in the queue please wait :)`);
     }
   }
   else {
-    client.say(channel, "The cube is currently in Vote mode no need to !joinq just type a move in chat");
+    chatClient.say(channel, "The cube is currently in Vote mode no need to !joinq just type a move in chat");
   }
 }
 
-function leaveQueue(channel, tags, message) {
+function leaveQueue(channel, user, message) {
   if (turns === true) {
-    if (queue.find(name => name === tags.username) === tags.username) {
-      if (queue[0] === tags.username) {
-        removeCurrentPlayer(channel, tags, message);
+    if (queue.find(name => name === user) === user) {
+      if (queue[0] === user) {
+        removeCurrentPlayer(channel, message);
       }
       else {
-        queue.splice(queue.indexOf(tags.username), 1)
+        queue.splice(queue.indexOf(user), 1)
       }
-      client.say(channel, `@${tags.username}, you have now left the queue`);
+      chatClient.say(channel, `@${user}, you have now left the queue`);
     }
     else {
-      client.say(channel, `@${tags.username}, you are not in the queue. Type !joinQ to join`);
+      chatClient.say(channel, `@${user}, you are not in the queue. Type !joinQ to join`);
     }
   }
   else {
-    client.say(channel, "The cube is currently in Vote mode no need to !leaveq just type a move in chat");
+    chatClient.say(channel, "The cube is currently in Vote mode no need to !leaveq just type a move in chat");
   }
 }
 
-function removeCurrentPlayer(channel, tags, message, timeup = false) {
+function removeCurrentPlayer(channel, message, timeup = false) {
   // Reset turnTime, clear label, stop user timer, remove player
   turnTime = 300;
   currentTurn = false;
   userLabel.innerHTML = "";
+  speedNotation = false;
 
   if (timeup) {
-    client.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
+    chatClient.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
   }
   else {
     queue.shift();
@@ -218,35 +225,67 @@ function removeCurrentPlayer(channel, tags, message, timeup = false) {
 
   // If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
-    client.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
+    chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
   }
   else {
     clearInterval(userTurnTimer);
   }
 }
 
-function doCubeMoves(channel, tags, message) {
+function doCubeMoves(channel, message) {
   // Player commands/settings
   var msg = message.toLowerCase();
   if (msg === "scramble") {
     newScramble();
   }
+  if (msg === "!speedNotation" || msg === "!sn") {
+    speedNotation = true;
+  }
   if (msg === "!none") {
     player.backView = "none";
   }
-  if (msg === "!top-right") {
-    player.backView = "top-right";
+  if (msg === "!topright" || msg === "!tr") {
+    player.backView = "topright";
   }
-  if (msg === "!side-by-side") {
-    player.backView = "side-by-side";
+  if (msg === "!sidebyside" || msg === "!sbs") {
+    player.backView = "sidebyside";
+  }
+  if (msg === "!blind" || msg === "!bld") {
+    player.experimentalStickering = "invisible";
+  }
+  if (msg === "!normal" || msg === "!norm") {
+    player.experimentalStickering = "full";
   }
 
   if (!isSolved) {
-    msg = message.replace("`", "\'").replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
-      .replace("X", "x").replace("Y", "y").replace("Z", "z")
-      .replace("m", "M").replace("e", "E").replace("s", "S");
 
-    //Apply moves to player and kpuzzle
+    if (speedNotation === false) {
+      // Ensure moves can be done
+      msg = message.replace("`", "\'")
+        .replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
+        .replace("X", "x").replace("Y", "y").replace("Z", "z")
+        .replace("m", "M").replace("e", "E").replace("s", "S");
+    }
+
+    if (speedNotation === true) {
+      // Speed Cubing Notaion
+      msg = message.toLowerCase(); //Issues with . and  / for twitch
+      msg = message.replace("5", "M").replace("6", "M").replace("x", "M\'").replace("t", "x")
+        .replace("y", "x").replace("b", "x\'").replace("n", "x\'").replace(";", "y")
+        .replace("a", "y\'").replace("d", "L").replace("z", "d").replace("?", "d'")
+        .replace("q", "z\'").replace("w", "B").replace("e", "L\'").replace("i", "R")
+        .replace("o", "B\'").replace("p", "z").replace("s", "D").replace("f", "U\'")
+        .replace("g", "F\'").replace("h", "F").replace("j", "U").replace("k", "R\'")
+        .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r")
+        .replace("u", "r").replace(",", "u").replace("c", "u'");
+    }
+
+    // Sub Moves
+    // const newAlg = new Alg("R U R' U'"); //How to check if valid Alg?
+    // player.alg = newAlg;
+    // kpuzzle.applyAlg(newAlg);
+
+    // Apply moves to player and kpuzzle
     if (moves333.find(elem => elem === msg) != undefined) {
       const newMove = new Move(moves333.find(elem => elem === msg));
       player.experimentalAddMove(newMove);
@@ -278,11 +317,11 @@ function doCubeMoves(channel, tags, message) {
 
     // Pause for 15 seconds to view Solved State
     setTimeout(function () {
-      // Reconstruction of Solve
+      // Reconstruction of Solve need to shrink/shorten link
       // player.experimentalModel.twizzleLink().then(
       //   function (value) {
       //     console.log(value)
-      //     client.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
+      //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
       //   },
       //   function (error) { }
       // );
@@ -295,7 +334,7 @@ function doCubeMoves(channel, tags, message) {
   }
 }
 
-export function smootherStep(x: number): number {
+function smootherStep(x: number): number {
   return x * x * x * (10 - x * (15 - 6 * x));
 }
 
