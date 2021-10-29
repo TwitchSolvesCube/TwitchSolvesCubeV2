@@ -14,9 +14,7 @@
     "@twurple/auth": "^5.0.7",
     "@twurple/chat": "^5.0.7",
     "cubing": "^0.21.0-pre1",
-    "parcel": "^2.0.0",
-    "tmi.js": "^1.8.5",
-    "twitch-js": "^2.0.0-beta.42"
+    "parcel": "^2.0.0"
   },
   "devDependencies": {},
   "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
