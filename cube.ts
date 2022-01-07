@@ -40,7 +40,7 @@ const moves333 =
     "M", "M'", "M2",
     "x", "x'", "x2",
     "y", "y'", "y2",
-    "z", "z'", "y2"];
+    "z", "z'", "z2"];
 
 var scramble;
 var isSolved = false;
