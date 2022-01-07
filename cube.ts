@@ -178,7 +178,11 @@ function joinQueue(channel, user, message) {
     }
     else if (queue.find(name => name === user) == undefined) {
       queue.push(user);
-      chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} person in front of you`);
+      if (queue.length > 2) {
+        chatClient.say(channel, `@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
+      } else {
+      chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
+      }
     }
     else if (queue.find(name => name === user) == user) {
       chatClient.say(channel, `@${user}, you\'re already in the queue please wait :)`);
