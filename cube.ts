@@ -54,7 +54,7 @@ var player;
 
 // Updates top right timer
 function timeSS() {
-  timeLabel.innerHTML = pad(parseInt(timeSinceSolved / 60)) + ":" + pad(timeSinceSolved % 60); //Error? but works
+  timeLabel.innerHTML = pad(parseInt((timeSinceSolved / 60).toString())) + ":" + pad(timeSinceSolved % 60);
   ++timeSinceSolved;
 }
 
@@ -159,7 +159,7 @@ chatClient.onMessage((channel, user, message) => {
 // Updates bottom center user label
 function userTurnTime(channel, message) {
   if (turnTime >= 0) {
-    userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt(turnTime / 60)) + ":" + pad(turnTime % 60); //Error? but works
+    userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((turnTime / 60).toString())) + ":" + pad(turnTime % 60); //Error? but works
     --turnTime;
   }
   else {
