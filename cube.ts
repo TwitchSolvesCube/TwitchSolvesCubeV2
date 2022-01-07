@@ -144,7 +144,7 @@ chatClient.onMessage((channel, user, message) => {
   }
 
   if (queue[0] === user) {
-    if (currentTurn == false) {
+    if (currentTurn === false) {
       userTurnTimer = setInterval(() => userTurnTime(channel, message), 1000);
       currentTurn = true;
     }
@@ -184,7 +184,7 @@ function joinQueue(channel, user, message) {
       chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
       }
     }
-    else if (queue.find(name => name === user) == user) {
+    else if (queue.find(name => name === user) === user) {
       chatClient.say(channel, `@${user}, you\'re already in the queue please wait :)`);
     }
   }
