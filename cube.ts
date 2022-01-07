@@ -255,7 +255,6 @@ function kickAFK(channel) {
 
 function doCubeMoves(channel, message) {
   // Player commands/settings
-  kickAFK(channel);
   var msg = message.toLowerCase();
   if (msg === "scramble") {
     newScramble();
@@ -280,7 +279,6 @@ function doCubeMoves(channel, message) {
   }
 
   if (!isSolved) {
-
     if (speedNotation === false) {
       // Ensure moves can be done
       msg = message.replace("`", "\'")
@@ -309,6 +307,7 @@ function doCubeMoves(channel, message) {
 
     // Apply moves to player and kpuzzle
     if (moves333.find(elem => elem === msg) != undefined) {
+      kickAFK(channel);
       const newMove = new Move(moves333.find(elem => elem === msg));
       player.experimentalAddMove(newMove);
       kpuzzle.applyMove(newMove);
