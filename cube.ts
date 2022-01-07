@@ -22,6 +22,7 @@ movesLabel.innerHTML = pad(totalMoves);
 var turnTime = 300;
 var currentTurn = false;
 var userLabel = document.getElementById("userTurn");
+let afkCountdown;
 
 // Timers
 let timeSinceSolvedTimer;
@@ -159,7 +160,7 @@ chatClient.onMessage((channel, user, message) => {
 // Updates bottom center user label
 function userTurnTime(channel, message) {
   if (turnTime >= 0) {
-    userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((turnTime / 60).toString())) + ":" + pad(turnTime % 60); //Error? but works
+    userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((turnTime / 60).toString())) + ":" + pad(turnTime % 60);
     --turnTime;
   }
   else {
@@ -172,11 +173,12 @@ function joinQueue(channel, user, message) {
     if (queue.length === 0) {
       queue.push(user);
       chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
+      kickAFK(channel);
     }
     else if (queue[0] === user) {
       chatClient.say(channel, `@${user}, it\'s currently your turn!`);
     }
-    else if (queue.find(name => name === user) == undefined) {
+    else if (queue.find(name => name === user) === undefined) {
       queue.push(user);
       if (queue.length > 2) {
         chatClient.say(channel, `@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
@@ -230,14 +232,30 @@ function removeCurrentPlayer(channel, message, timeup = false) {
   // If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
     chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
+    kickAFK(channel);
   }
   else {
     clearInterval(userTurnTimer);
   }
 }
 
+function kickAFK(channel) {
+  clearInterval(afkCountdown);
+  var afkTimer = 120;
+    afkCountdown = setInterval(() => {
+      afkTimer--;
+      console.log(afkTimer);
+      if (afkTimer === 0) {
+        chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
+        clearInterval(afkCountdown);
+        removeCurrentPlayer(channel, true);
+      }
+    }, 1000)  
+}
+
 function doCubeMoves(channel, message) {
   // Player commands/settings
+  kickAFK(channel);
   var msg = message.toLowerCase();
   if (msg === "scramble") {
     newScramble();
@@ -314,6 +332,7 @@ function doCubeMoves(channel, message) {
     isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
     console.log("Is cube solved? " + isSolved);
   }
+
   if (isSolved) {
     // Do a little spin
     setTimeout(function () { player.backView = "none" }, 1000)
