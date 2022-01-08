@@ -143,6 +143,24 @@ chatClient.onMessage((channel, user, message, tags) => {
   if (msg === "!lq") {
     leaveQueue(channel, user, message);
   }
+  if (msg.includes('!rm') && tags.userInfo.isMod) {
+    var userToRemove = message.split(' ').pop().split('@').pop(); //this seems like it should break, but doesn't! Keep an eye on this
+
+    if (queue.find(name => name === userToRemove) === userToRemove) {
+      if (queue[0] === userToRemove) {
+        chatClient.say(channel, `@${queue[0]} has been removed from the queue.`)
+        removeCurrentPlayer(channel);
+      }
+      else {
+        chatClient.say(channel, `@${userToRemove} has been removed from the queue.`);
+        queue.splice(queue.indexOf(userToRemove), 1)
+      }
+      clearInterval(afkCountdown);
+    } else {
+      chatClient.say(channel, `@${user} this user is not in the queue.`);
+    }
+  }
+
 
   if (queue[0] === user) {
     if (currentTurn === false) {
@@ -166,7 +184,7 @@ function userTurnTime(channel, message) {
   else {
     clearInterval(afkCountdown);
     speedNotation = false;
-    removeCurrentPlayer(channel, message, true);
+    removeCurrentPlayer(channel, true);
   }
 }
 
@@ -232,7 +250,7 @@ function leaveQueue(channel, user, message) {
   }
 }
 
-function removeCurrentPlayer(channel, message, timeup = false) {
+function removeCurrentPlayer(channel, timeup = false) {
   // Reset turnTime, clear label, stop user timer, remove player
   turnTime = 300;
   currentTurn = false;
@@ -307,21 +325,19 @@ function doCubeMoves(channel, message, tags) {
         .replace("u", "r").replace(",", "u").replace("c", "u'");
     }
 
-
-
     if (tags.userInfo.isSubscriber && message.length >= 3) {
       //User is subscribed and typed a message longer than 2 characters (i.e R U)
       let algArray = message.split(' ');
 
-      if(algArray.every(v => moves333.includes(v))) {
+      if (algArray.every(v => moves333.includes(v))) {
         kickAFK(channel);
         var i = -1;
         var doMoves = setInterval(function () {
           ++i;
-  
+
           if (i === algArray.length) {
             clearInterval(doMoves);
-  
+
           } else {
             const newMove = new Move(algArray[i]);
             player.experimentalAddMove(newMove);
@@ -329,7 +345,7 @@ function doCubeMoves(channel, message, tags) {
           }
         }, 100);
       }
-    } else if (moves333.find(elem => elem === msg) != undefined) { 
+    } else if (moves333.find(elem => elem === msg) != undefined) {
       kickAFK(channel);
       const newMove = new Move(moves333.find(elem => elem === msg));
       player.experimentalAddMove(newMove);
