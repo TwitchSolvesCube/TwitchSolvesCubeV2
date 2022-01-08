@@ -268,10 +268,10 @@ function doCubeMoves(channel, message, tags) {
     player.backView = "none";
   }
   if (msg === "!topright" || msg === "!tr") {
-    player.backView = "topright";
+    player.backView = "top-right";
   }
   if (msg === "!sidebyside" || msg === "!sbs") {
-    player.backView = "sidebyside";
+    player.backView = "side-by-side";
   }
   if (msg === "!blind" || msg === "!bld") {
     player.experimentalStickering = "invisible";
@@ -302,10 +302,6 @@ function doCubeMoves(channel, message, tags) {
         .replace("u", "r").replace(",", "u").replace("c", "u'");
     }
 
-    // Sub Moves
-    // const newAlg = new Alg("R U R' U'"); //How to check if valid Alg?
-    // player.alg = newAlg;
-    // kpuzzle.applyAlg(newAlg);
 
 
     if (tags.userInfo.isSubscriber && message.length >= 3) {
