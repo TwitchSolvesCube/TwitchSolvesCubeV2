@@ -8,6 +8,7 @@ import { Alg, AlgBuilder, Move } from "cubing/alg"
 import { randomScrambleForEvent } from "cubing/scramble"
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
+import { identity } from "cubing/dist/types/puzzle-geometry/Perm";
 
 // Top right timer
 var timeSinceSolved = 0;
@@ -125,7 +126,7 @@ const authProvider = new RefreshingAuthProvider(
 const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
 
 chatClient.connect().catch(console.error);
-chatClient.onMessage((channel, user, message) => {
+chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
 
   // Command names not to interfere with current TSCv1
@@ -149,7 +150,7 @@ chatClient.onMessage((channel, user, message) => {
       userTurnTimer = setInterval(() => userTurnTime(channel, message), 1000);
       currentTurn = true;
     }
-    doCubeMoves(channel, message);
+    doCubeMoves(channel, message, tags);
   }
 
   // Debug
@@ -171,15 +172,15 @@ function userTurnTime(channel, message) {
 function kickAFK(channel) {
   var afkTimer = 120;
   clearInterval(afkCountdown);
-    afkCountdown = setInterval(() => {
-      afkTimer--;
-      console.log(afkTimer);
-      if (afkTimer === 0) {
-        chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
-        clearInterval(afkCountdown);
-        removeCurrentPlayer(channel, true);
-      }
-    }, 1000)
+  afkCountdown = setInterval(() => {
+    afkTimer--;
+    //console.log(afkTimer);
+    if (afkTimer === 0) {
+      chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
+      clearInterval(afkCountdown);
+      removeCurrentPlayer(channel, true);
+    }
+  }, 1000)
 }
 
 function joinQueue(channel, user, message) {
@@ -197,7 +198,7 @@ function joinQueue(channel, user, message) {
       if (queue.length > 2) {
         chatClient.say(channel, `@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
       } else {
-      chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
+        chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
       }
     }
     else if (queue.find(name => name === user) === user) {
@@ -254,7 +255,7 @@ function removeCurrentPlayer(channel, message, timeup = false) {
   }
 }
 
-function doCubeMoves(channel, message) {
+function doCubeMoves(channel, message, tags) {
   // Player commands/settings
   var msg = message.toLowerCase();
   if (msg === "scramble") {
@@ -306,8 +307,28 @@ function doCubeMoves(channel, message) {
     // player.alg = newAlg;
     // kpuzzle.applyAlg(newAlg);
 
-    // Apply moves to player and kpuzzle
-    if (moves333.find(elem => elem === msg) != undefined) {
+
+    if (tags.userInfo.isSubscriber && message.length >= 3) {
+      //User is subscribed and typed a message longer than 2 characters (i.e R U)
+      let algArray = message.split(' ');
+
+      if(algArray.every(v => moves333.includes(v))) {
+        kickAFK(channel);
+        var i = -1;
+        var doMoves = setInterval(function () {
+          ++i;
+  
+          if (i === algArray.length) {
+            clearInterval(doMoves);
+  
+          } else {
+            const newMove = new Move(algArray[i]);
+            player.experimentalAddMove(newMove);
+            kpuzzle.applyMove(newMove);
+          }
+        }, 100);
+      }
+    } else if (moves333.find(elem => elem === msg) != undefined) { 
       kickAFK(channel);
       const newMove = new Move(moves333.find(elem => elem === msg));
       player.experimentalAddMove(newMove);
