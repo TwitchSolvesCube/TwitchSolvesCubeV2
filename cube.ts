@@ -8,7 +8,6 @@ import { Alg, AlgBuilder, Move } from "cubing/alg"
 import { randomScrambleForEvent } from "cubing/scramble"
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
-import { identity } from "cubing/dist/types/puzzle-geometry/Perm";
 
 // Top right timer
 var timeSinceSolved = 0;
@@ -165,6 +164,7 @@ function userTurnTime(channel, message) {
     --turnTime;
   }
   else {
+    clearInterval(afkCountdown);
     removeCurrentPlayer(channel, message, true);
   }
 }
