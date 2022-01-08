@@ -165,6 +165,7 @@ function userTurnTime(channel, message) {
   }
   else {
     clearInterval(afkCountdown);
+    speedNotation = false;
     removeCurrentPlayer(channel, message, true);
   }
 }
@@ -262,7 +263,11 @@ function doCubeMoves(channel, message, tags) {
     newScramble();
   }
   if (msg === "!speedNotation" || msg === "!sn") {
-    speedNotation = true;
+    if (speedNotation) {
+      speedNotation = false;
+    } else {
+      speedNotation = true;
+    }
   }
   if (msg === "!none") {
     player.backView = "none";
