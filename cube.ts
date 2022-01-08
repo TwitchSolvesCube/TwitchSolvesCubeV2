@@ -168,6 +168,20 @@ function userTurnTime(channel, message) {
   }
 }
 
+function kickAFK(channel) {
+  var afkTimer = 120;
+  clearInterval(afkCountdown);
+    afkCountdown = setInterval(() => {
+      afkTimer--;
+      console.log(afkTimer);
+      if (afkTimer === 0) {
+        chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
+        clearInterval(afkCountdown);
+        removeCurrentPlayer(channel, true);
+      }
+    }, 1000)
+}
+
 function joinQueue(channel, user, message) {
   if (turns === true) {
     if (queue.length === 0) {
@@ -204,6 +218,7 @@ function leaveQueue(channel, user, message) {
       else {
         queue.splice(queue.indexOf(user), 1)
       }
+      clearInterval(afkCountdown);
       chatClient.say(channel, `@${user}, you have now left the queue`);
     }
     else {
@@ -237,20 +252,6 @@ function removeCurrentPlayer(channel, message, timeup = false) {
   else {
     clearInterval(userTurnTimer);
   }
-}
-
-function kickAFK(channel) {
-  clearInterval(afkCountdown);
-  var afkTimer = 120;
-    afkCountdown = setInterval(() => {
-      afkTimer--;
-      console.log(afkTimer);
-      if (afkTimer === 0) {
-        chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
-        clearInterval(afkCountdown);
-        removeCurrentPlayer(channel, true);
-      }
-    }, 1000)  
 }
 
 function doCubeMoves(channel, message) {
