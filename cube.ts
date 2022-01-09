@@ -344,7 +344,7 @@ function doCubeMoves(channel, message, tags) {
           .replace("q", "z\'").replace("w", "B").replace("e", "L\'").replace("i", "R")
           .replace("o", "B\'").replace("p", "z").replace("s", "D").replace("f", "U\'")
           .replace("g", "F\'").replace("h", "F").replace("j", "U").replace("k", "R\'")
-          .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r")
+          .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r'")
           .replace("u", "r").replace(",", "u").replace("c", "u'");
 
         kickAFK(channel);
