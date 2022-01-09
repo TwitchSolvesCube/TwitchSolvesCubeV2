@@ -201,7 +201,7 @@ function userTurnTime(channel, message) {
 }
 
 function kickAFK(channel) {
-  var afkTimer = 120;
+  var afkTimer = 10;
   clearInterval(afkCountdown);
   afkCountdown = setInterval(() => {
     afkTimer--;
@@ -209,7 +209,7 @@ function kickAFK(channel) {
     if (afkTimer === 0) {
       chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
       clearInterval(afkCountdown);
-      removeCurrentPlayer(channel, true);
+      removeCurrentPlayer(channel);
     }
   }, 1000)
 }
