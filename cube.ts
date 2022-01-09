@@ -43,6 +43,18 @@ const moves333 =
     "y", "y'", "y2",
     "z", "z'", "z2"];
 
+const snMoves333 =
+  ["i", "k", "u", "m",
+    "d", "e", "v", "r",
+    "h", "g",
+    "w", "o",
+    "s", "l", "z", "?",
+    "j", "f", ",", "c",
+    "5", "6", "x",
+    "t", "y", "b",
+    ";", "a",
+    "p", "q"]
+
 var scramble;
 var isSolved = false;
 
@@ -276,7 +288,7 @@ function removeCurrentPlayer(channel, timeup = false) {
 
 function doCubeMoves(channel, message, tags) {
   // Player commands/settings
-  var msg = message.toLowerCase();
+  var msg = message;
   if (msg === "scramble") {
     newScramble();
   }
@@ -304,25 +316,47 @@ function doCubeMoves(channel, message, tags) {
   }
 
   if (!isSolved) {
-    if (speedNotation === false) {
+    if (!speedNotation) {
       // Ensure moves can be done
       msg = message.replace("`", "\'")
         .replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
         .replace("X", "x").replace("Y", "y").replace("Z", "z")
         .replace("m", "M").replace("e", "E").replace("s", "S");
-    }
 
-    if (speedNotation === true) {
-      // Speed Cubing Notaion
-      msg = message.toLowerCase(); //Issues with . and  / for twitch
-      msg = message.replace("5", "M").replace("6", "M").replace("x", "M\'").replace("t", "x")
-        .replace("y", "x").replace("b", "x\'").replace("n", "x\'").replace(";", "y")
-        .replace("a", "y\'").replace("d", "L").replace("z", "d").replace("?", "d'")
-        .replace("q", "z\'").replace("w", "B").replace("e", "L\'").replace("i", "R")
-        .replace("o", "B\'").replace("p", "z").replace("s", "D").replace("f", "U\'")
-        .replace("g", "F\'").replace("h", "F").replace("j", "U").replace("k", "R\'")
-        .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r")
-        .replace("u", "r").replace(",", "u").replace("c", "u'");
+      if (moves333.find(elem => elem === msg) != undefined) {
+
+        kickAFK(channel);
+        const newMove = new Move(msg);
+        player.experimentalAddMove(newMove);
+        kpuzzle.applyMove(newMove);
+
+        // Update top right moves
+        ++totalMoves;
+        movesLabel.innerHTML = pad(totalMoves);
+      }
+    } else if (speedNotation) {
+      msg = message.toLowerCase();
+
+      if (snMoves333.find(elem => elem === msg) != undefined) {
+        msg = msg.replace("5", "M").replace("6", "M").replace("x", "M\'").replace("t", "x")
+          .replace("y", "x").replace("b", "x\'").replace("n", "x\'").replace(";", "y")
+          .replace("a", "y\'").replace("d", "L").replace("z", "d").replace("?", "d'")
+          .replace("q", "z\'").replace("w", "B").replace("e", "L\'").replace("i", "R")
+          .replace("o", "B\'").replace("p", "z").replace("s", "D").replace("f", "U\'")
+          .replace("g", "F\'").replace("h", "F").replace("j", "U").replace("k", "R\'")
+          .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r")
+          .replace("u", "r").replace(",", "u").replace("c", "u'");
+
+        kickAFK(channel);
+
+        const newMove = new Move(msg);
+        player.experimentalAddMove(newMove);
+        kpuzzle.applyMove(newMove);
+
+        // Update top right moves
+        ++totalMoves;
+        movesLabel.innerHTML = pad(totalMoves);
+      }
     }
 
     if (tags.userInfo.isSubscriber && message.length >= 3) {
@@ -355,6 +389,17 @@ function doCubeMoves(channel, message, tags) {
       ++totalMoves;
       movesLabel.innerHTML = pad(totalMoves);
     }
+
+    /* else if (moves333.find(elem => elem === msg) != undefined) {
+      kickAFK(channel);
+      const newMove = new Move(moves333.find(elem => elem === msg));
+      player.experimentalAddMove(newMove);
+      kpuzzle.applyMove(newMove);
+ 
+      // Update top right moves
+      ++totalMoves;
+      movesLabel.innerHTML = pad(totalMoves); */
+
 
     // This would be better but gets stuck in a loop once an error catches
     // This error gets thrown from kpuzzple.ts 
