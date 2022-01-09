@@ -201,7 +201,7 @@ function userTurnTime(channel, message) {
 }
 
 function kickAFK(channel) {
-  var afkTimer = 10;
+  var afkTimer = 120;
   clearInterval(afkCountdown);
   afkCountdown = setInterval(() => {
     afkTimer--;
@@ -389,17 +389,6 @@ function doCubeMoves(channel, message, tags) {
       ++totalMoves;
       movesLabel.innerHTML = pad(totalMoves);
     }
-
-    /* else if (moves333.find(elem => elem === msg) != undefined) {
-      kickAFK(channel);
-      const newMove = new Move(moves333.find(elem => elem === msg));
-      player.experimentalAddMove(newMove);
-      kpuzzle.applyMove(newMove);
- 
-      // Update top right moves
-      ++totalMoves;
-      movesLabel.innerHTML = pad(totalMoves); */
-
 
     // This would be better but gets stuck in a loop once an error catches
     // This error gets thrown from kpuzzple.ts 
