@@ -288,11 +288,11 @@ function removeCurrentPlayer(channel, timeup = false) {
 
 function doCubeMoves(channel, message, tags) {
   // Player commands/settings
-  var msg = message;
+  var msg = message.toLowerCase();
   if (msg === "scramble") {
     newScramble();
   }
-  if (msg === "!speedNotation" || msg === "!sn") {
+  if (msg === "!speednotation" || msg === "!sn") {
     if (speedNotation) {
       speedNotation = false;
     } else {
