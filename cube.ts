@@ -8,6 +8,7 @@ import { Alg, AlgBuilder, Move } from "cubing/alg"
 import { randomScrambleForEvent } from "cubing/scramble"
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
+import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
 // Top right timer
 var timeSinceSolved = 0;
@@ -71,7 +72,7 @@ function timeSS() {
   ++timeSinceSolved;
 }
 
-function pad(val) {
+function pad(val: any) {
   var valString = val + "";
   if (valString.length < 2) {
     return "0" + valString;
@@ -90,12 +91,14 @@ async function newScramble() {
     controlPanel: "none",
   }));
 
+  player.k
+
   scramble = await randomScrambleForEvent("333");
   // Turn scramble string into an array
   const scramArray = scramble.toString().split(' ');
   console.log(scramArray);
 
-  // "Animates" scramble
+  // "Animates" scramble, replaced once AddAlg is supported
   var i = -1;
   var intervalID = setInterval(function () {
     ++i;
@@ -134,7 +137,8 @@ const authProvider = new RefreshingAuthProvider(
   }
 );
 
-const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
+const apiClient = new ApiClient({ authProvider });
+const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvesbot'] });
 
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
@@ -150,10 +154,10 @@ chatClient.onMessage((channel, user, message, tags) => {
     }
   }
   if (msg === "!jq") {
-    joinQueue(channel, user, message);
+    joinQueue(channel, user);
   }
   if (msg === "!lq") {
-    leaveQueue(channel, user, message);
+    leaveQueue(channel, user);
   }
   if (msg.includes('!rm') && tags.userInfo.isMod) {
     var userToRemove = message.split(' ').pop().split('@').pop(); //this seems like it should break, but doesn't! Keep an eye on this
@@ -176,7 +180,7 @@ chatClient.onMessage((channel, user, message, tags) => {
 
   if (queue[0] === user) {
     if (currentTurn === false) {
-      userTurnTimer = setInterval(() => userTurnTime(channel, message), 1000);
+      userTurnTimer = setInterval(() => userTurnTime(channel), 1000);
       currentTurn = true;
     }
     doCubeMoves(channel, message, tags);
@@ -188,7 +192,7 @@ chatClient.onMessage((channel, user, message, tags) => {
 });
 
 // Updates bottom center user label
-function userTurnTime(channel, message) {
+function userTurnTime(channel: string) {
   if (turnTime >= 0) {
     userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((turnTime / 60).toString())) + ":" + pad(turnTime % 60);
     --turnTime;
@@ -200,7 +204,7 @@ function userTurnTime(channel, message) {
   }
 }
 
-function kickAFK(channel) {
+function kickAFK(channel: string) {
   var afkTimer = 120;
   clearInterval(afkCountdown);
   afkCountdown = setInterval(() => {
@@ -214,7 +218,7 @@ function kickAFK(channel) {
   }, 1000)
 }
 
-function joinQueue(channel, user, message) {
+function joinQueue(channel: string, user: string) {
   if (turns === true) {
     if (queue.length === 0) {
       queue.push(user);
@@ -241,11 +245,11 @@ function joinQueue(channel, user, message) {
   }
 }
 
-function leaveQueue(channel, user, message) {
+function leaveQueue(channel: string, user: string) {
   if (turns === true) {
     if (queue.find(name => name === user) === user) {
       if (queue[0] === user) {
-        removeCurrentPlayer(channel, message);
+        removeCurrentPlayer(channel, false);
       }
       else {
         queue.splice(queue.indexOf(user), 1)
@@ -262,7 +266,7 @@ function leaveQueue(channel, user, message) {
   }
 }
 
-function removeCurrentPlayer(channel, timeup = false) {
+function removeCurrentPlayer(channel: string, timeup = false) {
   // Reset turnTime, clear label, stop user timer, remove player
   turnTime = 300;
   currentTurn = false;
@@ -286,7 +290,7 @@ function removeCurrentPlayer(channel, timeup = false) {
   }
 }
 
-function doCubeMoves(channel, message, tags) {
+function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
   if (msg === "scramble") {
@@ -427,6 +431,13 @@ function doCubeMoves(channel, message, tags) {
       isSolved = false;
     }, 15 * 1000)
   }
+}
+
+async function isFollowing(username: string){
+  //Gets UserID from UserName
+  const userID = (await apiClient.users.getUserByName(username)).id;
+  console.log(userID);
+  return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
 }
 
 function smootherStep(x: number): number {
