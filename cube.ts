@@ -20,7 +20,7 @@ var movesLabel = document.getElementById("moveCount");
 movesLabel.innerHTML = pad(totalMoves);
 
 // Bottom center user turn
-var turnTime = 300;
+var turnTime;
 var currentTurn = false;
 var userLabel = document.getElementById("userTurn");
 let afkCountdown;
@@ -222,6 +222,12 @@ function joinQueue(channel: string, user: string) {
   if (turns === true) {
     if (queue.length === 0) {
       queue.push(user);
+      if (isFollowing(user)) {
+        turnTime = 480;
+      }
+      else {
+        turnTime = 300;
+      }
       chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK(channel);
     }
@@ -282,6 +288,12 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 
   // If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
+    if (isFollowing(queue[0])) {
+      turnTime = 480;
+    }
+    else {
+      turnTime = 300;
+    }
     chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK(channel);
   }
