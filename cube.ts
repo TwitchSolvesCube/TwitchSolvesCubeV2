@@ -153,7 +153,10 @@ chatClient.onMessage((channel, user, message, tags) => {
       chatClient.say(channel, `There's currently no one in the queue, do !joinq`);
     }
   }
-  if (msg === "!jq") {
+  if (msg.includes("!jq")) {
+    /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
+      newScramble();
+    } */
     joinQueue(channel, user);
   }
   if (msg === "!lq") {
