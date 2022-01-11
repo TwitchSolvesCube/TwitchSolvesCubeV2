@@ -57,12 +57,12 @@ const snMoves333 =
     "p", "q"]
 
 const scrambleMoves333 =
-    ["R", "R'", "R2",
-      "L", "L'", "L2",
-      "U", "U'", "U2",
-      "D", "D'", "D2",
-      "B", "B'", "B2",
-      "F", "F'", "F2"]
+  ["R", "R'", "R2",
+    "L", "L'", "L2",
+    "U", "U'", "U2",
+    "D", "D'", "D2",
+    "B", "B'", "B2",
+    "F", "F'", "F2"]
 
 var scramble;
 var isSolved = false;
@@ -89,6 +89,7 @@ function pad(val: any) {
   }
 }
 
+
 async function newScramble() {
   // Starts new player, replaces old one
   player = document.body.appendChild(new TwistyPlayer({
@@ -96,7 +97,7 @@ async function newScramble() {
     hintFacelets: "floating",
     backView: "top-right",
     background: "none",
-    controlPanel: "none",
+    controlPanel: "none"
   }));
 
   player.k;
@@ -104,7 +105,7 @@ async function newScramble() {
   scramble = await randomScrambleForEvent("333");
   // Turn scramble string into an array
   const scramArray = scramble.toString().split(' ');
-  console.log(scramArray);
+  //console.log(scramArray);
 
   // "Animates" scramble, replaced once AddAlg is supported
   var i = -1;
@@ -146,12 +147,12 @@ const authProvider = new RefreshingAuthProvider(
 );
 
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
+const chatClient = new ChatClient({ authProvider, channels: ['c0zybtw'] });
 
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
-  
+
   // Command names not to interfere with current TSCv1
   if (msg === "!qq") {
     if (queue.length > 0) {
@@ -316,6 +317,7 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
+
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
       newScramble();
@@ -325,14 +327,23 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 
       const scramArray = scramble.toString().split(' ');
       console.log(scramArray);
-      //kpuzzle.reset;
-      console.log(scrambleMoves333.find(elem => elem === scramble));
 
+      console.log(scramArray.every(move => scrambleMoves333.includes(move)));
 
-      if (scrambleMoves333.find(elem => elem === scramble) != undefined) {
+      if (scramArray.every(move => scrambleMoves333.includes(move))) {
+
+        player = document.body.appendChild(new TwistyPlayer({
+          puzzle: "3x3x3",
+          hintFacelets: "floating",
+          backView: "top-right",
+          background: "none",
+          controlPanel: "none",
+        }));
 
         var i = -1;
+        kpuzzle.reset();
         var intervalID = setInterval(function () {
+          isSolved = false;
           ++i;
           if (i >= scramArray.length - 1) {
             clearInterval(intervalID);
@@ -341,9 +352,8 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
             timeSinceSolvedTimer = setInterval(timeSS, 1000);
           }
           const newMove = new Move(scramArray[i]);
-          player.experimentalAddMove(newMove);
           kpuzzle.applyMove(newMove);
-          // console.log(scramArray[i]);
+          player.experimentalAddMove(newMove);
         }, 100);
       }
     }
@@ -418,7 +428,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       //User is subscribed and typed a message longer than 2 characters (i.e R U)
       let algArray = message.split(' ');
 
-      if (algArray.every(v => moves333.includes(v))) {
+      if (algArray.every(move => moves333.includes(move))) {
         kickAFK(channel);
         var i = -1;
         var doMoves = setInterval(function () {
@@ -478,8 +488,8 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 async function isFollowing(username: string) {
   //Gets UserID from UserName
   const userID = (await apiClient.users.getUserByName(username)).id;
-  console.log(userID);
-  return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
+  //console.log(userID);
+  //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
 }
 
 function smootherStep(x: number): number {
