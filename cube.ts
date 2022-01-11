@@ -332,6 +332,9 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 
       if (scramArray.every(move => scrambleMoves333.includes(move))) {
 
+        //this seems like an awful way of doing this. 
+        //it would be better if we could just get the config in to a global variable or just use player.reset 
+        //or something if this exists
         player = document.body.appendChild(new TwistyPlayer({
           puzzle: "3x3x3",
           hintFacelets: "floating",
