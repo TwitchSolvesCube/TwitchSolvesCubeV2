@@ -56,6 +56,14 @@ const snMoves333 =
     ";", "a",
     "p", "q"]
 
+const scrambleMoves333 =
+    ["R", "R'", "R2",
+      "L", "L'", "L2",
+      "U", "U'", "U2",
+      "D", "D'", "D2",
+      "B", "B'", "B2",
+      "F", "F'", "F2"]
+
 var scramble;
 var isSolved = false;
 
@@ -143,7 +151,6 @@ const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube']
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
-
   // Command names not to interfere with current TSCv1
   if (msg === "!qq") {
     if (queue.length > 0) {
@@ -308,8 +315,37 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
-  if (msg === "scramble") {
-    newScramble();
+  if (msg.includes("scramble")) {
+    if (msg === "scramble") {
+      newScramble();
+    } else {
+      scramble = message.slice(9, msg.length);
+      console.log(scramble);
+
+      const scramArray = scramble.toString().split(' ');
+      console.log(scramArray);
+      //kpuzzle.reset;
+      console.log(scrambleMoves333.find(elem => elem === scramble));
+
+
+      if (scrambleMoves333.find(elem => elem === scramble) != undefined) {
+
+        var i = -1;
+        var intervalID = setInterval(function () {
+          ++i;
+          if (i >= scramArray.length - 1) {
+            clearInterval(intervalID);
+            clearInterval(timeSinceSolvedTimer);
+            timeSinceSolved = 0;
+            timeSinceSolvedTimer = setInterval(timeSS, 1000);
+          }
+          const newMove = new Move(scramArray[i]);
+          player.experimentalAddMove(newMove);
+          kpuzzle.applyMove(newMove);
+          // console.log(scramArray[i]);
+        }, 100);
+      }
+    }
   }
   if (msg === "!speednotation" || msg === "!sn") {
     if (speedNotation) {
