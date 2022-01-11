@@ -64,7 +64,7 @@ const scrambleMoves333 =
     "B", "B'", "B2",
     "F", "F'", "F2"]
 
-var scramble;
+var scramble333;
 var isSolved = false;
 
 const queue = new Array();
@@ -100,11 +100,9 @@ async function newScramble() {
     controlPanel: "none"
   }));
 
-  player.k;
-
-  scramble = await randomScrambleForEvent("333");
+  scramble333 = await randomScrambleForEvent("333");
   // Turn scramble string into an array
-  const scramArray = scramble.toString().split(' ');
+  const scramArray = scramble333.toString().split(' ');
   //console.log(scramArray);
 
   // "Animates" scramble, replaced once AddAlg is supported
@@ -132,6 +130,48 @@ async function newScramble() {
   kpuzzle.applyMove(newMove); */
 }
 
+async function scramble(eventID: string, scramble: string) {
+
+  // Starts new player, replaces old one
+  player = document.body.appendChild(new TwistyPlayer({
+    puzzle: "3x3x3",
+    hintFacelets: "floating",
+    backView: "top-right",
+    background: "none",
+    controlPanel: "none",
+  }));
+
+  if (scramble.toString() === '') {
+    scramble = (await randomScrambleForEvent(eventID)).toString();
+  } else {
+    //Convert input to Array of moves without the empty string as 1st element
+    const scramArray = scramble.split(' ').splice(1);
+    
+    if (scramArray.every(move => scrambleMoves333.includes(move))) {
+      console.log(scramArray);
+
+      // "Animates" scramble, replaced once AddAlg is supported
+      var i = -1;
+      var intervalID = setInterval(function () {
+        ++i;
+        if (i >= scramArray.length - 1) {
+          clearInterval(intervalID);
+          clearInterval(timeSinceSolvedTimer);
+          timeSinceSolved = 0;
+          timeSinceSolvedTimer = setInterval(timeSS, 1000);
+        }
+        const newMove = new Move(scramArray[i]);
+        player.experimentalAddMove(newMove);
+        kpuzzle.applyMove(newMove);
+        // console.log(scramArray[i]);
+      }, 100);
+
+      totalMoves = 0;
+      movesLabel.innerHTML = pad(totalMoves);
+    }
+  }
+}
+
 const authProvider = new RefreshingAuthProvider(
   {
     clientId,
@@ -154,6 +194,16 @@ chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
 
   // Command names not to interfere with current TSCv1
+
+  if (msg.includes("scramble")) {
+    if (msg === "scramble") {
+      scramble("333", "");
+    } else {
+      console.log(message.slice(8, message.length));
+
+      scramble("333", message.slice(8, message.length));
+    }
+  }
   if (msg === "!qq") {
     if (queue.length > 0) {
       chatClient.say(channel, `${queue}`);
@@ -322,7 +372,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
     if (msg === "scramble") {
       newScramble();
     } else {
-      scramble = message.slice(9, msg.length);
+      scramble333 = message.slice(9, msg.length);
       console.log(scramble);
 
       const scramArray = scramble.toString().split(' ');
