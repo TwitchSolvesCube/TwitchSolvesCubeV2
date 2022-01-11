@@ -12,7 +12,11 @@ https://nodejs.org/en/
 Run line by line
 ```
 git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2 && cd TwitchSolvesCubeV2
+```
+```
 npm install parcel cubing@0.22.0 @twurple/auth @twurple/chat @twurple/api
+```
+```
 npx parcel .\cube.html
 ```
 
