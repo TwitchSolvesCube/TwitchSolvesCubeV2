@@ -151,6 +151,7 @@ const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube']
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
+  
   // Command names not to interfere with current TSCv1
   if (msg === "!qq") {
     if (queue.length > 0) {
