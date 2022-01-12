@@ -11,14 +11,12 @@ import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMe
 
 import TSC, * as global from "./TSC";
 
-
 const tsc = new TSC();
 
-
 // Timers
-let timeSinceSolvedTimer;
-let userTurnTimer;
-let afkCountdown;
+let timeSinceSolvedTimer: NodeJS.Timer;
+let userTurnTimer: NodeJS.Timer;
+let afkCountdown: NodeJS.Timer;
 
 const scrambleMoves333 =
   ["R", "R'", "R2",
@@ -58,40 +56,42 @@ async function newScramble(eventID: string, scramble: string) {
     background: "none",
     controlPanel: "none",
   }));
-  console.log(scramble);
   
-  if (scramble.toString() === '') {
-    scramble = (await randomScrambleForEvent(eventID)).toString();
-    scramArray = scramble.split(' ');
-  } else {
-    //Convert input to Array of moves without the empty string as 1st element
-    scramArray = scramble.split(' ').splice(1);
-  }
-  // scramble = await randomScrambleForEvent("333");
-  // // Turn scramble string into an array
-  // const scramArray = scramble.toString().split(' ');
-  // console.log(scramArray);
+  // if (scramble.toString() === '') {
+  //   scramble = (await randomScrambleForEvent(eventID)).toString();
+  //   scramArray = scramble.split(' ');
+  // } else {
+  //   //Convert input to Array of moves without the empty string as 1st element
+  //   scramArray = scramble.split(' ').splice(1);
+  // }
 
   await tsc.newScrambleArray();
-if (scramArray.every(move => scrambleMoves333.includes(move))) {
-  // "Animates" scramble, replaced once AddAlg is supported
-  var i = -1;
-  var intervalID = setInterval(function () {
-    ++i;
-    if (i >= tsc.scramble.length - 1) {
-      clearInterval(intervalID);
-      clearInterval(timeSinceSolvedTimer);
-      tsc.resetTimeSS();
-      timeSinceSolvedTimer = setInterval(timeSS, 1000);
-    }
-    const newMove = new Move(tsc.scramble[i]);
-    player.experimentalAddMove(newMove);
-    // console.log(tsc.scramble[i]);
-  }, 100);
   kpuzzle.reset();
-  kpuzzle.applyAlg(new Alg(this.scramble[i]));
-  tsc.resetMoves();
-  tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
+
+  if (tsc.scramble.every(move => scrambleMoves333.includes(move))) {
+    // "Animates" scramble, replaced once AddAlg is supported
+    var i = -1;
+    var intervalID = setInterval(function () {
+      ++i;
+      if (i >= tsc.scramble.length - 1) {
+        clearInterval(intervalID);
+        clearInterval(timeSinceSolvedTimer);
+        tsc.resetTimeSS();
+        timeSinceSolvedTimer = setInterval(timeSS, 1000);
+      }
+      const newMove = new Move(tsc.scramble[i]);
+      player.experimentalAddMove(newMove);
+      kpuzzle.applyAlg(new Alg(tsc.scramble[i]));
+    }, 100);
+
+    //Debug
+    // const newMove = new Move(tsc.scramble[0]);
+    // player.experimentalAddMove(newMove);
+    // kpuzzle.applyAlg(new Alg(tsc.scramble[0]));
+
+    tsc.resetMoves();
+    tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
+  }
 }
 
 const authProvider = new RefreshingAuthProvider(
@@ -272,7 +272,7 @@ function removeCurrentPlayer(channel: string, timeup = false) {
     }
     else {
       tsc.setTurnTime(300);
-
+    }
     chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK(channel);
   }
@@ -401,7 +401,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 }
 
 function checkSolved() {
-  isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
+  tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
   if (tsc.isCubeSolved()) {
     setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
@@ -420,7 +420,7 @@ function checkSolved() {
       // Reset
 
       tsc.resetTimeSS();
-      newScramble();
+      newScramble("333", "");
       tsc.setCubeSolved(false);
     }, 15 * 1000)
   }
