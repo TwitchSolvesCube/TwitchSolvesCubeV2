@@ -11,12 +11,23 @@ import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMe
 
 import TSC, * as global from "./TSC";
 
+
 const tsc = new TSC();
+
 
 // Timers
 let timeSinceSolvedTimer;
 let userTurnTimer;
 let afkCountdown;
+
+const scrambleMoves333 =
+  ["R", "R'", "R2",
+    "L", "L'", "L2",
+    "U", "U'", "U2",
+    "D", "D'", "D2",
+    "B", "B'", "B2",
+    "F", "F'", "F2"]
+
 
 const queue = new Array();
 var kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
@@ -37,7 +48,8 @@ function pad(val: any) {
   }
 }
 
-async function newScramble() {
+async function newScramble(eventID: string, scramble: string) {
+
   // Starts new player, replaces old one
   player = document.body.appendChild(new TwistyPlayer({
     puzzle: "3x3x3",
@@ -46,14 +58,22 @@ async function newScramble() {
     background: "none",
     controlPanel: "none",
   }));
-
+  console.log(scramble);
+  
+  if (scramble.toString() === '') {
+    scramble = (await randomScrambleForEvent(eventID)).toString();
+    scramArray = scramble.split(' ');
+  } else {
+    //Convert input to Array of moves without the empty string as 1st element
+    scramArray = scramble.split(' ').splice(1);
+  }
   // scramble = await randomScrambleForEvent("333");
   // // Turn scramble string into an array
   // const scramArray = scramble.toString().split(' ');
   // console.log(scramArray);
 
   await tsc.newScrambleArray();
-
+if (scramArray.every(move => scrambleMoves333.includes(move))) {
   // "Animates" scramble, replaced once AddAlg is supported
   var i = -1;
   var intervalID = setInterval(function () {
@@ -66,17 +86,12 @@ async function newScramble() {
     }
     const newMove = new Move(tsc.scramble[i]);
     player.experimentalAddMove(newMove);
-    kpuzzle.applyMove(newMove);
     // console.log(tsc.scramble[i]);
   }, 100);
-
+  kpuzzle.reset();
+  kpuzzle.applyAlg(new Alg(this.scramble[i]));
   tsc.resetMoves();
   tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
-
-  // Debug
-  // const newMove = new Move(scramArray[0]);
-  // player.experimentalAddMove(newMove);
-  // kpuzzle.applyMove(newMove);
 }
 
 const authProvider = new RefreshingAuthProvider(
@@ -96,11 +111,13 @@ const authProvider = new RefreshingAuthProvider(
 const apiClient = new ApiClient({ authProvider });
 const chatClient = new ChatClient({ authProvider, channels: [global.channelName] });
 
+
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
 
   // Command names not to interfere with current TSCv1
+
   if (msg === "!qq") {
     if (queue.length > 0) {
       chatClient.say(channel, `${queue}`);
@@ -109,8 +126,13 @@ chatClient.onMessage((channel, user, message, tags) => {
       chatClient.say(channel, `There's currently no one in the queue, do !joinq`);
     }
   }
-  if (msg === "!jq") {
-    joinQueue(channel, user);
+  if (msg.includes("!jq")) {
+    /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
+      newScramble();
+    } */
+    if (msg === "!jq") {
+      joinQueue(channel, user);
+    }
   }
   if (msg === "!lq") {
     leaveQueue(channel, user);
@@ -183,6 +205,7 @@ function joinQueue(channel: string, user: string) {
       }
       else {
         tsc.setTurnTime(300);
+
       }
       chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK(channel);
@@ -249,7 +272,7 @@ function removeCurrentPlayer(channel: string, timeup = false) {
     }
     else {
       tsc.setTurnTime(300);
-    }
+
     chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK(channel);
   }
@@ -261,8 +284,13 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
-  if (msg === "scramble") {
-    newScramble();
+
+  if (msg.includes("scramble")) {
+    if (msg === "scramble") {
+      newScramble("333", "");
+    } else {
+      newScramble("333", message.slice(8, message.length));
+    }
   }
   if (msg === "!speednotation" || msg === "!sn") {
     if (tsc.speedNotationState()) {
@@ -295,8 +323,8 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
         .replace("X", "x").replace("Y", "y").replace("Z", "z")
         .replace("m", "M").replace("e", "E").replace("s", "S");
 
-      if (global.moves333.find(elem => elem === msg) != undefined) {
 
+      if (global.moves333.find(elem => elem === msg) != undefined) {
         kickAFK(channel);
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
@@ -336,6 +364,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       let algArray = message.split(' ');
 
       if (algArray.every(v => global.moves333.includes(v))) {
+
         kickAFK(channel);
         var i = -1;
         var doMoves = setInterval(function () {
@@ -348,6 +377,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
             const newMove = new Move(algArray[i]);
             player.experimentalAddMove(newMove);
             kpuzzle.applyMove(newMove);
+            checkSolved();
           }
         }, 100);
       }
@@ -367,9 +397,12 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
     tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
     console.log("Is cube solved? " + tsc.isCubeSolved());
   }
+  checkSolved();
+}
 
+function checkSolved() {
+  isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
   if (tsc.isCubeSolved()) {
-    // Do a little spin
     setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
@@ -385,6 +418,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       // );
 
       // Reset
+
       tsc.resetTimeSS();
       newScramble();
       tsc.setCubeSolved(false);
@@ -392,11 +426,11 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   }
 }
 
-async function isFollowing(username: string){
+async function isFollowing(username: string) {
   //Gets UserID from UserName
   const userID = (await apiClient.users.getUserByName(username)).id;
-  console.log(userID);
-  return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
+  //console.log(userID);
+  //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
 }
 
 function smootherStep(x: number): number {
@@ -425,4 +459,4 @@ function spinCamera(options?: { numSpins?: number, durationMs: number }): void {
 }
 
 // Starts cube scrambled
-newScramble();
+newScramble("333", "");
