@@ -5,79 +5,36 @@ import { ApiClient } from '@twurple/api';
 
 import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty"
 import { Alg, AlgBuilder, Move } from "cubing/alg"
-import { randomScrambleForEvent } from "cubing/scramble"
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
 import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
-// Top right timer
-var timeSinceSolved = 0;
-var timeLabel = document.getElementById("timeSinceSolved");
+import TSC, * as global from "./TSC";
 
-// Top right moves counter
-var totalMoves = 0;
-var movesLabel = document.getElementById("moveCount");
-movesLabel.innerHTML = pad(totalMoves);
-
-// Bottom center user turn
-var turnTime;
-var currentTurn = false;
-var userLabel = document.getElementById("userTurn");
-let afkCountdown;
+const tsc = new TSC();
 
 // Timers
-let timeSinceSolvedTimer;
-let userTurnTimer;
-
-// Array of all supported moves
-const moves333 =
-  ["R", "R'", "R2", "r", "r'", "r2",
-    "L", "L'", "L2", "l", "l'", "l2",
-    "F", "F'", "F2", "f", "f'", "f2",
-    "B", "B'", "B2", "b", "b'", "b2",
-    "D", "D'", "D2", "d", "d'", "d2",
-    "U", "U'", "U2", "u", "u'", "u2",
-    "E", "E'", "E2",
-    "S", "S'", "S2",
-    "M", "M'", "M2",
-    "x", "x'", "x2",
-    "y", "y'", "y2",
-    "z", "z'", "z2"];
-
-const snMoves333 =
-  ["i", "k", "u", "m",
-    "d", "e", "v", "r",
-    "h", "g",
-    "w", "o",
-    "s", "l", "z", "?",
-    "j", "f", ",", "c",
-    "5", "6", "x",
-    "t", "y", "b",
-    ";", "a",
-    "p", "q"]
+let timeSinceSolvedTimer: NodeJS.Timer;
+let userTurnTimer: NodeJS.Timer;
+let afkCountdown: NodeJS.Timer;
 
 const scrambleMoves333 =
-    ["R", "R'", "R2",
-      "L", "L'", "L2",
-      "U", "U'", "U2",
-      "D", "D'", "D2",
-      "B", "B'", "B2",
-      "F", "F'", "F2"]
+  ["R", "R'", "R2",
+    "L", "L'", "L2",
+    "U", "U'", "U2",
+    "D", "D'", "D2",
+    "B", "B'", "B2",
+    "F", "F'", "F2"]
 
-var scramble;
-var isSolved = false;
 
 const queue = new Array();
-var turns = true;
-var speedNotation = false;
-
-const kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
-var player;
+var kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
+var player = new TwistyPlayer;
 
 // Updates top right timer
 function timeSS() {
-  timeLabel.innerHTML = pad(parseInt((timeSinceSolved / 60).toString())) + ":" + pad(timeSinceSolved % 60);
-  ++timeSinceSolved;
+  tsc.timeLabel.innerHTML = pad(parseInt((tsc.timeSinceSolved / 60).toString())) + ":" + pad(tsc.timeSinceSolved % 60);
+  tsc.incTimeSS();
 }
 
 function pad(val: any) {
@@ -89,7 +46,8 @@ function pad(val: any) {
   }
 }
 
-async function newScramble() {
+async function newScramble(eventID: string, scramble: string) {
+
   // Starts new player, replaces old one
   player = document.body.appendChild(new TwistyPlayer({
     puzzle: "3x3x3",
@@ -98,37 +56,42 @@ async function newScramble() {
     background: "none",
     controlPanel: "none",
   }));
+  
+  // if (scramble.toString() === '') {
+  //   scramble = (await randomScrambleForEvent(eventID)).toString();
+  //   scramArray = scramble.split(' ');
+  // } else {
+  //   //Convert input to Array of moves without the empty string as 1st element
+  //   scramArray = scramble.split(' ').splice(1);
+  // }
 
-  player.k;
+  await tsc.newScrambleArray();
+  kpuzzle.reset();
 
-  scramble = await randomScrambleForEvent("333");
-  // Turn scramble string into an array
-  const scramArray = scramble.toString().split(' ');
-  console.log(scramArray);
+  if (tsc.scramble.every(move => scrambleMoves333.includes(move))) {
+    // "Animates" scramble, replaced once AddAlg is supported
+    var i = -1;
+    var intervalID = setInterval(function () {
+      ++i;
+      if (i >= tsc.scramble.length - 1) {
+        clearInterval(intervalID);
+        clearInterval(timeSinceSolvedTimer);
+        tsc.resetTimeSS();
+        timeSinceSolvedTimer = setInterval(timeSS, 1000);
+      }
+      const newMove = new Move(tsc.scramble[i]);
+      player.experimentalAddMove(newMove);
+      kpuzzle.applyAlg(new Alg(tsc.scramble[i]));
+    }, 100);
 
-  // "Animates" scramble, replaced once AddAlg is supported
-  var i = -1;
-  var intervalID = setInterval(function () {
-    ++i;
-    if (i >= scramArray.length - 1) {
-      clearInterval(intervalID);
-      clearInterval(timeSinceSolvedTimer);
-      timeSinceSolved = 0;
-      timeSinceSolvedTimer = setInterval(timeSS, 1000);
-    }
-    const newMove = new Move(scramArray[i]);
-    player.experimentalAddMove(newMove);
-    kpuzzle.applyMove(newMove);
-    // console.log(scramArray[i]);
-  }, 100);
+    //Debug
+    // const newMove = new Move(tsc.scramble[0]);
+    // player.experimentalAddMove(newMove);
+    // kpuzzle.applyAlg(new Alg(tsc.scramble[0]));
 
-  totalMoves = 0;
-  movesLabel.innerHTML = pad(totalMoves);
-
-  // Debug
-  /* const newMove = new Move(scramArray[0]);
-  player.experimentalAddMove(newMove);
-  kpuzzle.applyMove(newMove); */
+    tsc.resetMoves();
+    tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
+  }
 }
 
 const authProvider = new RefreshingAuthProvider(
@@ -146,13 +109,15 @@ const authProvider = new RefreshingAuthProvider(
 );
 
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
+const chatClient = new ChatClient({ authProvider, channels: [global.channelName] });
+
 
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
   
   // Command names not to interfere with current TSCv1
+
   if (msg === "!qq") {
     if (queue.length > 0) {
       chatClient.say(channel, `${queue}`);
@@ -165,7 +130,9 @@ chatClient.onMessage((channel, user, message, tags) => {
     /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
       newScramble();
     } */
-    joinQueue(channel, user);
+    if (msg === "!jq") {
+      joinQueue(channel, user);
+    }
   }
   if (msg === "!lq") {
     leaveQueue(channel, user);
@@ -190,9 +157,9 @@ chatClient.onMessage((channel, user, message, tags) => {
 
 
   if (queue[0] === user) {
-    if (currentTurn === false) {
+    if (!tsc.currentTurnState()) {
       userTurnTimer = setInterval(() => userTurnTime(channel), 1000);
-      currentTurn = true;
+      tsc.setCurrentTurn(true);
     }
     doCubeMoves(channel, message, tags);
   }
@@ -204,13 +171,13 @@ chatClient.onMessage((channel, user, message, tags) => {
 
 // Updates bottom center user label
 function userTurnTime(channel: string) {
-  if (turnTime >= 0) {
-    userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((turnTime / 60).toString())) + ":" + pad(turnTime % 60);
-    --turnTime;
+  if (tsc.turnTime >= 0) {
+    tsc.userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((tsc.turnTime / 60).toString())) + ":" + pad(tsc.turnTime % 60);
+    tsc.decTurnTime();
   }
   else {
     clearInterval(afkCountdown);
-    speedNotation = false;
+    tsc.setSpeedNotation(false);
     removeCurrentPlayer(channel, true);
   }
 }
@@ -230,14 +197,14 @@ function kickAFK(channel: string) {
 }
 
 function joinQueue(channel: string, user: string) {
-  if (turns === true) {
+  if (tsc.turnsState()) {
     if (queue.length === 0) {
       queue.push(user);
       if (isFollowing(user)) {
-        turnTime = 480;
+        tsc.setTurnTime(480);
       }
       else {
-        turnTime = 300;
+        tsc.setTurnTime(300);
       }
       chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK(channel);
@@ -263,7 +230,7 @@ function joinQueue(channel: string, user: string) {
 }
 
 function leaveQueue(channel: string, user: string) {
-  if (turns === true) {
+  if (tsc.turnsState()) {
     if (queue.find(name => name === user) === user) {
       if (queue[0] === user) {
         removeCurrentPlayer(channel, false);
@@ -285,10 +252,10 @@ function leaveQueue(channel: string, user: string) {
 
 function removeCurrentPlayer(channel: string, timeup = false) {
   // Reset turnTime, clear label, stop user timer, remove player
-  turnTime = 300;
-  currentTurn = false;
-  userLabel.innerHTML = "";
-  speedNotation = false;
+  tsc.setTurnTime(300);
+  tsc.setCurrentTurn(false);
+  tsc.userLabel.innerHTML = "";
+  tsc.setSpeedNotation(false);
 
   if (timeup) {
     chatClient.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
@@ -300,10 +267,10 @@ function removeCurrentPlayer(channel: string, timeup = false) {
   // If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
     if (isFollowing(queue[0])) {
-      turnTime = 480;
+      tsc.setTurnTime(480);
     }
     else {
-      turnTime = 300;
+      tsc.setTurnTime(300);
     }
     chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK(channel);
@@ -316,14 +283,19 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
-  if (msg === "scramble") {
-      newScramble();
+  
+  if (msg.includes("scramble")) {
+    if (msg === "scramble") {
+      newScramble("333", "");
+    } else {
+      newScramble("333", message.slice(8, message.length));
+    }
   }
   if (msg === "!speednotation" || msg === "!sn") {
-    if (speedNotation) {
-      speedNotation = false;
+    if (tsc.speedNotationState()) {
+      tsc.setSpeedNotation(false);
     } else {
-      speedNotation = true;
+      tsc.setSpeedNotation(true);
     }
   }
   if (msg === "!none") {
@@ -342,28 +314,29 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
     player.experimentalStickering = "full";
   }
 
-  if (!isSolved) {
-    if (!speedNotation) {
+  if (!tsc.isCubeSolved()) {
+    if (!tsc.speedNotationState()) {
       // Ensure moves can be done
       msg = message.replace("`", "\'")
         .replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
         .replace("X", "x").replace("Y", "y").replace("Z", "z")
         .replace("m", "M").replace("e", "E").replace("s", "S");
 
-      if (moves333.find(elem => elem === msg) != undefined) {
+
+      if (global.moves333.find(elem => elem === msg) != undefined) {
         kickAFK(channel);
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
         kpuzzle.applyMove(newMove);
 
         // Update top right moves
-        ++totalMoves;
-        movesLabel.innerHTML = pad(totalMoves);
+        tsc.incMoves();
+        tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
       }
-    } else if (speedNotation) {
+    } else if (tsc.speedNotationState()) {
       msg = message.toLowerCase();
 
-      if (snMoves333.find(elem => elem === msg) != undefined) {
+      if (global.snMoves333.find(elem => elem === msg) != undefined) {
         msg = msg.replace("5", "M").replace("6", "M").replace("x", "M\'").replace("t", "x")
           .replace("y", "x").replace("b", "x\'").replace("n", "x\'").replace(";", "y")
           .replace("a", "y\'").replace("d", "L").replace("z", "d").replace("?", "d'")
@@ -380,8 +353,8 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
         kpuzzle.applyMove(newMove);
 
         // Update top right moves
-        ++totalMoves;
-        movesLabel.innerHTML = pad(totalMoves);
+        tsc.incMoves();
+        tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
       }
     }
 
@@ -389,7 +362,8 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       //User is subscribed and typed a message longer than 2 characters (i.e R U)
       let algArray = message.split(' ');
 
-      if (algArray.every(v => moves333.includes(v))) {
+      if (algArray.every(v => global.moves333.includes(v))) {
+
         kickAFK(channel);
         var i = -1;
         var doMoves = setInterval(function () {
@@ -402,6 +376,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
             const newMove = new Move(algArray[i]);
             player.experimentalAddMove(newMove);
             kpuzzle.applyMove(newMove);
+            checkSolved();
           }
         }, 100);
       }
@@ -418,12 +393,15 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
     // }
     // This would be better because with other puzzles we don't need to know the moves
 
-    isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
-    console.log("Is cube solved? " + isSolved);
+    tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
+    console.log("Is cube solved? " + tsc.isCubeSolved());
   }
+  checkSolved();
+}
 
-  if (isSolved) {
-    // Do a little spin
+function checkSolved() {
+  tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
+  if (tsc.isCubeSolved()) {
     setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
@@ -439,9 +417,10 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       // );
 
       // Reset
-      timeSinceSolved = 0;
-      newScramble();
-      isSolved = false;
+
+      tsc.resetTimeSS();
+      newScramble("333", "");
+      tsc.setCubeSolved(false);
     }, 15 * 1000)
   }
 }
@@ -449,8 +428,8 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 async function isFollowing(username: string) {
   //Gets UserID from UserName
   const userID = (await apiClient.users.getUserByName(username)).id;
-  console.log(userID);
-  return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
+  //console.log(userID);
+  //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
 }
 
 function smootherStep(x: number): number {
@@ -479,4 +458,4 @@ function spinCamera(options?: { numSpins?: number, durationMs: number }): void {
 }
 
 // Starts cube scrambled
-newScramble();
+newScramble("333", "");

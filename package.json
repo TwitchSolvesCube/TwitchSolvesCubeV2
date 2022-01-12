@@ -1,29 +1,29 @@
 {
-    "name": "TSCv2",
-    "version": "0.0.2",
-    "main": "cube.js",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
-      "dev": "npx parcel cube.html"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-      "@twurple/api": "^5.0.7",
-      "@twurple/auth": "^5.0.7",
-      "@twurple/chat": "^5.0.7",
-      "cubing": "^0.22.0",
-      "parcel": "^2.0.0"
-    },
-    "devDependencies": {},
-    "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
-    "repository": {
-      "type": "git",
-      "url": "git+https://TwitchSolvesCube@github.com/TwitchSolvesCube/TwitchSolvesCubeV2.git"
-    },
-    "bugs": {
-      "url": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/issues"
-    },
-    "homepage": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2#readme"
-  }
+  "name": "TSCv2",
+  "version": "0.0.2",
+  "main": "cube.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx parcel cube.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@twurple/api": "^5.0.13",
+    "@twurple/auth": "^5.0.13",
+    "@twurple/chat": "^5.0.13",
+    "cubing": "^0.22.0",
+    "parcel": "^2.1.1"
+  },
+  "devDependencies": {},
+  "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
+  "repository": {
+    "type": "git",
+    "url": "git+https://TwitchSolvesCube@github.com/TwitchSolvesCube/TwitchSolvesCubeV2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/issues"
+  },
+  "homepage": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2#readme"
+}
