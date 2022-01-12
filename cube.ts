@@ -316,37 +316,8 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
-  if (msg.includes("scramble")) {
-    if (msg === "scramble") {
+  if (msg === "scramble") {
       newScramble();
-    } else {
-      scramble = message.slice(9, msg.length);
-      console.log(scramble);
-
-      const scramArray = scramble.toString().split(' ');
-      console.log(scramArray);
-      //kpuzzle.reset;
-      console.log(scrambleMoves333.find(elem => elem === scramble));
-
-
-      if (scrambleMoves333.find(elem => elem === scramble) != undefined) {
-
-        var i = -1;
-        var intervalID = setInterval(function () {
-          ++i;
-          if (i >= scramArray.length - 1) {
-            clearInterval(intervalID);
-            clearInterval(timeSinceSolvedTimer);
-            timeSinceSolved = 0;
-            timeSinceSolvedTimer = setInterval(timeSS, 1000);
-          }
-          const newMove = new Move(scramArray[i]);
-          player.experimentalAddMove(newMove);
-          kpuzzle.applyMove(newMove);
-          // console.log(scramArray[i]);
-        }, 100);
-      }
-    }
   }
   if (msg === "!speednotation" || msg === "!sn") {
     if (speedNotation) {
