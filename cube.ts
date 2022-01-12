@@ -148,8 +148,6 @@ async function scramble(eventID: string, scramble: string) {
     const scramArray = scramble.split(' ').splice(1);
 
     if (scramArray.every(move => scrambleMoves333.includes(move))) {
-      console.log(scramArray);
-
       // "Animates" scramble, replaced once AddAlg is supported
       var i = -1;
       var intervalID = setInterval(function () {
@@ -163,7 +161,6 @@ async function scramble(eventID: string, scramble: string) {
         const newMove = new Move(scramArray[i]);
         player.experimentalAddMove(newMove);
         kpuzzle.applyMove(newMove);
-        // console.log(scramArray[i]);
       }, 100);
 
       totalMoves = 0;
@@ -187,7 +184,7 @@ const authProvider = new RefreshingAuthProvider(
 );
 
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
+const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvesbot'] });
 
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
@@ -195,15 +192,6 @@ chatClient.onMessage((channel, user, message, tags) => {
 
   // Command names not to interfere with current TSCv1
 
-  if (msg.includes("scramble")) {
-    if (msg === "scramble") {
-      scramble("333", "");
-    } else {
-      console.log(message.slice(8, message.length));
-
-      scramble("333", message.slice(8, message.length));
-    }
-  }
   if (msg === "!qq") {
     if (queue.length > 0) {
       chatClient.say(channel, `${queue}`);
@@ -372,45 +360,11 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
-      newScramble();
+      scramble("333", "");
     } else {
-      scramble333 = message.slice(9, msg.length);
-      console.log(scramble);
+      console.log(message.slice(8, message.length));
 
-      const scramArray = scramble.toString().split(' ');
-      console.log(scramArray);
-
-      console.log(scramArray.every(move => scrambleMoves333.includes(move)));
-
-      if (scramArray.every(move => scrambleMoves333.includes(move))) {
-
-        //this seems like an awful way of doing this. 
-        //it would be better if we could just get the config in to a global variable or just use player.reset 
-        //or something if this exists
-        player = document.body.appendChild(new TwistyPlayer({
-          puzzle: "3x3x3",
-          hintFacelets: "floating",
-          backView: "top-right",
-          background: "none",
-          controlPanel: "none",
-        }));
-
-        var i = -1;
-        kpuzzle.reset();
-        var intervalID = setInterval(function () {
-          isSolved = false;
-          ++i;
-          if (i >= scramArray.length - 1) {
-            clearInterval(intervalID);
-            clearInterval(timeSinceSolvedTimer);
-            timeSinceSolved = 0;
-            timeSinceSolvedTimer = setInterval(timeSS, 1000);
-          }
-          const newMove = new Move(scramArray[i]);
-          kpuzzle.applyMove(newMove);
-          player.experimentalAddMove(newMove);
-        }, 100);
-      }
+      scramble("333", message.slice(8, message.length));
     }
   }
   if (msg === "!speednotation" || msg === "!sn") {
