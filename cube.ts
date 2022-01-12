@@ -147,7 +147,7 @@ const authProvider = new RefreshingAuthProvider(
 );
 
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: ['c0zybtw'] });
+const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
 
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
