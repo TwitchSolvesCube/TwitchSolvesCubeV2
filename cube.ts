@@ -115,7 +115,7 @@ const chatClient = new ChatClient({ authProvider, channels: [global.channelName]
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
   var msg = message.toLowerCase();
-
+  
   // Command names not to interfere with current TSCv1
 
   if (msg === "!qq") {
@@ -205,7 +205,6 @@ function joinQueue(channel: string, user: string) {
       }
       else {
         tsc.setTurnTime(300);
-
       }
       chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK(channel);
@@ -284,7 +283,7 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
   // Player commands/settings
   var msg = message.toLowerCase();
-
+  
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
       newScramble("333", "");
