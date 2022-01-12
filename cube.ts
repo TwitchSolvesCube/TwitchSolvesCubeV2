@@ -146,7 +146,7 @@ async function scramble(eventID: string, scramble: string) {
   } else {
     //Convert input to Array of moves without the empty string as 1st element
     const scramArray = scramble.split(' ').splice(1);
-    
+
     if (scramArray.every(move => scrambleMoves333.includes(move))) {
       console.log(scramArray);
 
@@ -187,7 +187,7 @@ const authProvider = new RefreshingAuthProvider(
 );
 
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: ['c0zybtw'] });
+const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvescube'] });
 
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel, user, message, tags) => {
@@ -216,7 +216,9 @@ chatClient.onMessage((channel, user, message, tags) => {
     /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
       newScramble();
     } */
-    joinQueue(channel, user);
+    if (msg === "!jq") {
+      joinQueue(channel, user);
+    }
   }
   if (msg === "!lq") {
     leaveQueue(channel, user);
@@ -282,7 +284,7 @@ function kickAFK(channel: string) {
 
 function joinQueue(channel: string, user: string) {
   if (turns === true) {
-    if (queue.length === 0) {
+     if (queue.length === 0) {
       queue.push(user);
       if (isFollowing(user)) {
         turnTime = 480;
@@ -292,7 +294,7 @@ function joinQueue(channel: string, user: string) {
       }
       chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK(channel);
-    }
+    } 
     else if (queue[0] === user) {
       chatClient.say(channel, `@${user}, it\'s currently your turn!`);
     }
@@ -494,6 +496,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
             const newMove = new Move(algArray[i]);
             player.experimentalAddMove(newMove);
             kpuzzle.applyMove(newMove);
+            checkSolved();
           }
         }, 100);
       }
@@ -514,8 +517,13 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
     console.log("Is cube solved? " + isSolved);
   }
 
-  if (isSolved) {
-    // Do a little spin
+
+  checkSolved();
+}
+
+function checkSolved() {
+  isSolved = experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true });
+   if (isSolved) {
     setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
@@ -535,7 +543,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       newScramble();
       isSolved = false;
     }, 15 * 1000)
-  }
+   }
 }
 
 async function isFollowing(username: string) {
