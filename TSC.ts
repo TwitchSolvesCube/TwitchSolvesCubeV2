@@ -1,6 +1,6 @@
 import { randomScrambleForEvent } from "cubing/scramble"
 //Global constants
-export const channelName = "TwitchSolvesCube";
+export const channelName = "TwitchSolvesBot";
 
 // Array of all supported moves
 export const moves333 =
@@ -125,4 +125,10 @@ export default class TSC {
         console.log(this.scramble);
         return Array(this.scramble);
     }
+
+    setScrambleArray(scramArray: Array<string>){
+        this.scramble = scramArray;
+    }
+
+    //fucntion to turn scramble string into array?
 }
