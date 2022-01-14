@@ -1,26 +1,40 @@
-import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty"
-import { Alg, AlgBuilder, Move } from "cubing/alg"
-import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
-import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
-// import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
+import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty";
+import { Alg, AlgBuilder, Move } from "cubing/alg";
+import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles";
+import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle";
 
-import TSC, * as global from "./TSC";
-import * as twitch from "./twitch"
+import TSC from "./TSC";
+import * as twitch from "./twitch";
+import { spinCamera } from "./celebration";
 
 export const tsc = new TSC();
 
-// Timers
-let timeSinceSolvedTimer: NodeJS.Timer;
-let userTurnTimer: NodeJS.Timer;
-let afkCountdown: NodeJS.Timer;
+// Array of all supported moves
+const moves333 =
+    ["R", "R'", "R2", "r", "r'", "r2",
+        "L", "L'", "L2", "l", "l'", "l2",
+        "F", "F'", "F2", "f", "f'", "f2",
+        "B", "B'", "B2", "b", "b'", "b2",
+        "D", "D'", "D2", "d", "d'", "d2",
+        "U", "U'", "U2", "u", "u'", "u2",
+        "E", "E'", "E2",
+        "S", "S'", "S2",
+        "M", "M'", "M2",
+        "x", "x'", "x2",
+        "y", "y'", "y2",
+        "z", "z'", "z2"];
 
-export function clearAfkCountdown(){
-  clearInterval(afkCountdown);
-}
-
-export function userTurnTimeThing(){
-  userTurnTimer = setInterval(() => userTurnTime(), 1000);
-}
+const snMoves333 =
+    ["i", "k", "u", "m",
+        "d", "e", "v", "r",
+        "h", "g",
+        "w", "o",
+        "s", "l", "z", "?",
+        "j", "f", ",", "c",
+        "5", "6", "x",
+        "t", "y", "b",
+        ";", "a",
+        "p", "q"];
 
 const scrambleMoves333 =
   ["R", "R'", "R2",
@@ -28,27 +42,16 @@ const scrambleMoves333 =
     "U", "U'", "U2",
     "D", "D'", "D2",
     "B", "B'", "B2",
-    "F", "F'", "F2"]
+    "F", "F'", "F2"];
 
+// Timers
+let timeSinceSolvedTimer: NodeJS.Timer;
+let userTurnTimer: NodeJS.Timer;
+let afkCountdown: NodeJS.Timer;
 
-export const queue = new Array();
+export const queue = new Array(); //gettters for queue?
+export var player = new TwistyPlayer;
 var kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
-var player = new TwistyPlayer;
-
-// Updates top right timer
-function timeSS() {
-  tsc.timeLabel.innerHTML = pad(parseInt((tsc.timeSinceSolved / 60).toString())) + ":" + pad(tsc.timeSinceSolved % 60);
-  tsc.incTimeSS();
-}
-
-function pad(val: any) {
-  var valString = val + "";
-  if (valString.length < 2) {
-    return "0" + valString;
-  } else {
-    return valString;
-  }
-}
 
 async function newScramble(eventID: string, scramble: string) {
 
@@ -252,7 +255,7 @@ export function doCubeMoves(message: string) {
         .replace("m", "M").replace("e", "E").replace("s", "S");
 
 
-      if (global.moves333.find(elem => elem === msg) != undefined) {
+      if (moves333.find(elem => elem === msg) != undefined) {
         kickAFK();
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
@@ -265,7 +268,7 @@ export function doCubeMoves(message: string) {
     } else if (tsc.speedNotationState()) {
       msg = message.toLowerCase();
 
-      if (global.snMoves333.find(elem => elem === msg) != undefined) {
+      if (snMoves333.find(elem => elem === msg) != undefined) {
         msg = msg.replace("5", "M").replace("6", "M").replace("x", "M\'").replace("t", "x")
           .replace("y", "x").replace("b", "x\'").replace("n", "x\'").replace(";", "y")
           .replace("a", "y\'").replace("d", "L").replace("z", "d").replace("?", "d'")
@@ -291,7 +294,7 @@ export function doCubeMoves(message: string) {
       //User is subscribed and typed a message longer than 2 characters (i.e R U)
       let algArray = message.split(' ');
 
-      if (algArray.every(v => global.moves333.includes(v))) {
+      if (algArray.every(v => moves333.includes(v))) {
 
         kickAFK();
         var i = -1;
@@ -354,36 +357,27 @@ function checkSolved() {
   }
 }
 
-// async function isFollowing(username: string) {
-//   //Gets UserID from UserName
-//   const userID = (await apiClient.users.getUserByName(username)).id;
-//   //console.log(userID);
-//   //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
-// }
-
-function smootherStep(x: number): number {
-  return x * x * x * (10 - x * (15 - 6 * x));
+// Updates top right timer
+function timeSS() {
+  tsc.timeLabel.innerHTML = pad(parseInt((tsc.timeSinceSolved / 60).toString())) + ":" + pad(tsc.timeSinceSolved % 60);
+  tsc.incTimeSS();
 }
 
-function spinCamera(options?: { numSpins?: number, durationMs: number }): void {
-  const durationMs = options?.durationMs ?? 2000;
-  const start = performance.now();
-  const end = start + durationMs;
-  let lastFraction = 0;
-  const animFrame = async (now: number) => {
-    if (now > end) {
-      now = end;
-    }
-    const currentFraction = (now - start) / durationMs;
-    const elapsed = smootherStep(currentFraction) - smootherStep(lastFraction);
-    const deltaDegrees = 360 * (options?.numSpins ?? 2) * elapsed;
-    player.cameraLongitude = (await player.experimentalModel.orbitCoordinatesProp.get()).longitude + deltaDegrees;
-    lastFraction = currentFraction;
-    if (now !== end) {
-      requestAnimationFrame(animFrame)
-    }
+function pad(val: any) {
+  var valString = val + "";
+  if (valString.length < 2) {
+    return "0" + valString;
+  } else {
+    return valString;
   }
-  requestAnimationFrame(animFrame);
+}
+
+export function clearAfkCountdown(){
+  clearInterval(afkCountdown);
+}
+
+export function userTurnTimeThing(){
+  userTurnTimer = setInterval(() => userTurnTime(), 1000);
 }
 
 // Starts cube scrambled
