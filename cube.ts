@@ -1,22 +1,26 @@
-import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp } from "./tokens.json";
-import { RefreshingAuthProvider } from "@twurple/auth";
-import { ChatClient } from '@twurple/chat';
-import { ApiClient } from '@twurple/api';
-
 import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty"
 import { Alg, AlgBuilder, Move } from "cubing/alg"
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles"
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle"
-import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
+// import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
 import TSC, * as global from "./TSC";
+import * as twitch from "./twitch"
 
-const tsc = new TSC();
+export const tsc = new TSC();
 
 // Timers
 let timeSinceSolvedTimer: NodeJS.Timer;
 let userTurnTimer: NodeJS.Timer;
 let afkCountdown: NodeJS.Timer;
+
+export function clearAfkCountdown(){
+  clearInterval(afkCountdown);
+}
+
+export function userTurnTimeThing(){
+  userTurnTimer = setInterval(() => userTurnTime(), 1000);
+}
 
 const scrambleMoves333 =
   ["R", "R'", "R2",
@@ -27,7 +31,7 @@ const scrambleMoves333 =
     "F", "F'", "F2"]
 
 
-const queue = new Array();
+export const queue = new Array();
 var kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 var player = new TwistyPlayer;
 
@@ -69,7 +73,7 @@ async function newScramble(eventID: string, scramble: string) {
   kpuzzle.reset();
 
   if (tsc.scramble.every(move => scrambleMoves333.includes(move))) {
-    // "Animates" scramble, replaced once AddAlg is supported
+    // "Animates" scramble, replaced once AddAlg is supported for animation
     var i = -1;
     var intervalID = setInterval(function () {
       ++i;
@@ -82,7 +86,7 @@ async function newScramble(eventID: string, scramble: string) {
       const newMove = new Move(tsc.scramble[i]);
       player.experimentalAddMove(newMove);
       kpuzzle.applyAlg(new Alg(tsc.scramble[i]));
-    }, 100);
+    }, 400);
 
     //Debug
     // const newMove = new Move(tsc.scramble[0]);
@@ -94,83 +98,8 @@ async function newScramble(eventID: string, scramble: string) {
   }
 }
 
-const authProvider = new RefreshingAuthProvider(
-  {
-    clientId,
-    clientSecret
-  },
-  {
-    accessToken,
-    refreshToken,
-    scope,
-    expiresIn,
-    obtainmentTimestamp
-  }
-);
-
-const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: [global.channelName] });
-
-
-chatClient.connect().catch(console.error);
-chatClient.onMessage((channel, user, message, tags) => {
-  var msg = message.toLowerCase();
-  
-  // Command names not to interfere with current TSCv1
-
-  if (msg === "!qq") {
-    if (queue.length > 0) {
-      chatClient.say(channel, `${queue}`);
-    }
-    else {
-      chatClient.say(channel, `There's currently no one in the queue, do !joinq`);
-    }
-  }
-  if (msg.includes("!jq")) {
-    /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
-      newScramble();
-    } */
-    if (msg === "!jq") {
-      joinQueue(channel, user);
-    }
-  }
-  if (msg === "!lq") {
-    leaveQueue(channel, user);
-  }
-  if (msg.includes('!rm') && tags.userInfo.isMod) {
-    var userToRemove = message.split(' ').pop().split('@').pop(); //this seems like it should break, but doesn't! Keep an eye on this
-
-    if (queue.find(name => name === userToRemove) === userToRemove) {
-      if (queue[0] === userToRemove) {
-        chatClient.say(channel, `@${queue[0]} has been removed from the queue.`)
-        removeCurrentPlayer(channel);
-      }
-      else {
-        chatClient.say(channel, `@${userToRemove} has been removed from the queue.`);
-        queue.splice(queue.indexOf(userToRemove), 1)
-      }
-      clearInterval(afkCountdown);
-    } else {
-      chatClient.say(channel, `@${user} this user is not in the queue.`);
-    }
-  }
-
-
-  if (queue[0] === user) {
-    if (!tsc.currentTurnState()) {
-      userTurnTimer = setInterval(() => userTurnTime(channel), 1000);
-      tsc.setCurrentTurn(true);
-    }
-    doCubeMoves(channel, message, tags);
-  }
-
-  // Debug
-  // doCubeMoves(channel, tags, message);
-  // console.log(queue);
-});
-
 // Updates bottom center user label
-function userTurnTime(channel: string) {
+function userTurnTime() {
   if (tsc.turnTime >= 0) {
     tsc.userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((tsc.turnTime / 60).toString())) + ":" + pad(tsc.turnTime % 60);
     tsc.decTurnTime();
@@ -178,79 +107,79 @@ function userTurnTime(channel: string) {
   else {
     clearInterval(afkCountdown);
     tsc.setSpeedNotation(false);
-    removeCurrentPlayer(channel, true);
+    removeCurrentPlayer(true);
   }
 }
 
-function kickAFK(channel: string) {
+function kickAFK() {
   var afkTimer = 120;
   clearInterval(afkCountdown);
   afkCountdown = setInterval(() => {
     afkTimer--;
     //console.log(afkTimer);
     if (afkTimer === 0) {
-      chatClient.say(channel, `@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
+      twitch.say(`@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
       clearInterval(afkCountdown);
-      removeCurrentPlayer(channel);
+      removeCurrentPlayer();
     }
   }, 1000)
 }
 
-function joinQueue(channel: string, user: string) {
+export function joinQueue(user: string) {
   if (tsc.turnsState()) {
     if (queue.length === 0) {
       queue.push(user);
-      if (isFollowing(user)) {
+      if (twitch.isFollowing(user)) {
         tsc.setTurnTime(480);
       }
       else {
         tsc.setTurnTime(300);
       }
-      chatClient.say(channel, `@${user}, it\'s your turn! Do !leaveQ when done`);
-      kickAFK(channel);
+      twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
+      kickAFK();
     }
     else if (queue[0] === user) {
-      chatClient.say(channel, `@${user}, it\'s currently your turn!`);
+      twitch.say(`@${user}, it\'s currently your turn!`);
     }
     else if (queue.find(name => name === user) === undefined) {
       queue.push(user);
       if (queue.length > 2) {
-        chatClient.say(channel, `@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
+        twitch.say(`@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
       } else {
-        chatClient.say(channel, `@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
+        twitch.say(`@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
       }
     }
     else if (queue.find(name => name === user) === user) {
-      chatClient.say(channel, `@${user}, you\'re already in the queue please wait :)`);
+      twitch.say(`@${user}, you\'re already in the queue please wait :)`);
     }
   }
   else {
-    chatClient.say(channel, "The cube is currently in Vote mode no need to !joinq just type a move in chat");
+    twitch.say("The cube is currently in Vote mode no need to !joinq just type a move in chat");
   }
 }
 
-function leaveQueue(channel: string, user: string) {
+export function leaveQueue(user: string) {
   if (tsc.turnsState()) {
     if (queue.find(name => name === user) === user) {
       if (queue[0] === user) {
-        removeCurrentPlayer(channel, false);
+        removeCurrentPlayer(false);
       }
       else {
         queue.splice(queue.indexOf(user), 1)
       }
       clearInterval(afkCountdown);
-      chatClient.say(channel, `@${user}, you have now left the queue`);
+      twitch.say(`@${user}, you have now left the queue`);
     }
     else {
-      chatClient.say(channel, `@${user}, you are not in the queue. Type !joinQ to join`);
+      twitch.say(`@${user}, you are not in the queue. Type !joinQ to join`);
     }
   }
   else {
-    chatClient.say(channel, "The cube is currently in Vote mode no need to !leaveq just type a move in chat");
+    twitch.say("The cube is currently in Vote mode no need to !leaveq just type a move in chat");
   }
 }
 
-function removeCurrentPlayer(channel: string, timeup = false) {
+export function removeCurrentPlayer(timeup = false) {
   // Reset turnTime, clear label, stop user timer, remove player
   tsc.setTurnTime(300);
   tsc.setCurrentTurn(false);
@@ -258,7 +187,7 @@ function removeCurrentPlayer(channel: string, timeup = false) {
   tsc.setSpeedNotation(false);
 
   if (timeup) {
-    chatClient.say(channel, `@${queue.shift()}, time is up, you may !joinq again`);
+    twitch.say(`@${queue.shift()}, time is up, you may !joinq again`);
   }
   else {
     queue.shift();
@@ -266,21 +195,21 @@ function removeCurrentPlayer(channel: string, timeup = false) {
 
   // If someone is in queue the @ user else clear user label
   if (queue.length > 0) {
-    if (isFollowing(queue[0])) {
+    if (twitch.isFollowing(queue[0])) {
       tsc.setTurnTime(480);
     }
     else {
       tsc.setTurnTime(300);
     }
-    chatClient.say(channel, `@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
-    kickAFK(channel);
+    twitch.say(`@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
+    kickAFK();
   }
   else {
     clearInterval(userTurnTimer);
   }
 }
 
-function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
+export function doCubeMoves(message: string) {
   // Player commands/settings
   var msg = message.toLowerCase();
   
@@ -324,7 +253,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
 
 
       if (global.moves333.find(elem => elem === msg) != undefined) {
-        kickAFK(channel);
+        kickAFK();
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
         kpuzzle.applyMove(newMove);
@@ -346,7 +275,7 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
           .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r'")
           .replace("u", "r").replace(",", "u").replace("c", "u'");
 
-        kickAFK(channel);
+        kickAFK();
 
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
@@ -358,13 +287,13 @@ function doCubeMoves(channel, message: string, tags: TwitchPrivateMessage) {
       }
     }
 
-    if (tags.userInfo.isSubscriber && message.length >= 3) {
+    if (twitch.isSubscriber() && message.length >= 3) {
       //User is subscribed and typed a message longer than 2 characters (i.e R U)
       let algArray = message.split(' ');
 
       if (algArray.every(v => global.moves333.includes(v))) {
 
-        kickAFK(channel);
+        kickAFK();
         var i = -1;
         var doMoves = setInterval(function () {
           ++i;
@@ -425,12 +354,12 @@ function checkSolved() {
   }
 }
 
-async function isFollowing(username: string) {
-  //Gets UserID from UserName
-  const userID = (await apiClient.users.getUserByName(username)).id;
-  //console.log(userID);
-  //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
-}
+// async function isFollowing(username: string) {
+//   //Gets UserID from UserName
+//   const userID = (await apiClient.users.getUserByName(username)).id;
+//   //console.log(userID);
+//   //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
+// }
 
 function smootherStep(x: number): number {
   return x * x * x * (10 - x * (15 - 6 * x));
