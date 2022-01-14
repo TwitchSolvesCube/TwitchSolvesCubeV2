@@ -6,6 +6,8 @@ import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMe
 
 import * as cube from "./cube"
 
+const channelName = "TwitchSolvesBot";
+
 const authProvider = new RefreshingAuthProvider(
     {
       clientId,
@@ -21,7 +23,7 @@ const authProvider = new RefreshingAuthProvider(
 );
   
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: ["twitchsolvesbot"] });
+const chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
 
 var isSub = false;
 
@@ -30,11 +32,11 @@ export function isSubscriber(){
 }
 
 export function say(message: string){
-    chatClient.say("twitchsolvesbot", message);
+    chatClient.say(channelName, message);
 }
   
 chatClient.connect().catch(console.error);
-chatClient.onMessage((channel, user, message, tags) => {
+chatClient.onMessage((channel:string, user: string, message: string, tags: TwitchPrivateMessage) => {
     var msg = message.toLowerCase();
     
     // Command names not to interfere with current TSCv1
