@@ -10,7 +10,7 @@ import { spinCamera } from "./celebration";
 export const tsc = new TSC();
 
 // Array of all supported moves
-const moves333 =
+const moves333: Array<string> =
     ["R", "R'", "R2", "r", "r'", "r2",
         "L", "L'", "L2", "l", "l'", "l2",
         "F", "F'", "F2", "f", "f'", "f2",
@@ -24,7 +24,7 @@ const moves333 =
         "y", "y'", "y2",
         "z", "z'", "z2"];
 
-const snMoves333 =
+const snMoves333: Array<string> =
     ["i", "k", "u", "m",
         "d", "e", "v", "r",
         "h", "g",
@@ -36,7 +36,7 @@ const snMoves333 =
         ";", "a",
         "p", "q"];
 
-const scrambleMoves333 =
+const scrambleMoves333: Array<string> =
   ["R", "R'", "R2",
     "L", "L'", "L2",
     "U", "U'", "U2",
@@ -49,9 +49,9 @@ let timeSinceSolvedTimer: NodeJS.Timer;
 let userTurnTimer: NodeJS.Timer;
 let afkCountdown: NodeJS.Timer;
 
-export const queue = new Array(); //gettters for queue?
-export var player = new TwistyPlayer;
-var kpuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
+export const queue: Array<string> = new Array(); //gettters for queue?
+export var player: TwistyPlayer = new TwistyPlayer;
+var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
 async function newScramble(eventID: string, scramble: string) {
 
@@ -86,8 +86,7 @@ async function newScramble(eventID: string, scramble: string) {
         tsc.resetTimeSS();
         timeSinceSolvedTimer = setInterval(timeSS, 1000);
       }
-      const newMove = new Move(tsc.scramble[i]);
-      player.experimentalAddMove(newMove);
+      player.experimentalAddMove(new Move(tsc.scramble[i]));
       kpuzzle.applyAlg(new Alg(tsc.scramble[i]));
     }, 400);
 
