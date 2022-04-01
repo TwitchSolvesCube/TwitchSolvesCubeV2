@@ -53,24 +53,21 @@ export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
+function appendAlg(myAlg : string){
+    player.experimentalAddMove(new Move(myAlg));
+    kpuzzle.applyAlg(new Alg(myAlg));
+}
+
 async function newScramble(eventID: string, scramble: string) {
 
   // Starts new player, replaces old one
   player = document.body.appendChild(new TwistyPlayer({
-    puzzle: "3x3x3",
+    puzzle: "3x3x3",  //TODO: Change based on eventID
     hintFacelets: "floating",
     backView: "top-right",
     background: "none",
     controlPanel: "none",
   }));
-  
-  // if (scramble.toString() === '') {
-  //   scramble = (await randomScrambleForEvent(eventID)).toString();
-  //   scramArray = scramble.split(' ');
-  // } else {
-  //   //Convert input to Array of moves without the empty string as 1st element
-  //   scramArray = scramble.split(' ').splice(1);
-  // }
 
   await tsc.newScrambleArray();
   kpuzzle.reset();
@@ -81,30 +78,24 @@ async function newScramble(eventID: string, scramble: string) {
     var intervalID = setInterval(function () {
       ++i;
       if (i >= tsc.scramble.length - 1) {
-        clearInterval(intervalID);
+        clearInterval(intervalID); //Needed for animating turn per second
         clearInterval(timeSinceSolvedTimer);
-        tsc.resetTimeSS();
-        timeSinceSolvedTimer = setInterval(timeSS, 1000);
+        tsc.resetTimeSS(); //Sets to 0 in class
+        timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
+        tsc.resetMoves();
       }
-      player.experimentalAddMove(new Move(tsc.scramble[i]));
-      kpuzzle.applyAlg(new Alg(tsc.scramble[i]));
+      appendAlg(tsc.scramble[i]);
     }, 400);
 
     //Debug
-    // const newMove = new Move(tsc.scramble[0]);
-    // player.experimentalAddMove(newMove);
-    // kpuzzle.applyAlg(new Alg(tsc.scramble[0]));
-
-    tsc.resetMoves();
-    tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
+    //appendAlg(tsc.scramble[0]);
   }
 }
 
 // Updates bottom center user label
 function userTurnTime() {
   if (tsc.turnTime >= 0) {
-    tsc.userLabel.innerHTML = pad(queue[0] + "\'s turn ") + pad(parseInt((tsc.turnTime / 60).toString())) + ":" + pad(tsc.turnTime % 60);
-    tsc.decTurnTime();
+    tsc.decTurnTime(queue[0]);
   }
   else {
     clearInterval(afkCountdown);
@@ -262,7 +253,6 @@ export function doCubeMoves(message: string) {
 
         // Update top right moves
         tsc.incMoves();
-        tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
       }
     } else if (tsc.speedNotationState()) {
       msg = message.toLowerCase();
@@ -285,7 +275,6 @@ export function doCubeMoves(message: string) {
 
         // Update top right moves
         tsc.incMoves();
-        tsc.movesLabel.innerHTML = pad(tsc.totalMoves);
       }
     }
 
@@ -304,9 +293,7 @@ export function doCubeMoves(message: string) {
             clearInterval(doMoves);
 
           } else {
-            const newMove = new Move(algArray[i]);
-            player.experimentalAddMove(newMove);
-            kpuzzle.applyMove(newMove);
+            appendAlg(algArray[i]);
             checkSolved();
           }
         }, 100);
@@ -353,21 +340,6 @@ function checkSolved() {
       newScramble("333", "");
       tsc.setCubeSolved(false);
     }, 15 * 1000)
-  }
-}
-
-// Updates top right timer
-function timeSS() {
-  tsc.timeLabel.innerHTML = pad(parseInt((tsc.timeSinceSolved / 60).toString())) + ":" + pad(tsc.timeSinceSolved % 60);
-  tsc.incTimeSS();
-}
-
-function pad(val: any) {
-  var valString = val + "";
-  if (valString.length < 2) {
-    return "0" + valString;
-  } else {
-    return valString;
   }
 }
 
