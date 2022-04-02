@@ -174,10 +174,11 @@ export function leaveQueue(user: string) {
 
 export function removeCurrentPlayer(timeup = false) {
   // Reset turnTime, clear label, stop user timer, remove player
-  tsc.setTurnTime(300);
-  tsc.setCurrentTurn(false);
-  tsc.userLabel.innerHTML = "";
-  tsc.setSpeedNotation(false);
+  // tsc.setTurnTime(300);
+  // tsc.setCurrentTurn(false);
+  // tsc.userLabel.innerHTML = "";
+  // tsc.setSpeedNotation(false);
+  tsc.fullReset();
 
   if (timeup) {
     twitch.say(`@${queue.shift()}, time is up, you may !joinq again`);
