@@ -79,7 +79,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     }
   
     if (cube.queue[0] === user) {
-      if (!cube.tsc.currentTurnState()) {
+      if (!cube.tsc.isCurrentTurn()) {
         cube.userTurnTimeThing();
         cube.tsc.setCurrentTurn(true);
       }

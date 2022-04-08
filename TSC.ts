@@ -14,7 +14,7 @@ export default class TSC {
     public timeSinceSolved: number;
     public turnTime: number;
     public totalMoves: number;
-    public currentUser: string; //TODO: setUser function and remove decTurnTime parameter for username
+    public currentUser: string;
 
     private currentTurn: boolean;
     private isSolved: boolean;
@@ -64,20 +64,29 @@ export default class TSC {
         this.movesLabel.innerHTML = pad(0);
     }
     
-    decTurnTime(username: string){
+    decTurnTime(currentUser: string){
+        this.currentUser = currentUser;
         --this.turnTime;
-        this.userLabel.innerHTML = pad(username + "\'s turn ") + pad(parseInt((this.turnTime / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+        this.userLabel.innerHTML = pad(this.currentUser + "\'s turn ") + pad(parseInt((this.turnTime / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
     }
     
     setTurnTime(turnTime: number){
         this.turnTime = turnTime;
+    }
+
+    setCurrentUser(currentUser: string){
+        this.currentUser = currentUser;
+    }
+
+    getCurrentUser(){
+        return this.currentUser;
     }
     
     setCurrentTurn(currentTurn: boolean){
         this.currentTurn = currentTurn;
     }
     
-    currentTurnState(){
+    isCurrentTurn(){
         return this.currentTurn;
     }
 
@@ -93,7 +102,7 @@ export default class TSC {
         this.turns = turns;
     }
     
-    turnsState(){
+    isTurns(){
         return this.turns;
     }
 
@@ -101,7 +110,7 @@ export default class TSC {
         this.speedNotation = speedNotation;
     }
     
-    speedNotationState(){
+    isSpeedNotation(){
         return this.speedNotation;
     }
 
@@ -118,11 +127,15 @@ export default class TSC {
         this.scramble = scramArray;
     }
 
+    getScrambleArray(){
+        return this.scramble;
+    }
+
     // Reset turnTime, clear label, stop user timer, remove player
     fullReset(){
         this.setTurnTime(300);
         this.setCurrentTurn(false);
-        this.userLabel.innerHTML = ""; //TODO: this.setUser("")
+        this.setCurrentUser("");
         this.setSpeedNotation(false);
     }
 

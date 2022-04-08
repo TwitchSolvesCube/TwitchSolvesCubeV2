@@ -84,11 +84,11 @@ async function newScramble(eventID: string, scramble: string) {
         timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
         tsc.resetMoves();
       }
-      appendAlg(tsc.scramble[i]);
+      //appendAlg(tsc.scramble[i]);
     }, 400);
 
     //Debug
-    //appendAlg(tsc.scramble[0]);
+    appendAlg(tsc.scramble[0]);
   }
 }
 
@@ -119,7 +119,7 @@ function kickAFK() {
 }
 
 export function joinQueue(user: string) {
-  if (tsc.turnsState()) {
+  if (tsc.isTurns()) {
     if (queue.length === 0) {
       queue.push(user);
       if (twitch.isFollowing(user)) {
@@ -152,7 +152,7 @@ export function joinQueue(user: string) {
 }
 
 export function leaveQueue(user: string) {
-  if (tsc.turnsState()) {
+  if (tsc.isTurns()) {
     if (queue.find(name => name === user) === user) {
       if (queue[0] === user) {
         removeCurrentPlayer(false);
@@ -173,11 +173,6 @@ export function leaveQueue(user: string) {
 }
 
 export function removeCurrentPlayer(timeup = false) {
-  // Reset turnTime, clear label, stop user timer, remove player
-  // tsc.setTurnTime(300);
-  // tsc.setCurrentTurn(false);
-  // tsc.userLabel.innerHTML = "";
-  // tsc.setSpeedNotation(false);
   tsc.fullReset();
 
   if (timeup) {
@@ -215,7 +210,7 @@ export function doCubeMoves(message: string) {
     }
   }
   if (msg === "!speednotation" || msg === "!sn") {
-    if (tsc.speedNotationState()) {
+    if (tsc.isSpeedNotation()) {
       tsc.setSpeedNotation(false);
     } else {
       tsc.setSpeedNotation(true);
@@ -238,7 +233,7 @@ export function doCubeMoves(message: string) {
   }
 
   if (!tsc.isCubeSolved()) {
-    if (!tsc.speedNotationState()) {
+    if (!tsc.isSpeedNotation()) {
       // Ensure moves can be done
       msg = message.replace("`", "\'")
         .replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
@@ -255,7 +250,7 @@ export function doCubeMoves(message: string) {
         // Update top right moves
         tsc.incMoves();
       }
-    } else if (tsc.speedNotationState()) {
+    } else if (tsc.isSpeedNotation()) {
       msg = message.toLowerCase();
 
       if (snMoves333.find(elem => elem === msg) != undefined) {
@@ -321,6 +316,9 @@ export function doCubeMoves(message: string) {
 function checkSolved() {
   tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
   if (tsc.isCubeSolved()) {
+
+    clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
+
     setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
