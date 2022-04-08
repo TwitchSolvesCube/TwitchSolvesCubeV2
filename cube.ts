@@ -84,11 +84,11 @@ async function newScramble(eventID: string, scramble: string) {
         timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
         tsc.resetMoves();
       }
-      //appendAlg(tsc.scramble[i]);
+      appendAlg(tsc.scramble[i]);
     }, 400);
 
     //Debug
-    appendAlg(tsc.scramble[0]);
+    //appendAlg(tsc.scramble[0]);
   }
 }
 
