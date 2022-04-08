@@ -54,8 +54,9 @@ export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
 function appendAlg(myAlg : string){
-    player.experimentalAddMove(new Move(myAlg));
-    kpuzzle.applyAlg(new Alg(myAlg));
+    const newMove = new Move(myAlg);
+    player.experimentalAddMove(newMove);
+    kpuzzle.applyMove(newMove);
 }
 
 async function newScramble(eventID: string, scramble: string) {
