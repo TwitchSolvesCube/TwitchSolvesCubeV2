@@ -1,6 +1,7 @@
+import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 
-function pad(val: any) {
+function pad(val: any): string {
     var valString = val + "";
     if (valString.length < 2) {
       return "0" + valString;
@@ -10,22 +11,27 @@ function pad(val: any) {
   }
 
 export default class TSC {
-    public scramble: Array<string>;
-    public timeSinceSolved: number;
-    public turnTime: number;
-    public totalMoves: number;
-    public currentUser: string;
+    private eventID: string;
+    private scramble: Array<string>;
+    private timeSinceSolved: number;
+    private turnTime: number;
+    private totalMoves: number;
+    private currentUser: string;
 
     private currentTurn: boolean;
     private isSolved: boolean;
     private turns: boolean;
     private speedNotation: boolean;
 
-    public timeLabel: HTMLElement;
-    public movesLabel: HTMLElement;
-    public userLabel: HTMLElement;
+    private showLabels: boolean = true;
+    private timeLabel: HTMLElement;
+    private movesLabel: HTMLElement;
+    private userLabel: HTMLElement;
 
-    constructor(){
+    constructor(eventID: string){
+        //Type of Cube
+        this.eventID = eventID;
+
         // Top right timer
         this.timeSinceSolved = 0;
         this.timeLabel = document.getElementById("timeSinceSolved");
@@ -45,9 +51,19 @@ export default class TSC {
         this.speedNotation = false;
     }
 
+    getEventID(){
+        return this.eventID;
+    }
+
+    getPuzzleID(){
+        return wcaEventInfo(this.eventID).puzzleID;
+    }
+
     incTimeSS() {
         ++this.timeSinceSolved;
-        this.timeLabel.innerHTML = pad(parseInt((this.timeSinceSolved / 60).toString())) + ":" + pad(this.timeSinceSolved % 60); // Updates top right timer
+        if (this.showLabels){
+            this.timeLabel.innerHTML = pad(parseInt((this.timeSinceSolved / 60).toString())) + ":" + pad(this.timeSinceSolved % 60); // Updates top right timer
+        }
     }
     
     resetTimeSS() {
@@ -56,22 +72,32 @@ export default class TSC {
     
     incMoves() {
         ++this.totalMoves;
-        this.movesLabel.innerHTML = pad(this.totalMoves); //Updates moves top right
+        if (this.showLabels){
+            this.movesLabel.innerHTML = pad(this.totalMoves); //Updates moves top right
+        }
     }
     
     resetMoves() {
         this.totalMoves = 0;
-        this.movesLabel.innerHTML = pad(0);
+        if (this.showLabels){
+            this.movesLabel.innerHTML = pad(0);
+        }
     }
     
     decTurnTime(currentUser: string){
         this.currentUser = currentUser;
         --this.turnTime;
-        this.userLabel.innerHTML = pad(this.currentUser + "\'s turn ") + pad(parseInt((this.turnTime / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+        if (this.showLabels){
+            this.userLabel.innerHTML = pad(this.currentUser + "\'s turn ") + pad(parseInt((this.turnTime / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+        }
     }
     
     setTurnTime(turnTime: number){
         this.turnTime = turnTime;
+    }
+
+    getTurnTime(){
+        return this.turnTime;
     }
 
     setCurrentUser(currentUser: string){
@@ -114,9 +140,8 @@ export default class TSC {
         return this.speedNotation;
     }
 
-    //TODO: Include parameter for eventID
     async newScrambleArray(){
-        var scramString = await randomScrambleForEvent("333");
+        var scramString = await randomScrambleForEvent(this.eventID);
         // Turn scramble string into an array
         this.scramble = scramString.toString().split(' ');
         console.log(this.scramble);

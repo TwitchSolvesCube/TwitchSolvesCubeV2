@@ -7,7 +7,7 @@ import TSC from "./TSC";
 import * as twitch from "./twitch";
 import { spinCamera } from "./celebration";
 
-export const tsc = new TSC();
+export const tsc = new TSC("333");
 
 // Array of all supported moves
 const moves333: Array<string> =
@@ -53,17 +53,17 @@ export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
-function appendAlg(myAlg : string){
-    const newMove = new Move(myAlg);
+function appendAlg(myMove : string){
+    const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     kpuzzle.applyMove(newMove);
 }
 
-async function newScramble(eventID: string, scramble: string) {
+async function newScramble(scramble: string) {
 
   // Starts new player, replaces old one
   player = document.body.appendChild(new TwistyPlayer({
-    puzzle: "3x3x3",  //TODO: Change based on eventID
+    puzzle: tsc.getPuzzleID(),
     hintFacelets: "floating",
     backView: "top-right",
     background: "none",
@@ -73,19 +73,19 @@ async function newScramble(eventID: string, scramble: string) {
   await tsc.newScrambleArray();
   kpuzzle.reset();
 
-  if (tsc.scramble.every(move => scrambleMoves333.includes(move))) {
+  if (tsc.getScrambleArray().every(move => scrambleMoves333.includes(move))) {
     // "Animates" scramble, replaced once AddAlg is supported for animation
     var i = -1;
     var intervalID = setInterval(function () {
       ++i;
-      if (i >= tsc.scramble.length - 1) {
+      if (i >= tsc.getScrambleArray().length - 1) {
         clearInterval(intervalID); //Needed for animating turn per second
         clearInterval(timeSinceSolvedTimer);
         tsc.resetTimeSS(); //Sets to 0 in class
         timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
         tsc.resetMoves();
       }
-      appendAlg(tsc.scramble[i]);
+      appendAlg(tsc.getScrambleArray()[i]);
     }, 400);
 
     //Debug
@@ -95,7 +95,7 @@ async function newScramble(eventID: string, scramble: string) {
 
 // Updates bottom center user label
 function userTurnTime() {
-  if (tsc.turnTime >= 0) {
+  if (tsc.getTurnTime() >= 0) {
     tsc.decTurnTime(queue[0]);
   }
   else {
@@ -205,9 +205,9 @@ export function doCubeMoves(message: string) {
   
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
-      newScramble("333", "");
+      newScramble("");
     } else {
-      newScramble("333", message.slice(8, message.length));
+      newScramble(message.slice(8, message.length));
     }
   }
   if (msg === "!speednotation" || msg === "!sn") {
@@ -337,7 +337,7 @@ function checkSolved() {
       // Reset
 
       tsc.resetTimeSS();
-      newScramble("333", "");
+      newScramble("");
       tsc.setCubeSolved(false);
     }, 15 * 1000)
   }
@@ -352,4 +352,4 @@ export function userTurnTimeThing(){
 }
 
 // Starts cube scrambled
-newScramble("333", "");
+newScramble("");
