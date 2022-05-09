@@ -6,6 +6,7 @@ import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle";
 import TSC from "./TSC";
 import * as twitch from "./twitch";
 import { spinCamera } from "./celebration";
+import delay from "delay";
 
 export const tsc = new TSC("333");
 
@@ -53,13 +54,27 @@ export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
-function appendAlg(myMove : string){
+function appendMove(myMove : string){
+  if(scrambleMoves333.includes(myMove)){
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     kpuzzle.applyMove(newMove);
+    checkSolved();
+  }
 }
 
-async function newScramble(scramble: string) {
+async function appendAlg(myAlg : Array<string>){
+  if(myAlg.every(move => scrambleMoves333.includes(move))){
+    for(var i = 0; i <= myAlg.length - 1; i++){
+      await delay(400);
+      appendMove(myAlg[i]);
+    }
+  }
+  //Debug
+  //appendMove(tsc.getScrambleArray()[0]);
+}
+
+async function scramblePuzzle(scramble?: Array<string>) {
 
   // Starts new player, replaces old one
   player = document.body.appendChild(new TwistyPlayer({
@@ -70,27 +85,18 @@ async function newScramble(scramble: string) {
     controlPanel: "none",
   }));
 
-  await tsc.newScrambleArray();
   kpuzzle.reset();
-
-  if (tsc.getScrambleArray().every(move => scrambleMoves333.includes(move))) {
-    // "Animates" scramble, replaced once AddAlg is supported for animation
-    var i = -1;
-    var intervalID = setInterval(function () {
-      ++i;
-      if (i >= tsc.getScrambleArray().length - 1) {
-        clearInterval(intervalID); //Needed for animating turn per second
-        clearInterval(timeSinceSolvedTimer);
-        tsc.resetTimeSS(); //Sets to 0 in class
-        timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
-        tsc.resetMoves();
-      }
-      appendAlg(tsc.getScrambleArray()[i]);
-    }, 400);
-
-    //Debug
-    //appendAlg(tsc.scramble[0]);
+  if(scramble == null){
+    await tsc.newScrambleArray();
+    await appendAlg(tsc.getScrambleArray());
   }
+  else{
+    await appendAlg(scramble);
+  }
+  tsc.resetMoves();
+  tsc.resetTimeSS(); //Sets to 0 in class
+  clearInterval(timeSinceSolvedTimer);
+  timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
 }
 
 // Updates bottom center user label
@@ -205,9 +211,9 @@ export function doCubeMoves(message: string) {
   
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
-      newScramble("");
-    } else {
-      newScramble(message.slice(8, message.length));
+      scramblePuzzle();
+    } else { //Allows a user to use their own scrambles
+      scramblePuzzle(message.slice(9, message.length).split(" "));
     }
   }
   if (msg === "!speednotation" || msg === "!sn") {
@@ -244,9 +250,7 @@ export function doCubeMoves(message: string) {
 
       if (moves333.find(elem => elem === msg) != undefined) {
         kickAFK();
-        const newMove = new Move(msg);
-        player.experimentalAddMove(newMove);
-        kpuzzle.applyMove(newMove);
+        appendMove(msg); //applys user msg move to puzzle
 
         // Update top right moves
         tsc.incMoves();
@@ -282,18 +286,7 @@ export function doCubeMoves(message: string) {
       if (algArray.every(v => moves333.includes(v))) {
 
         kickAFK();
-        var i = -1;
-        var doMoves = setInterval(function () {
-          ++i;
-
-          if (i === algArray.length) {
-            clearInterval(doMoves);
-
-          } else {
-            appendAlg(algArray[i]);
-            checkSolved();
-          }
-        }, 100);
+        appendAlg(algArray);
       }
     }
 
@@ -311,7 +304,6 @@ export function doCubeMoves(message: string) {
     tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
     console.log("Is cube solved? " + tsc.isCubeSolved());
   }
-  checkSolved();
 }
 
 function checkSolved() {
@@ -324,7 +316,7 @@ function checkSolved() {
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State
-    setTimeout(function () {
+    setTimeout(function () { //can replace with 'await delay(15000)'
       // Reconstruction of Solve need to shrink/shorten link
       // player.experimentalModel.twizzleLink().then(
       //   function (value) {
@@ -337,7 +329,7 @@ function checkSolved() {
       // Reset
 
       tsc.resetTimeSS();
-      newScramble("");
+      scramblePuzzle();
       tsc.setCubeSolved(false);
     }, 15 * 1000)
   }
@@ -352,4 +344,4 @@ export function userTurnTimeThing(){
 }
 
 // Starts cube scrambled
-newScramble("");
+scramblePuzzle();
