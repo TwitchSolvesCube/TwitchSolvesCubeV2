@@ -12,10 +12,16 @@ Users get kicked after 2 minutes of not entering a valid move
 - `!leaveq` or `!lq`
 - `!queue` or `!q`
 - `scramble`
-- `!topright` or `!tr`
+- `!topright` or `!tr` (this is the default)
+<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/TopRight.png"  width="478" height="269">
+
 - `!sidebyside` or `!sbs`
+<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/SideBySide.png"  width="478" height="269">
+
 - `!blind` or `!bld`
-- `!normal` or `!norm`
+<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/Blind.png"  width="478" height="269">
+
+- `!normal` or `!norm` (brings back cube from blind)
 - `!speednotation` or `!sn`
 
 ## Examples
