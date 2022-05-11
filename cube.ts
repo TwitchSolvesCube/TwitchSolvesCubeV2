@@ -64,14 +64,14 @@ function appendMove(myMove : string){
 }
 
 async function appendAlg(myAlg : Array<string>){
-  if(myAlg.every(move => scrambleMoves333.includes(move))){
-    for(var i = 0; i <= myAlg.length - 1; i++){
-      await delay(400);
-      appendMove(myAlg[i]);
-    }
-  }
+  // if(myAlg.every(move => scrambleMoves333.includes(move))){
+  //   for(var i = 0; i <= myAlg.length - 1; i++){
+  //     await delay(400);
+  //     appendMove(myAlg[i]);
+  //   }
+  // }
   //Debug
-  //appendMove(tsc.getScrambleArray()[0]);
+  appendMove(myAlg[0]);
 }
 
 async function scramblePuzzle(scramble?: Array<string>) {
@@ -129,11 +129,12 @@ export function joinQueue(user: string) {
   if (tsc.isTurns()) {
     if (queue.length === 0) {
       queue.push(user);
+      //Added one second to visually see "correct" time
       if (twitch.isFollowing(user)) {
-        tsc.setTurnTime(480);
+        tsc.setTurnTime(481);
       }
       else {
-        tsc.setTurnTime(300);
+        tsc.setTurnTime(301);
       }
       twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK();
@@ -189,24 +190,27 @@ export function removeCurrentPlayer(timeup = false) {
     queue.shift();
   }
 
-  // If someone is in queue the @ user else clear user label
+  // If someone is in queue then @ user else clear user label
   if (queue.length > 0) {
+    //Added one second to visually see "correct" time
     if (twitch.isFollowing(queue[0])) {
-      tsc.setTurnTime(480);
+      tsc.setTurnTime(481);
     }
     else {
-      tsc.setTurnTime(300);
+      tsc.setTurnTime(301);
     }
     twitch.say(`@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK();
   }
   else {
+    //Restarts and clears bottom timer
     clearInterval(userTurnTimer);
+    tsc.setUserLabel(null);
   }
 }
 
 export function doCubeMoves(message: string) {
-  // Player commands/settings
+  //Player commands/settings
   var msg = message.toLowerCase();
   
   if (msg.includes("scramble")) {

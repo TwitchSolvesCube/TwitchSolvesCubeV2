@@ -100,6 +100,10 @@ export default class TSC {
         return this.turnTime;
     }
 
+    setUserLabel(username: string){
+        this.userLabel.innerHTML = username;
+    }
+
     setCurrentUser(currentUser: string){
         this.currentUser = currentUser;
     }
