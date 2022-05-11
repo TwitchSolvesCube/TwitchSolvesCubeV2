@@ -64,14 +64,14 @@ function appendMove(myMove : string){
 }
 
 async function appendAlg(myAlg : Array<string>){
-  // if(myAlg.every(move => scrambleMoves333.includes(move))){
-  //   for(var i = 0; i <= myAlg.length - 1; i++){
-  //     await delay(400);
-  //     appendMove(myAlg[i]);
-  //   }
-  // }
+  if(myAlg.every(move => scrambleMoves333.includes(move))){
+    for(var i = 0; i <= myAlg.length - 1; i++){
+      await delay(400);
+      appendMove(myAlg[i]);
+    }
+  }
   //Debug
-  appendMove(myAlg[0]);
+  //appendMove(myAlg[0]);
 }
 
 async function scramblePuzzle(scramble?: Array<string>) {

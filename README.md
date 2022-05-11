@@ -11,7 +11,8 @@ Users get kicked after 2 minutes of not entering a valid move
 - `!joinq` or `!jq`
 - `!leaveq` or `!lq`
 - `!queue` or `!q`
-- `scramble`
+- `scramble` completes a random scramble on the puzzle
+- `scramble <alg>` set a custom scramble. Example `scramble R U' L2 U2 B R2 B2 R2 D2 B' F2 L2 U2 F' U' F' L B' U2 L' F2`
 - `!topright` or `!tr` (this is the default)
 <img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/TopRight.png"  width="478" height="269">
 
