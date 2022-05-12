@@ -1,5 +1,5 @@
 # TwitchSolvesCubeV2
-Powered by https://github.com/cubing/cubing.js
+[![](https://img.shields.io/badge/Powered_By-cubing.js-blueviolet?logo=github)](https://github.com/cubing/cubing.js)  
 
 ## Features
 Various cube perspectives  
@@ -24,8 +24,8 @@ Users get kicked after 2 minutes of not entering a valid move
 
 - `!normal` or `!norm` (brings back cube from blind)
 - `!speednotation` or `!sn`
-
-## Examples
+<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/VirtualCubeKeyMap.png"  width="478" height="269">
+These keyboard shortcuts are from https://cstimer.net/
 
 ## How to create `tokens.json`
 Follow Steps 1 & 2 from here https://twurple.js.org/docs/examples/chat/basic-bot.html  
