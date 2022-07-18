@@ -25,10 +25,10 @@ const authProvider = new RefreshingAuthProvider(
 const apiClient = new ApiClient({ authProvider });
 const chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
 
-var isSub = false;
+var isSub: boolean = false;
 
-export function isSubscriber(){
-    return this.isSub;
+export function isSubscriber(): boolean{
+    return isSub;
 }
 
 export function say(message: string){
