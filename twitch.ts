@@ -41,7 +41,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     
     // Command names not to interfere with current TSCv1
   
-    if (msg === "!qq") {
+    if (msg === "!queue" || msg === "!qq") {
       if (cube.queue.length > 0) {
         say(`${cube.queue}`);
       }
@@ -49,18 +49,19 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
         say(`There's currently no one in the queue, do !joinq`);
       }
     }
-    if (msg.includes("!jq")) {
+    if (msg.includes("!joinq") || msg.includes("!jq")) {
+      //Code for !joinq (scramble)
       /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
         newScramble();
       } */
-      if (msg === "!jq") {
+      if (msg === "!joinq" || msg === "!jq") {
         cube.joinQueue(user);
       }
     }
-    if (msg === "!lq") {
+    if (msg === "!leaveq" || msg === "!lq") {
         cube.leaveQueue(user);
     }
-    if (msg.includes('!rm') && tags.userInfo.isMod) {
+    if ((msg.includes("!remove") || msg.includes("!rm")) && tags.userInfo.isMod) {
       var userToRemove = message.split(' ').pop().split('@').pop(); //this seems like it should break, but doesn't! Keep an eye on this
   
       if (cube.queue.find(name => name === userToRemove) === userToRemove) {

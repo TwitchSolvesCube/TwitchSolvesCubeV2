@@ -37,6 +37,7 @@ const snMoves333: Array<string> =
         ";", "a",
         "p", "q"];
 
+//Don't need this array?
 const scrambleMoves333: Array<string> =
   ["R", "R'", "R2",
     "L", "L'", "L2",
@@ -55,7 +56,7 @@ export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
 function appendMove(myMove : string){
-  if(scrambleMoves333.includes(myMove)){
+  if(moves333.includes(myMove)){
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     kpuzzle.applyMove(newMove);
@@ -64,7 +65,7 @@ function appendMove(myMove : string){
 }
 
 async function appendAlg(myAlg : Array<string>){
-  if(myAlg.every(move => scrambleMoves333.includes(move))){
+  if(myAlg.every(move => moves333.includes(move))){
     for(var i = 0; i <= myAlg.length - 1; i++){
       await delay(400);
       appendMove(myAlg[i]);

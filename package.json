@@ -10,13 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@twurple/api": "^5.0.13",
-    "@twurple/auth": "^5.0.13",
-    "@twurple/chat": "^5.0.13",
+    "@twurple/api": "^5.1.7",
+    "@twurple/auth": "^5.1.7",
+    "@twurple/chat": "^5.1.7",
     "cubing": "^0.22.0",
-    "parcel": "^2.1.1"
+    "delay": "^5.0.0",
+    "parcel": "^2.6.2"
   },
-  "devDependencies": {},
   "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
   "repository": {
     "type": "git",
@@ -25,5 +25,12 @@
   "bugs": {
     "url": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/issues"
   },
-  "homepage": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2#readme"
+  "homepage": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2#readme",
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "events": "^3.3.0",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0"
+  }
 }
