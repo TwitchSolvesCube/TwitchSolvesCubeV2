@@ -36,6 +36,9 @@ To make things easier you may use https://reqbin.com/post-online for your POST r
 ## Install Requirements
 [NodeJs](https://nodejs.org/en/) and [Git](https://git-scm.com/download/win)
 
+#### Font (Optional)
+[Rubik](https://fonts.google.com/specimen/Rubik)
+
 ## Setting Up Dev Enviroment
 Run line by line
 ```
