@@ -33,8 +33,8 @@ To make things easier you may use https://reqbin.com/post-online for your POST r
 
 # Contributing
 
-## Install
-https://nodejs.org/en/
+## Install Requirements
+[NodeJs](https://nodejs.org/en/) and [Git](https://git-scm.com/download/win)
 
 ## Setting Up Dev Enviroment
 Run line by line
