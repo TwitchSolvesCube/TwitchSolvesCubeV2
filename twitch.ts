@@ -6,7 +6,7 @@ import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMe
 
 import * as cube from "./cube"
 
-const channelName = "TwitchSolvesBot";
+const channelName = "TwitchSolvesCube";
 
 const authProvider = new RefreshingAuthProvider(
     {
@@ -62,7 +62,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
         cube.leaveQueue(user);
     }
     if ((msg.includes("!remove") || msg.includes("!rm")) && tags.userInfo.isMod) {
-      var userToRemove = message.split(' ').pop().split('@').pop(); //this seems like it should break, but doesn't! Keep an eye on this
+      var userToRemove = message.split(' ').pop()!.split('@').pop()!; //Non-null assertion operator in use
   
       if (cube.queue.find(name => name === userToRemove) === userToRemove) {
         if (cube.queue[0] === userToRemove) {
@@ -95,7 +95,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
 
 export async function isFollowing(username: string) {
     //Gets UserID from UserName
-    const userID = (await apiClient.users.getUserByName(username)).id;
+    const userID = (await apiClient.users.getUserByName(username))!.id;
     //console.log(userID);
-    //return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842));
+    return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842))!;
 }

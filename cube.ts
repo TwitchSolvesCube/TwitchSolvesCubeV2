@@ -37,15 +37,6 @@ const snMoves333: Array<string> =
         ";", "a",
         "p", "q"];
 
-//Don't need this array?
-const scrambleMoves333: Array<string> =
-  ["R", "R'", "R2",
-    "L", "L'", "L2",
-    "U", "U'", "U2",
-    "D", "D'", "D2",
-    "B", "B'", "B2",
-    "F", "F'", "F2"];
-
 // Timers
 let timeSinceSolvedTimer: NodeJS.Timer;
 let userTurnTimer: NodeJS.Timer;
@@ -54,6 +45,8 @@ let afkCountdown: NodeJS.Timer;
 export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
+
+//player.draggable = false;
 
 function appendMove(myMove : string){
   if(moves333.includes(myMove)){
@@ -87,12 +80,12 @@ async function scramblePuzzle(scramble?: Array<string>) {
   }));
 
   kpuzzle.reset();
-  if(scramble == null){
-    await tsc.newScrambleArray();
-    await appendAlg(tsc.getScrambleArray());
+  if(scramble == null){ //If user does not provide scramble
+    await tsc.newScrambleArray(); //Generate random scramble
+    await appendAlg(tsc.getScrambleArray());  //Apply alg to cube
   }
   else{
-    await appendAlg(scramble);
+    await appendAlg(scramble); //Apply user provided scramble to cube
   }
   tsc.resetMoves();
   tsc.resetTimeSS(); //Sets to 0 in class
@@ -126,12 +119,12 @@ function kickAFK() {
   }, 1000)
 }
 
-export function joinQueue(user: string) {
+export async function joinQueue(user: string) {
   if (tsc.isTurns()) {
     if (queue.length === 0) {
       queue.push(user);
       //Added one second to visually see "correct" time
-      if (twitch.isFollowing(user)) {
+      if (await twitch.isFollowing(user)) {
         tsc.setTurnTime(481);
       }
       else {
@@ -181,7 +174,7 @@ export function leaveQueue(user: string) {
   }
 }
 
-export function removeCurrentPlayer(timeup = false) {
+export async function removeCurrentPlayer(timeup = false) {
   tsc.fullReset();
 
   if (timeup) {
@@ -194,7 +187,7 @@ export function removeCurrentPlayer(timeup = false) {
   // If someone is in queue then @ user else clear user label
   if (queue.length > 0) {
     //Added one second to visually see "correct" time
-    if (twitch.isFollowing(queue[0])) {
+    if (await twitch.isFollowing(queue[0])) {
       tsc.setTurnTime(481);
     }
     else {
@@ -206,7 +199,7 @@ export function removeCurrentPlayer(timeup = false) {
   else {
     //Restarts and clears bottom timer
     clearInterval(userTurnTimer);
-    tsc.setUserLabel(null);
+    tsc.setUserLabel("");
   }
 }
 
