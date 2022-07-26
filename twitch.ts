@@ -100,7 +100,6 @@ export async function isFollowing(username: string) {
     //Gets UserID from UserName
     const userID = (await apiClient.users.getUserByName(username))!.id;
     isFollower = await apiClient.users.userFollowsBroadcaster(userID, 664794842);
-    console.log(isFollower);
     
     //Sets user play time to 8 minutes if they're following
     if (isFollower) {

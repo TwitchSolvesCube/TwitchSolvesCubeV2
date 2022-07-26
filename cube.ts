@@ -97,7 +97,7 @@ async function scramblePuzzle(scramble?: Array<string>) {
 
 // Updates bottom center user label
 function userTurnTime() {
-  if (tsc.getTurnTime() >= 0) {
+  if (tsc.getTurnTime() >= 0 && tsc.getCurrentUser() == queue[0]) {
     tsc.decTurnTime(queue[0]);
   }
   else {
@@ -125,6 +125,7 @@ export async function joinQueue(user: string) {
   if (tsc.isTurns()) {
     if (queue.length === 0) {
       queue.push(user);
+      tsc.setCurrentUser(user);
       //Added one second to visually see "correct" time
       tsc.setTurnTime(await twitch.isFollowing(user));
       twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
@@ -135,6 +136,7 @@ export async function joinQueue(user: string) {
     }
     else if (queue.find(name => name === user) === undefined) {
       queue.push(user);
+      tsc.setCurrentUser(user);
       if (queue.length > 2) {
         twitch.say(`@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
       } else {
