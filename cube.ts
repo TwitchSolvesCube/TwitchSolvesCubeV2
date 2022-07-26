@@ -126,7 +126,7 @@ export async function joinQueue(user: string) {
     if (queue.length === 0) {
       queue.push(user);
       //Added one second to visually see "correct" time
-      tsc.setTurnTime(await twitch.setFollowerTime(user));
+      tsc.setTurnTime(await twitch.isFollowing(user));
       twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK();
     }
@@ -184,7 +184,7 @@ export async function removeCurrentPlayer(timeup = false) {
   // If someone is in queue then @ user else clear user label
   if (queue.length > 0) {
     //Added one second to visually see "correct" time
-    tsc.setTurnTime(await twitch.setFollowerTime(queue[0]));
+    tsc.setTurnTime(await twitch.isFollowing(queue[0]));
     twitch.say(`@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK();
   }

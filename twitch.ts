@@ -26,6 +26,7 @@ const apiClient = new ApiClient({ authProvider });
 const chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
 
 var isSub: boolean = false;
+var isFollower: boolean = false;
 
 export function isSubscriber(): boolean{
     return isSub;
@@ -71,7 +72,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
         }
         else {
           say(`@${userToRemove} has been removed from the queue.`);
-          cube.queue.splice(cube.queue.indexOf(userToRemove), 1);//Possible error here
+          cube.queue.splice(cube.queue.indexOf(userToRemove!), 1);//Possible error here
         }
         cube.clearAfkCountdown();
       } else {
@@ -95,18 +96,16 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     // console.log(queue);
 });
 
-export async function setFollowerTime(username: string){
-  //Sets user play time to 8 minutes if they're following
-  if (await isFollowing(username)) {
-    return 481;
-  }
-  //Default time for players is 5 minutes
-  return 301;
-}
-
 export async function isFollowing(username: string) {
     //Gets UserID from UserName
     const userID = (await apiClient.users.getUserByName(username))!.id;
-    //console.log(userID);
-    return console.log(await apiClient.users.userFollowsBroadcaster(userID, 664794842))!;
+    isFollower = await apiClient.users.userFollowsBroadcaster(userID, 664794842);
+    console.log(isFollower);
+    
+    //Sets user play time to 8 minutes if they're following
+    if (isFollower) {
+      return 481;
+    }
+    //Default time for players is 5 minutes
+    return 301;
 }

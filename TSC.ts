@@ -35,16 +35,16 @@ export default class TSC {
 
         // Top right timer
         this.timeSinceSolved = 0;
-        this.timeLabel = document.getElementById("timeSinceSolved")!;
+        this.timeLabel = document.getElementById("timeSinceSolved") as HTMLElement;
 
         // Top right moves counter
         this.totalMoves = 0;
-        this.movesLabel = document.getElementById("moveCount")!;
+        this.movesLabel = document.getElementById("moveCount") as HTMLElement;
 
         // Bottom center user turn
         this.turnTime = 301;
         this.currentTurn = false;
-        this.userLabel = document.getElementById("userTurn")!;
+        this.userLabel = document.getElementById("userTurn") as HTMLElement;
 
         this.scramble = [];
         this.isSolved = false;
