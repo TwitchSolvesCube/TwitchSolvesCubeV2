@@ -46,8 +46,6 @@ export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
 
-//player.draggable = false;
-
 function appendMove(myMove : string){
   if(moves333.includes(myMove)){
     const newMove = new Move(myMove);
@@ -79,6 +77,8 @@ async function scramblePuzzle(scramble?: Array<string>) {
     controlPanel: "none",
   }));
 
+  tsc.enableCube(false); //Can't move cube while scrambling
+
   kpuzzle.reset();
   if(scramble == null){ //If user does not provide scramble
     await tsc.newScrambleArray(); //Generate random scramble
@@ -89,6 +89,8 @@ async function scramblePuzzle(scramble?: Array<string>) {
   }
   tsc.resetMoves();
   tsc.resetTimeSS(); //Sets to 0 in class
+  tsc.enableCube(true); //Allows user to move cube
+
   clearInterval(timeSinceSolvedTimer);
   timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
 }
@@ -124,12 +126,7 @@ export async function joinQueue(user: string) {
     if (queue.length === 0) {
       queue.push(user);
       //Added one second to visually see "correct" time
-      if (await twitch.isFollowing(user)) {
-        tsc.setTurnTime(481);
-      }
-      else {
-        tsc.setTurnTime(301);
-      }
+      tsc.setTurnTime(await twitch.setFollowerTime(user));
       twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK();
     }
@@ -187,12 +184,7 @@ export async function removeCurrentPlayer(timeup = false) {
   // If someone is in queue then @ user else clear user label
   if (queue.length > 0) {
     //Added one second to visually see "correct" time
-    if (await twitch.isFollowing(queue[0])) {
-      tsc.setTurnTime(481);
-    }
-    else {
-      tsc.setTurnTime(301);
-    }
+    tsc.setTurnTime(await twitch.setFollowerTime(queue[0]));
     twitch.say(`@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK();
   }
@@ -304,32 +296,31 @@ export function doCubeMoves(message: string) {
   }
 }
 
-function checkSolved() {
+async function checkSolved() {
   tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
   if (tsc.isCubeSolved()) {
 
-    clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
+    tsc.enableCube(false); //Can't move cube once solved
 
+    clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
     setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State
-    setTimeout(function () { //can replace with 'await delay(15000)'
-      // Reconstruction of Solve need to shrink/shorten link
-      // player.experimentalModel.twizzleLink().then(
-      //   function (value) {
-      //     console.log(value)
-      //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
-      //   },
-      //   function (error) { }
-      // );
+    await delay(15000);
+    // Reconstruction of Solve need to shrink/shorten link
+    // player.experimentalModel.twizzleLink().then(
+    //   function (value) {
+    //     console.log(value)
+    //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
+    //   },
+    //   function (error) { }
+    // );
 
-      // Reset
-
-      tsc.resetTimeSS();
-      scramblePuzzle();
-      tsc.setCubeSolved(false);
-    }, 15 * 1000)
+    // Reset
+    tsc.resetTimeSS();
+    scramblePuzzle();
+    tsc.setCubeSolved(false);
   }
 }
 

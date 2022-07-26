@@ -22,6 +22,7 @@ export default class TSC {
     private isSolved: boolean;
     private turns: boolean;
     private speedNotation: boolean;
+    private movable: boolean;
 
     private showLabels: boolean = true;
     private timeLabel: HTMLElement;
@@ -34,16 +35,16 @@ export default class TSC {
 
         // Top right timer
         this.timeSinceSolved = 0;
-        this.timeLabel = document.getElementById("timeSinceSolved");
+        this.timeLabel = document.getElementById("timeSinceSolved")!;
 
         // Top right moves counter
         this.totalMoves = 0;
-        this.movesLabel = document.getElementById("moveCount");
+        this.movesLabel = document.getElementById("moveCount")!;
 
         // Bottom center user turn
-        this.turnTime = 300;
+        this.turnTime = 301;
         this.currentTurn = false;
-        this.userLabel = document.getElementById("userTurn");
+        this.userLabel = document.getElementById("userTurn")!;
 
         this.scramble = [];
         this.isSolved = false;
@@ -56,7 +57,7 @@ export default class TSC {
     }
 
     getPuzzleID(){
-        return wcaEventInfo(this.eventID).puzzleID;
+        return wcaEventInfo(this.eventID)!.puzzleID;
     }
 
     incTimeSS() {
@@ -142,6 +143,14 @@ export default class TSC {
     
     isSpeedNotation(){
         return this.speedNotation;
+    }
+
+    enableCube(movable: boolean){
+        this.movable = movable;
+    }
+    
+    isCubeEnabled(){
+        return this.movable;
     }
 
     async newScrambleArray(){

@@ -85,13 +85,24 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
         cube.tsc.setCurrentTurn(true);
       }
       isSub = tags.userInfo.isSubscriber;
-      cube.doCubeMoves(message);
+      if (cube.tsc.isCubeEnabled()){
+        cube.doCubeMoves(message);
+      }
     }
   
     // Debug
     // doCubeMoves(channel, tags, message);
     // console.log(queue);
 });
+
+export async function setFollowerTime(username: string){
+  //Sets user play time to 8 minutes if they're following
+  if (await isFollowing(username)) {
+    return 481;
+  }
+  //Default time for players is 5 minutes
+  return 301;
+}
 
 export async function isFollowing(username: string) {
     //Gets UserID from UserName
