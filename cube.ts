@@ -1,5 +1,6 @@
 import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty";
 import { Alg, AlgBuilder, Move } from "cubing/alg";
+//KPuzzle Overhaul in 0.24.0 cubing.js
 import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles";
 import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle";
 
@@ -75,6 +76,7 @@ async function scramblePuzzle(scramble?: Array<string>) {
     backView: "top-right",
     background: "none",
     controlPanel: "none",
+    //experimentalDragInput: "none" //Would be nice to add soon (need cubing 0.26.2)
   }));
 
   tsc.enableCube(false); //Can't move cube while scrambling

@@ -63,7 +63,10 @@ export default class TSC {
     incTimeSS() {
         ++this.timeSinceSolved;
         if (this.showLabels){
-            this.timeLabel.innerHTML = pad(parseInt((this.timeSinceSolved / 60).toString())) + ":" + pad(this.timeSinceSolved % 60); // Updates top right timer
+            var date = new Date(null!);
+            date.setSeconds(this.timeSinceSolved);
+            var result = date.toISOString().slice(12, 19);
+            this.timeLabel.innerHTML = pad(result); // Updates top right timer
         }
     }
     
