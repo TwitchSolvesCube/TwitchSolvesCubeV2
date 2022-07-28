@@ -12,7 +12,7 @@ export function spinCamera(options?: { numSpins?: number, durationMs: number }):
       const currentFraction = (now - start) / durationMs;
       const elapsed = smootherStep(currentFraction) - smootherStep(lastFraction);
       const deltaDegrees = 360 * (options?.numSpins ?? 2) * elapsed;
-      player.cameraLongitude = (await player.experimentalModel.orbitCoordinatesProp.get()).longitude + deltaDegrees;
+      player.cameraLongitude = (await player.experimentalModel.twistySceneModel.orbitCoordinates.get()).longitude + deltaDegrees;
       lastFraction = currentFraction;
       if (now !== end) {
         requestAnimationFrame(animFrame)

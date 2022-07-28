@@ -1,8 +1,7 @@
-import { TwistyPlayer, ExperimentalStickering } from "cubing/twisty";
-import { Alg, AlgBuilder, Move } from "cubing/alg";
-//KPuzzle Overhaul in 0.24.0 cubing.js
-import { experimentalCube3x3x3KPuzzle } from "cubing/puzzles";
-import { experimentalIs3x3x3Solved, KPuzzle } from "cubing/kpuzzle";
+import { TwistyPlayer } from "cubing/twisty";
+import { Move } from "cubing/alg";
+import { cube3x3x3 } from "cubing/puzzles";
+import { KPuzzle, KState } from "cubing/kpuzzle";
 
 import TSC from "./TSC";
 import * as twitch from "./twitch";
@@ -45,13 +44,14 @@ let afkCountdown: NodeJS.Timer;
 
 export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
-var kpuzzle: KPuzzle = new KPuzzle(experimentalCube3x3x3KPuzzle);
+var kpuzzle: KPuzzle;
+var cubeState: KState;
 
 function appendMove(myMove : string){
   if(moves333.includes(myMove)){
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
-    kpuzzle.applyMove(newMove);
+    cubeState = cubeState.applyMove(newMove);
     checkSolved();
   }
 }
@@ -76,12 +76,14 @@ async function scramblePuzzle(scramble?: Array<string>) {
     backView: "top-right",
     background: "none",
     controlPanel: "none",
-    //experimentalDragInput: "none" //Would be nice to add soon (need cubing 0.26.2)
+    experimentalDragInput: "none"
   }));
 
   tsc.enableCube(false); //Can't move cube while scrambling
 
-  kpuzzle.reset();
+  kpuzzle = await cube3x3x3.kpuzzle();
+  cubeState = kpuzzle.identityTransformation().toKState();
+
   if(scramble == null){ //If user does not provide scramble
     await tsc.newScrambleArray(); //Generate random scramble
     await appendAlg(tsc.getScrambleArray());  //Apply alg to cube
@@ -266,7 +268,7 @@ export function doCubeMoves(message: string) {
 
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
-        kpuzzle.applyMove(newMove);
+        cubeState = cubeState.applyMove(newMove);
 
         // Update top right moves
         tsc.incMoves();
@@ -295,13 +297,20 @@ export function doCubeMoves(message: string) {
     // }
     // This would be better because with other puzzles we don't need to know the moves
 
-    tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
+    tsc.setCubeSolved(isCubeStateSolved());
     console.log("Is cube solved? " + tsc.isCubeSolved());
   }
 }
 
+function isCubeStateSolved() {
+  return cubeState.experimentalIsSolved({
+      ignorePuzzleOrientation: true,
+      ignoreCenterOrientation: true
+  });
+}
+
 async function checkSolved() {
-  tsc.setCubeSolved(experimentalIs3x3x3Solved(kpuzzle.state, { ignoreCenterOrientation: true }));
+  tsc.setCubeSolved(isCubeStateSolved());
   if (tsc.isCubeSolved()) {
 
     tsc.enableCube(false); //Can't move cube once solved

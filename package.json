@@ -1,6 +1,6 @@
 {
   "name": "TSCv2",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "cube.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,7 +13,7 @@
     "@twurple/api": "^5.1.7",
     "@twurple/auth": "^5.1.7",
     "@twurple/chat": "^5.1.7",
-    "cubing": "^0.23.0",
+    "cubing": "^0.28.1",
     "delay": "^5.0.0",
     "parcel": "^2.6.2"
   },
