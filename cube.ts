@@ -101,7 +101,7 @@ async function scramblePuzzle(scramble?: Array<string>) {
 
 // Updates bottom center user label
 function userTurnTime() {
-  if (tsc.getTurnTime() >= 0 && tsc.getCurrentUser() == queue[0]) {
+  if (tsc.getTurnTime() > 0 && tsc.getCurrentUser() == queue[0]) {
     tsc.decTurnTime(queue[0]);
   }
   else {
