@@ -57,12 +57,14 @@ function appendMove(myMove : string){
 }
 
 async function appendAlg(myAlg : Array<string>){
+  tsc.enableCube(false); //Can't move cube while appending alg
   if(myAlg.every(move => moves333.includes(move))){
     for(var i = 0; i <= myAlg.length - 1; i++){
       await delay(400);
       appendMove(myAlg[i]);
     }
   }
+  tsc.enableCube(true); //Allows moves on cube again
   //Debug
   //appendMove(myAlg[0]);
 }
@@ -79,8 +81,6 @@ async function scramblePuzzle(scramble?: Array<string>) {
     experimentalDragInput: "none"
   }));
 
-  tsc.enableCube(false); //Can't move cube while scrambling
-
   kpuzzle = await cube3x3x3.kpuzzle();
   cubeState = kpuzzle.identityTransformation().toKState();
 
@@ -93,7 +93,6 @@ async function scramblePuzzle(scramble?: Array<string>) {
   }
   tsc.resetMoves();
   tsc.resetTimeSS(); //Sets to 0 in class
-  tsc.enableCube(true); //Allows user to move cube
 
   clearInterval(timeSinceSolvedTimer);
   timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
