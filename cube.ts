@@ -297,7 +297,7 @@ export function doCubeMoves(message: string) {
     // This would be better because with other puzzles we don't need to know the moves
 
     tsc.setCubeSolved(isCubeStateSolved());
-    console.log("Is cube solved? " + tsc.isCubeSolved());
+    //console.log("Is cube solved? " + tsc.isCubeSolved());
   }
 }
 
