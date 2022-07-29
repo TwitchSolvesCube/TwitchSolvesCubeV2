@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@twurple/api": "^5.1.7",
-    "@twurple/auth": "^5.1.7",
-    "@twurple/chat": "^5.1.7",
+    "@twurple/api": "^5.1.8",
+    "@twurple/auth": "^5.1.8",
+    "@twurple/chat": "^5.1.8",
     "cubing": "^0.28.1",
     "delay": "^5.0.0",
     "parcel": "^2.6.2"
