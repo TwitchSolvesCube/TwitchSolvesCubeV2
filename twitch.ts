@@ -1,4 +1,4 @@
-import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp, channelName } from "./config.json";
+import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp, channelName, channelId } from "./config.json";
 import { RefreshingAuthProvider } from "@twurple/auth";
 import { ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
@@ -95,12 +95,11 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
 export async function isFollowing(username: string) {
     //Gets UserID from UserName
     const userID = (await apiClient.users.getUserByName(username))!.id;
-    isFollower = await apiClient.users.userFollowsBroadcaster(userID, 664794842);
-    
+    isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
     //Sets user play time to 8 minutes if they're following
     if (isFollower) {
-      cube.tsc.setTurnTime(481);
+      return 481;
     }
     //Default time for players is 5 minutes
-    cube.tsc.setTurnTime(301);
+    return 301;
 }
