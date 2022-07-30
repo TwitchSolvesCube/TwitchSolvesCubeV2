@@ -48,23 +48,23 @@ var kpuzzle: KPuzzle;
 var cubeState: KState;
 
 function appendMove(myMove : string){
+  tsc.enableCube(false); //Can't move cube while appending move
   if(moves333.includes(myMove)){
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     cubeState = cubeState.applyMove(newMove);
     checkSolved();
   }
+  tsc.enableCube(true); //Allows moves on cube again
 }
 
 async function appendAlg(myAlg : Array<string>){
-  tsc.enableCube(false); //Can't move cube while appending alg
   if(myAlg.every(move => moves333.includes(move))){
     for(var i = 0; i <= myAlg.length - 1; i++){
       await delay(400);
       appendMove(myAlg[i]);
     }
   }
-  tsc.enableCube(true); //Allows moves on cube again
   //Debug
   //appendMove(myAlg[0]);
 }
@@ -100,7 +100,7 @@ async function scramblePuzzle(scramble?: Array<string>) {
 
 // Updates bottom center user label
 function userTurnTime() {
-  if (tsc.getTurnTime() > 0 && tsc.getCurrentUser() == queue[0]) {
+  if (tsc.getTurnTime() > 0) {
     tsc.decTurnTime(queue[0]);
   }
   else {
@@ -130,7 +130,7 @@ export async function joinQueue(user: string) {
       queue.push(user);
       tsc.setCurrentUser(user);
       //Added one second to visually see "correct" time
-      tsc.setTurnTime(await twitch.isFollowing(user));
+      await twitch.isFollowing(user);
       twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK();
     }
@@ -189,7 +189,7 @@ export async function removeCurrentPlayer(timeup = false) {
   // If someone is in queue then @ user else clear user label
   if (queue.length > 0) {
     //Added one second to visually see "correct" time
-    tsc.setTurnTime(await twitch.isFollowing(queue[0]));
+    await twitch.isFollowing(queue[0]);
     twitch.say(`@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
     kickAFK();
   }
@@ -320,6 +320,7 @@ async function checkSolved() {
 
     // Pause for 15 seconds to view Solved State
     await delay(15000);
+    // Shorten links only if moves/timeSS is less than x or send to discord?
     // Reconstruction of Solve need to shrink/shorten link
     // player.experimentalModel.twizzleLink().then(
     //   function (value) {

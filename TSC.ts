@@ -174,7 +174,7 @@ export default class TSC {
 
     // Reset turnTime, clear label, stop user timer, remove player
     fullReset(){
-        this.setTurnTime(300);
+        this.setTurnTime(301);
         this.setCurrentTurn(false);
         this.setCurrentUser("");
         this.setSpeedNotation(false);

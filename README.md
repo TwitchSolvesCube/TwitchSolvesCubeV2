@@ -36,9 +36,10 @@ These keyboard shortcuts are from https://cstimer.net/
 #### Font (Optional)
 [Rubik](https://fonts.google.com/specimen/Rubik)
 
-## How to create `tokens.json`
+## How to create `config.json`
 Follow Steps 1 & 2 from here https://twurple.js.org/docs/examples/chat/basic-bot.html  
-To make things easier you may use https://reqbin.com/post-online for your POST request (Use this site at your own risk)
+To make things easier you may use https://reqbin.com/post-online for your POST request (Use this site at your own risk)   
+Then add the additional line for your channelName, use the empty config.json here as an example   
 
 ## Setting Up Dev Enviroment
 Run line by line

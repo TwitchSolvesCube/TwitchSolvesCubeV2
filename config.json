@@ -11,5 +11,7 @@
         "whispers:read"
     ],
     "expiresIn": 0,
-    "obtainmentTimestamp": 0
+    "obtainmentTimestamp": 0,
+
+    "channelName": ""
 }

@@ -1,12 +1,10 @@
-import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp } from "./tokens.json";
+import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp, channelName } from "./config.json";
 import { RefreshingAuthProvider } from "@twurple/auth";
 import { ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
 import * as cube from "./cube"
-
-const channelName = "TwitchSolvesCube";
 
 const authProvider = new RefreshingAuthProvider(
     {
@@ -39,10 +37,8 @@ export function say(message: string){
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel:string, user: string, message: string, tags: TwitchPrivateMessage) => {
     var msg = message.toLowerCase();
-    
-    // Command names not to interfere with current TSCv1
   
-    if (msg === "!queue" || msg === "!qq") {
+    if (msg === "!queue" || msg === "!q") {
       if (cube.queue.length > 0) {
         say(`${cube.queue}`);
       }
@@ -103,8 +99,8 @@ export async function isFollowing(username: string) {
     
     //Sets user play time to 8 minutes if they're following
     if (isFollower) {
-      return 481;
+      cube.tsc.setTurnTime(481);
     }
     //Default time for players is 5 minutes
-    return 301;
+    cube.tsc.setTurnTime(301);
 }
