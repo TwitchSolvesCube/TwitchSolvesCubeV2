@@ -37,10 +37,14 @@ export function say(message: string){
 chatClient.connect().catch(console.error);
 chatClient.onMessage((channel:string, user: string, message: string, tags: TwitchPrivateMessage) => {
     var msg = message.toLowerCase();
+
+    if (msg === "test"){
+      cube.joinQueue("TwitchSolvesBot");
+    }
   
     if (msg === "!queue" || msg === "!q") {
-      if (cube.queue.length > 0) {
-        say(`${cube.queue}`);
+      if (cube.tsc.getQLength() > 0) {
+        say(`${cube.tsc.getQ()}`);
       }
       else {
         say(`There's currently no one in the queue, do !joinq`);
@@ -61,14 +65,14 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     if ((msg.includes("!remove") || msg.includes("!rm")) && tags.userInfo.isMod) {
       var userToRemove = message.split(' ').pop()!.split('@').pop()!; //Non-null assertion operator in use
   
-      if (cube.queue.find(name => name === userToRemove) === userToRemove) {
-        if (cube.queue[0] === userToRemove) {
-          say(`@${cube.queue[0]} has been removed from the queue.`)
+      if (cube.tsc.getQ().find(name => name === userToRemove) === userToRemove) {
+        if (cube.tsc.getCurrentUser() === userToRemove) {
+          say(`@${cube.tsc.getCurrentUser()} has been removed from the queue.`)
           cube.removeCurrentPlayer();
         }
         else {
           say(`@${userToRemove} has been removed from the queue.`);
-          cube.queue.splice(cube.queue.indexOf(userToRemove!), 1);//Possible error here
+          cube.tsc.getQ().splice(cube.tsc.getQ().indexOf(userToRemove!), 1);//Possible error here
         }
         cube.clearAfkCountdown();
       } else {
@@ -76,9 +80,9 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
       }
     }
   
-    if (cube.queue[0] === user) {
-      if (!cube.tsc.isCurrentTurn()) {
-        cube.userTurnTimeThing();
+    if (cube.tsc.getCurrentUser() === user) {
+      if (!cube.tsc.isCurrentTurn()) { //No idea what this does
+        cube.userTurnTime();
         cube.tsc.setCurrentTurn(true);
       }
       isSub = tags.userInfo.isSubscriber;
@@ -93,13 +97,16 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
 });
 
 export async function isFollowing(username: string) {
-    //Gets UserID from UserName
-    const userID = (await apiClient.users.getUserByName(username))!.id;
-    isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
-    //Sets user play time to 8 minutes if they're following
-    if (isFollower) {
-      return 481;
-    }
+  //Gets UserID from UserName
+  const userID = (await apiClient.users.getUserByName(username))!.id;
+  isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
+  //Added one second to visually see "correct" time
+  //Sets user play time to 8 minutes if they're following
+  if (isFollower) {
+    cube.tsc.setTurnTime(20);
+  }
+  else {
     //Default time for players is 5 minutes
-    return 301;
+    cube.tsc.setTurnTime(20);
+  }
 }

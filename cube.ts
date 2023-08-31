@@ -42,7 +42,6 @@ let timeSinceSolvedTimer: NodeJS.Timer;
 let userTurnTimer: NodeJS.Timer;
 let afkCountdown: NodeJS.Timer;
 
-export const queue: Array<string> = new Array(); //gettters for queue?
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
 var cubeState: KState;
@@ -99,15 +98,14 @@ async function scramblePuzzle(scramble?: Array<string>) {
 }
 
 // Updates bottom center user label
-function userTurnTime() {
-  if (tsc.getTurnTime() > 0) {
-    tsc.decTurnTime(queue[0]);
-  }
-  else {
-    clearInterval(afkCountdown);
-    tsc.setSpeedNotation(false);
-    removeCurrentPlayer(true);
-  }
+export function userTurnTime() {
+  userTurnTimer = setInterval(() => {
+    if (!tsc.decTurnTime()) {
+      clearInterval(afkCountdown);
+      tsc.setSpeedNotation(false);
+      removeCurrentPlayer(true);
+    }
+  }, 1000);
 }
 
 function kickAFK() {
@@ -117,7 +115,7 @@ function kickAFK() {
     afkTimer--;
     //console.log(afkTimer);
     if (afkTimer === 0) {
-      twitch.say(`@${queue[0]}, you have been kicked after not making any moves for 2 minutes!`);
+      twitch.say(`@${tsc.getCurrentUser()}, you have been kicked after not making any moves for 2 minutes!`);
       clearInterval(afkCountdown);
       removeCurrentPlayer();
     }
@@ -126,27 +124,24 @@ function kickAFK() {
 
 export async function joinQueue(user: string) {
   if (tsc.isTurns()) {
-    if (queue.length === 0) {
-      queue.push(user);
-      tsc.setCurrentUser(user);
-      //Added one second to visually see "correct" time
-      tsc.setTurnTime(await twitch.isFollowing(user));
+    if (tsc.getQLength() === 0) {
+      tsc.addToQ(user);
+      twitch.isFollowing(user);
       twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
       kickAFK();
     }
-    else if (queue[0] === user) {
+    else if (tsc.getCurrentUser() === user) {
       twitch.say(`@${user}, it\'s currently your turn!`);
     }
-    else if (queue.find(name => name === user) === undefined) {
-      queue.push(user);
-      tsc.setCurrentUser(user);
-      if (queue.length > 2) {
-        twitch.say(`@${user}, you have joined the queue! There are ${queue.length - 1} users in front of you`)
+    else if (tsc.getQ().find(name => name === user) === undefined) {
+      tsc.addToQ(user);
+      if (tsc.getQLength() > 2) {
+        twitch.say(`@${user}, you have joined the queue! There are ${tsc.getQLength() - 1} users in front of you`)
       } else {
-        twitch.say(`@${user}, you have joined the queue! There is ${queue.length - 1} user in front of you`);
+        twitch.say(`@${user}, you have joined the queue! There is ${tsc.getQLength() - 1} user in front of you`);
       }
     }
-    else if (queue.find(name => name === user) === user) {
+    else if (tsc.getQ().find(name => name === user) === user) {
       twitch.say(`@${user}, you\'re already in the queue please wait :)`);
     }
   }
@@ -157,12 +152,12 @@ export async function joinQueue(user: string) {
 
 export function leaveQueue(user: string) {
   if (tsc.isTurns()) {
-    if (queue.find(name => name === user) === user) {
-      if (queue[0] === user) {
+    if (tsc.getQ().find(name => name === user) === user) {
+      if (tsc.getCurrentUser() === user) {
         removeCurrentPlayer(false);
       }
       else {
-        queue.splice(queue.indexOf(user), 1)
+        tsc.getQ().splice(tsc.getQ().indexOf(user), 1)
       }
       clearInterval(afkCountdown);
       twitch.say(`@${user}, you have now left the queue`);
@@ -179,18 +174,20 @@ export function leaveQueue(user: string) {
 export async function removeCurrentPlayer(timeup = false) {
   tsc.fullReset();
 
-  if (timeup) {
-    twitch.say(`@${queue.shift()}, time is up, you may !joinq again`);
+  if (timeup && tsc.getQLength() > 0 && tsc.getCurrentUser() != undefined) {
+    twitch.say(`@${tsc.getCurrentUser()}, time is up, you may !joinq again`);
+    tsc.shiftQ();
   }
   else {
-    queue.shift();
+    tsc.shiftQ();
   }
 
+  //setInterval(userTurnTimer, 0)
+
   // If someone is in queue then @ user else clear user label
-  if (queue.length > 0) {
-    //Added one second to visually see "correct" time
-    tsc.setTurnTime(await twitch.isFollowing(queue[0]));
-    twitch.say(`@${queue[0]}, it\'s your turn! Do !leaveQ when done`);
+  if (tsc.getQLength() > 0) {
+    twitch.isFollowing(tsc.getCurrentUser());
+    twitch.say(`@${tsc.getCurrentUser()}, it\'s your turn! Do !leaveQ when done`);
     kickAFK();
   }
   else {
@@ -314,8 +311,10 @@ async function checkSolved() {
 
     tsc.enableCube(false); //Can't move cube once solved
 
+    await delay(1000)
+    player.backView = "none";
+    
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
-    setTimeout(function () { player.backView = "none" }, 1000)
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State
@@ -339,10 +338,6 @@ async function checkSolved() {
 
 export function clearAfkCountdown(){
   clearInterval(afkCountdown);
-}
-
-export function userTurnTimeThing(){
-  userTurnTimer = setInterval(() => userTurnTime(), 1000);
 }
 
 // Starts cube scrambled

@@ -12,12 +12,12 @@ function pad(val: any): string {
 
 export default class TSC {
     private eventID: string;
-    private scramble: Array<string>;
+    private scramble: Array<string> = new Array();
     private timeSinceSolved: number;
     private turnTime: number;
     private totalMoves: number;
-    private currentUser: string;
 
+    private queue: Array<string> = new Array();
     private currentTurn: boolean;
     private isSolved: boolean;
     private turns: boolean;
@@ -50,6 +50,22 @@ export default class TSC {
         this.isSolved = false;
         this.turns = true;
         this.speedNotation = false;
+    }
+
+    getQ(){
+        return this.queue;
+    }
+
+    getQLength(){
+        return this.queue.length;
+    }
+
+    addToQ(user: string){
+        this.queue.push(user);
+    }
+
+    shiftQ(){
+        this.queue.shift();
     }
 
     getEventID(){
@@ -88,12 +104,15 @@ export default class TSC {
         }
     }
     
-    decTurnTime(currentUser: string){
-        this.currentUser = currentUser;
-        --this.turnTime;
-        if (this.showLabels){
-            this.userLabel.innerHTML = pad(this.currentUser + "\'s turn ") + pad(parseInt((this.turnTime / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+    decTurnTime(){
+        if (this.getTurnTime() > 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined){
+            --this.turnTime;
+            if (this.showLabels){
+                this.userLabel.innerHTML = pad(this.getCurrentUser() + "\'s turn ") + pad(parseInt((this.getTurnTime() / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+            }
+            return true;
         }
+        return false;
     }
     
     setTurnTime(turnTime: number){
@@ -108,12 +127,9 @@ export default class TSC {
         this.userLabel.innerHTML = username;
     }
 
-    setCurrentUser(currentUser: string){
-        this.currentUser = currentUser;
-    }
-
     getCurrentUser(){
-        return this.currentUser;
+        console.log(this.queue[0]); //undefined when using !remove
+        return this.queue[0]!;
     }
     
     setCurrentTurn(currentTurn: boolean){
@@ -176,9 +192,6 @@ export default class TSC {
     fullReset(){
         this.setTurnTime(301);
         this.setCurrentTurn(false);
-        this.setCurrentUser("");
         this.setSpeedNotation(false);
     }
-
-    //fucntion to turn scramble string into array?
 }
