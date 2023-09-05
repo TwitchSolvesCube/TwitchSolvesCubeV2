@@ -4,7 +4,7 @@ import { ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
-import * as cube from "./cube"
+import * as cube from "./cube";
 
 const authProvider = new RefreshingAuthProvider(
     {
@@ -23,14 +23,14 @@ const authProvider = new RefreshingAuthProvider(
 const apiClient = new ApiClient({ authProvider });
 const chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
 
-var isSub: boolean = false;
-var isFollower: boolean = false;
+let isSub: boolean = false;
+let isFollower: boolean = false;
 
 export function isSubscriber(): boolean{
     return isSub;
 }
 
-export function say(message: string){
+export function say(message: string): void{
     chatClient.say(channelName, message);
 }
   
@@ -96,17 +96,11 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     // console.log(queue);
 });
 
-export async function isFollowing(username: string) {
+export async function isFollowing(username: string): Promise <void> {
   //Gets UserID from UserName
   const userID = (await apiClient.users.getUserByName(username))!.id;
   isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
+  //Sets user play time to 8 minutes if they're following, default time for players is 5 minutes
   //Added one second to visually see "correct" time
-  //Sets user play time to 8 minutes if they're following
-  if (isFollower) {
-    cube.tsc.setTurnTime(20);
-  }
-  else {
-    //Default time for players is 5 minutes
-    cube.tsc.setTurnTime(20);
-  }
+  cube.tsc.setTurnTime(isFollower ? 481 : 301);
 }
