@@ -52,31 +52,31 @@ export default class TSC {
         this.speedNotation = false;
     }
 
-    getQ(){
+    getQ(): Array<string> {
         return this.queue;
     }
 
-    getQLength(){
+    getQLength(): number {
         return this.queue.length;
     }
 
-    addToQ(user: string){
+    addToQ(user: string): void {
         this.queue.push(user);
     }
 
-    shiftQ(){
+    shiftQ(): void {
         this.queue.shift();
     }
 
-    getEventID(){
+    getEventID(): string {
         return this.eventID;
     }
 
-    getPuzzleID(){
+    getPuzzleID() {
         return wcaEventInfo(this.eventID)!.puzzleID;
     }
 
-    incTimeSS() {
+    incTimeSS(): void {
         ++this.timeSinceSolved;
         if (this.showLabels){
             var date = new Date(null!);
@@ -86,25 +86,25 @@ export default class TSC {
         }
     }
     
-    resetTimeSS() {
+    resetTimeSS(): void {
         this.timeSinceSolved = 0;
     }
     
-    incMoves() {
+    incMoves(): void {
         ++this.totalMoves;
         if (this.showLabels){
             this.movesLabel.innerHTML = pad(this.totalMoves); //Updates moves top right
         }
     }
     
-    resetMoves() {
+    resetMoves(): void {
         this.totalMoves = 0;
         if (this.showLabels){
             this.movesLabel.innerHTML = pad(0);
         }
     }
     
-    decTurnTime(){
+    decTurnTime(): boolean {
         if (this.getTurnTime() > 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined){
             --this.turnTime;
             if (this.showLabels){
@@ -115,64 +115,64 @@ export default class TSC {
         return false;
     }
     
-    setTurnTime(turnTime: number){
+    setTurnTime(turnTime: number): void {
         this.turnTime = turnTime;
     }
 
-    getTurnTime(){
+    getTurnTime(): number{
         return this.turnTime;
     }
 
-    setUserLabel(username: string){
+    setUserLabel(username: string): void {
         this.userLabel.innerHTML = username;
     }
 
-    getCurrentUser(){
+    getCurrentUser(): string {
         console.log(this.queue[0]); //undefined when using !remove
         return this.queue[0]!;
     }
     
-    setCurrentTurn(currentTurn: boolean){
+    setCurrentTurn(currentTurn: boolean): void {
         this.currentTurn = currentTurn;
     }
     
-    isCurrentTurn(){
+    isCurrentTurn(): boolean {
         return this.currentTurn;
     }
 
-    setCubeSolved(isSolved: boolean){
+    setCubeSolved(isSolved: boolean): void {
         this.isSolved = isSolved;
     }
     
-    isCubeSolved(){
+    isCubeSolved(): boolean {
         return this.isSolved;
     }
 
-    setTurns(turns: boolean){
+    setTurns(turns: boolean): void {
         this.turns = turns;
     }
     
-    isTurns(){
+    isTurns(): boolean{
         return this.turns;
     }
 
-    setSpeedNotation(speedNotation: boolean){
+    setSpeedNotation(speedNotation: boolean): void {
         this.speedNotation = speedNotation;
     }
     
-    isSpeedNotation(){
+    isSpeedNotation(): boolean {
         return this.speedNotation;
     }
 
-    enableCube(movable: boolean){
+    enableCube(movable: boolean): void {
         this.movable = movable;
     }
     
-    isCubeEnabled(){
+    isCubeEnabled(): boolean {
         return this.movable;
     }
 
-    async newScrambleArray(){
+    async newScrambleArray(): Promise<string[][]> {
         var scramString = await randomScrambleForEvent(this.eventID);
         // Turn scramble string into an array
         this.scramble = scramString.toString().split(' ');
@@ -180,16 +180,16 @@ export default class TSC {
         return Array(this.scramble);
     }
 
-    setScrambleArray(scramArray: Array<string>){
+    setScrambleArray(scramArray: Array<string>): void {
         this.scramble = scramArray;
     }
 
-    getScrambleArray(){
+    getScrambleArray(): Array<string>  {
         return this.scramble;
     }
 
     // Reset turnTime, clear label, stop user timer, remove player
-    fullReset(){
+    fullReset(): void {
         this.setTurnTime(301);
         this.setCurrentTurn(false);
         this.setSpeedNotation(false);
