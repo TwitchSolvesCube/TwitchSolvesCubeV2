@@ -39,12 +39,12 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     var msg = message.toLowerCase();
 
     if (msg === "test"){
-      cube.joinQueue("TwitchSolvesBot");
+      cube.tsc.joinQueue("TwitchSolvesBot");
     }
   
     if (msg === "!queue" || msg === "!q") {
       if (cube.tsc.getQLength() > 0) {
-        say(`${cube.tsc.getQ()}`);
+        say(`${cube.tsc.getQueue()}`);
       }
       else {
         say(`There's currently no one in the queue, do !joinq`);
@@ -56,25 +56,25 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
         newScramble();
       } */
       if (msg === "!joinq" || msg === "!jq") {
-        cube.joinQueue(user);
+        cube.tsc.joinQueue(user);
       }
     }
     if (msg === "!leaveq" || msg === "!lq") {
-        cube.leaveQueue(user);
+        cube.tsc.leaveQueue(user);
     }
     if ((msg.includes("!remove") || msg.includes("!rm")) && tags.userInfo.isMod) {
       var userToRemove = message.split(' ').pop()!.split('@').pop()!; //Non-null assertion operator in use
   
-      if (cube.tsc.getQ().find(name => name === userToRemove) === userToRemove) {
+      if (cube.tsc.getQueue().find(name => name === userToRemove) === userToRemove) {
         if (cube.tsc.getCurrentUser() === userToRemove) {
           say(`@${cube.tsc.getCurrentUser()} has been removed from the queue.`)
-          cube.removeCurrentPlayer();
+          cube.tsc.removeCurrentPlayer();
         }
         else {
           say(`@${userToRemove} has been removed from the queue.`);
-          cube.tsc.getQ().splice(cube.tsc.getQ().indexOf(userToRemove!), 1);//Possible error here
+          cube.tsc.getQueue().splice(cube.tsc.getQueue().indexOf(userToRemove!), 1);//Possible error here
         }
-        cube.clearAfkCountdown();
+        cube.tsc.clearAfkCountdown();
       } else {
         say(`@${user} this user is not in the queue.`);
       }
@@ -82,7 +82,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
   
     if (cube.tsc.getCurrentUser() === user) {
       if (!cube.tsc.isCurrentTurn()) { //No idea what this does
-        cube.userTurnTime();
+        cube.tsc.userTurnTime();
         cube.tsc.setCurrentTurn(true);
       }
       isSub = tags.userInfo.isSubscriber;

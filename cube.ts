@@ -39,8 +39,6 @@ const snMoves333: Array<string> =
 
 // Timers
 let timeSinceSolvedTimer: NodeJS.Timer;
-let userTurnTimer: NodeJS.Timer;
-let afkCountdown: NodeJS.Timer;
 
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
@@ -97,106 +95,6 @@ async function scramblePuzzle(scramble?: Array<string>) {
   timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
 }
 
-// Updates bottom center user label
-export function userTurnTime() {
-  userTurnTimer = setInterval(() => {
-    if (!tsc.decTurnTime()) {
-      clearInterval(afkCountdown);
-      tsc.setSpeedNotation(false);
-      removeCurrentPlayer(true);
-    }
-  }, 1000);
-}
-
-function kickAFK() {
-  var afkTimer = 120;
-  clearInterval(afkCountdown);
-  afkCountdown = setInterval(() => {
-    afkTimer--;
-    //console.log(afkTimer);
-    if (afkTimer === 0) {
-      twitch.say(`@${tsc.getCurrentUser()}, you have been kicked after not making any moves for 2 minutes!`);
-      clearInterval(afkCountdown);
-      removeCurrentPlayer();
-    }
-  }, 1000)
-}
-
-export async function joinQueue(user: string) {
-  if (tsc.isTurns()) {
-    if (tsc.getQLength() === 0) {
-      tsc.addToQ(user);
-      twitch.isFollowing(user);
-      twitch.say(`@${user}, it\'s your turn! Do !leaveQ when done`);
-      kickAFK();
-    }
-    else if (tsc.getCurrentUser() === user) {
-      twitch.say(`@${user}, it\'s currently your turn!`);
-    }
-    else if (tsc.getQ().find(name => name === user) === undefined) {
-      tsc.addToQ(user);
-      if (tsc.getQLength() > 2) {
-        twitch.say(`@${user}, you have joined the queue! There are ${tsc.getQLength() - 1} users in front of you`)
-      } else {
-        twitch.say(`@${user}, you have joined the queue! There is ${tsc.getQLength() - 1} user in front of you`);
-      }
-    }
-    else if (tsc.getQ().find(name => name === user) === user) {
-      twitch.say(`@${user}, you\'re already in the queue please wait :)`);
-    }
-  }
-  else {
-    twitch.say("The cube is currently in Vote mode no need to !joinq just type a move in chat");
-  }
-}
-
-export function leaveQueue(user: string) {
-  if (tsc.isTurns()) {
-    if (tsc.getQ().find(name => name === user) === user) {
-      if (tsc.getCurrentUser() === user) {
-        removeCurrentPlayer(false);
-      }
-      else {
-        tsc.getQ().splice(tsc.getQ().indexOf(user), 1)
-      }
-      clearInterval(afkCountdown);
-      twitch.say(`@${user}, you have now left the queue`);
-    }
-    else {
-      twitch.say(`@${user}, you are not in the queue. Type !joinQ to join`);
-    }
-  }
-  else {
-    twitch.say("The cube is currently in Vote mode no need to !leaveq just type a move in chat");
-  }
-}
-
-export async function removeCurrentPlayer(timeup = false) {
-  tsc.fullReset();
-
-  if (timeup && tsc.getQLength() > 0 && tsc.getCurrentUser() != undefined) {
-    twitch.say(`@${tsc.getCurrentUser()}, time is up, you may !joinq again`);
-    tsc.shiftQ();
-  }
-  else {
-    tsc.shiftQ();
-  }
-
-  //setInterval(userTurnTimer, 0)
-
-  // If someone is in queue then @ user else clear user label
-  if (tsc.getQLength() > 0) {
-    twitch.isFollowing(tsc.getCurrentUser());
-    twitch.say(`@${tsc.getCurrentUser()}, it\'s your turn! Do !leaveQ when done`);
-    kickAFK();
-  }
-  else {
-    //Restarts and clears bottom timer
-    clearInterval(userTurnTimer);
-    tsc.setUserLabel("");
-  }
-}
-
 export function doCubeMoves(message: string) {
   //Player commands/settings
   var msg = message.toLowerCase();
@@ -241,7 +139,7 @@ export function doCubeMoves(message: string) {
 
 
       if (moves333.find(elem => elem === msg) != undefined) {
-        kickAFK();
+        tsc.kickAFK();
         appendMove(msg); //applys user msg move to puzzle
 
         // Update top right moves
@@ -260,7 +158,7 @@ export function doCubeMoves(message: string) {
           .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r'")
           .replace("u", "r").replace(",", "u").replace("c", "u'");
 
-        kickAFK();
+        tsc.kickAFK();
 
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
@@ -277,7 +175,7 @@ export function doCubeMoves(message: string) {
 
       if (algArray.every(v => moves333.includes(v))) {
 
-        kickAFK();
+        tsc.kickAFK();
         appendAlg(algArray);
       }
     }
@@ -334,10 +232,6 @@ async function checkSolved() {
     scramblePuzzle();
     tsc.setCubeSolved(false);
   }
-}
-
-export function clearAfkCountdown(){
-  clearInterval(afkCountdown);
 }
 
 // Starts cube scrambled

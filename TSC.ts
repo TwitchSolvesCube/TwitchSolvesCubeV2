@@ -11,57 +11,192 @@ function pad(val: any): string {
   }
 
 export default class TSC {
+  
     private eventID: string;
     private scramble: Array<string> = new Array();
-    private timeSinceSolved: number;
-    private turnTime: number;
-    private totalMoves: number;
+    private timeSinceSolved: number = 0;
+    private turnTime: number = 301;
+    private totalMoves: number = 0;
 
     private queue: Array<string> = new Array();
-    private currentTurn: boolean;
-    private isSolved: boolean;
-    private turns: boolean;
-    private speedNotation: boolean;
+    private currentTurn: boolean = false;
+    private isSolved: boolean = false;
+    private turns: boolean = true;
+    private speedNotation: boolean = false;
     private movable: boolean;
 
     private showLabels: boolean = true;
-    private timeLabel: HTMLElement;
-    private movesLabel: HTMLElement;
-    private userLabel: HTMLElement;
+    private timeLabel: HTMLElement = document.getElementById("timeSinceSolved") as HTMLElement;
+    private movesLabel: HTMLElement = document.getElementById("moveCount") as HTMLElement;
+    private userLabel: HTMLElement = document.getElementById("userTurn") as HTMLElement;
+
+    // Timers
+    private userTurnTimer: NodeJS.Timer;
+    private afkCountdown: NodeJS.Timer;
+
 
     constructor(eventID: string){
-        //Type of Cube
         this.eventID = eventID;
-
-        // Top right timer
-        this.timeSinceSolved = 0;
-        this.timeLabel = document.getElementById("timeSinceSolved") as HTMLElement;
-
-        // Top right moves counter
-        this.totalMoves = 0;
-        this.movesLabel = document.getElementById("moveCount") as HTMLElement;
-
-        // Bottom center user turn
-        this.turnTime = 301;
-        this.currentTurn = false;
-        this.userLabel = document.getElementById("userTurn") as HTMLElement;
-
-        this.scramble = [];
-        this.isSolved = false;
-        this.turns = true;
-        this.speedNotation = false;
     }
 
-    getQ(): Array<string> {
-        return this.queue;
+    async joinQueue(user: string): Promise<string> {
+      let msg = '';
+    
+      if (this.isTurns()) {
+        const queue = this.getQueue();
+        const qLength = this.getQLength();
+    
+        if (qLength === 0) {
+          this.enqueue(user);
+          //twitch.isFollowing(user);
+          msg = `@${user}, it's your turn! Do !leaveQ when done`;
+          this.kickAFK();
+        } else if (this.getCurrentUser() === user) {
+          msg = `@${user}, it's currently your turn!`;
+        } else if (!queue.includes(user)) {
+          this.enqueue(user);
+          msg = `@${user}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength - 1} user${qLength > 2 ? 's' : ''} in front of you`;
+        } else {
+          msg = `@${user}, you're already in the queue. Please wait :)`;
+        }
+      } else {
+        msg = "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
+      }
+    
+      return msg;
+    }    
+
+    async leaveQueue(user: string): Promise<string> {
+      let msg = "";
+    
+      if (this.isTurns()) {
+        const queue = this.getQueue();
+        const currentUser = this.getCurrentUser();
+    
+        const userIndex = queue.indexOf(user);
+    
+        if (userIndex !== -1) {
+          if (currentUser === user) {
+            this.removeCurrentPlayer(false);
+          } else {
+            queue.splice(userIndex, 1);
+          }
+    
+          clearInterval(this.afkCountdown);
+          msg = `@${user}, you have now left the queue`;
+        } else {
+          msg = `@${user}, you are not in the queue. Type !joinQ to join`;
+        }
+      } else {
+        msg = "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat";
+      }
+    
+      return msg;
+    }
+    
+    async removeUser(name: string, delayMs: number): Promise<void> {
+      console.log(`${name} will be removed from the queue in ${delayMs} ms`);
+      
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      
+      const indexToRemove = this.queue.indexOf(name);
+    
+      if (indexToRemove !== -1) {
+        const removedUser = this.queue.splice(indexToRemove, 1)[0];
+        console.log(`${removedUser} has been removed from the queue`);
+      } else {
+        console.log(`${name} was not found in the queue`);
+      }
+
+      if (this.getCurrentUser() === name) {
+        this.removeCurrentPlayer();
+      }
+    }
+
+    async removeCurrentPlayer(timeup = false): Promise<string> {
+      this.fullReset();
+      let msg = "";
+    
+      if (timeup && this.getQLength() > 0) {
+        const currentUser = this.getCurrentUser();
+        if (currentUser) {
+          msg = `@${currentUser}, time is up, you may !joinq again`;
+        }
+        this.shiftQ();
+      } else {
+        this.shiftQ();
+      }
+    
+      const currentUser = this.getCurrentUser();
+    
+      if (currentUser) {
+        //twitch.isFollowing(currentUser);
+        msg = `@${currentUser}, it's your turn! Do !leaveQ when done`;
+        this.kickAFK();
+      } else {
+        // Restarts and clears the bottom timer
+        this.clearUserTurnTimer();
+        this.setUserLabel("");
+      }
+    
+      return msg;
+    }    
+
+    async kickAFK(): Promise<string> {
+      //this.clearAfkCountdown();
+
+      const afkTimerDurationSeconds = 120;
+      let msg = '';
+      let remainingTime = afkTimerDurationSeconds;
+    
+      this.afkCountdown = setInterval(() => {
+        remainingTime--;
+    
+        if (remainingTime === 0) {
+          const currentUser = this.getCurrentUser();
+          
+          if (currentUser) {
+            msg = `@${currentUser}, you have been kicked after not making any moves for 2 minutes!`;
+            this.removeCurrentPlayer();
+          }
+    
+          clearInterval(this.afkCountdown);
+        }
+      }, 1000);
+    
+      return msg;
+    }
+
+    async clearAfkCountdown(){
+      clearInterval(this.afkCountdown);
+    }
+
+    clearUserTurnTimer() {
+      clearInterval(this.userTurnTimer);
+    }
+
+    async userTurnTime() {
+      this.clearUserTurnTimer();
+
+      this.userTurnTimer = setInterval(() => {
+        if (!this.decTurnTime()) {
+          clearInterval(this.afkCountdown);
+          this.setSpeedNotation(false);
+          this.removeCurrentPlayer(true);
+        }
+      }, 1000);
+    }
+
+    enqueue(username: string): void {
+      this.queue.push(username);
+    }
+
+    getQueue() {
+      return this.queue;
     }
 
     getQLength(): number {
         return this.queue.length;
-    }
-
-    addToQ(user: string): void {
-        this.queue.push(user);
     }
 
     shiftQ(): void {
@@ -75,17 +210,17 @@ export default class TSC {
     getPuzzleID() {
         return wcaEventInfo(this.eventID)!.puzzleID;
     }
-
-    incTimeSS(): void {
-        ++this.timeSinceSolved;
-        if (this.showLabels){
-            var date = new Date(null!);
-            date.setSeconds(this.timeSinceSolved);
-            var result = date.toISOString().slice(12, 19);
-            this.timeLabel.innerHTML = pad(result); // Updates top right timer
-        }
-    }
     
+    incTimeSS(): void {
+      ++this.timeSinceSolved;
+      if (this.showLabels){
+          var date = new Date(null!);
+          date.setSeconds(this.timeSinceSolved);
+          var result = date.toISOString().slice(12, 19);
+          this.timeLabel.innerHTML = pad(result); // Updates top right timer
+      }
+    }
+  
     resetTimeSS(): void {
         this.timeSinceSolved = 0;
     }
@@ -103,22 +238,21 @@ export default class TSC {
             this.movesLabel.innerHTML = pad(0);
         }
     }
-    
+
     decTurnTime(): boolean {
-        if (this.getTurnTime() > 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined){
-            --this.turnTime;
-            if (this.showLabels){
-                this.userLabel.innerHTML = pad(this.getCurrentUser() + "\'s turn ") + pad(parseInt((this.getTurnTime() / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
-            }
-            return true;
-        }
-        return false;
+      if (this.getTurnTime() > 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined){
+          --this.turnTime;
+          if (this.showLabels){
+              this.userLabel.innerHTML = pad(this.getCurrentUser() + "\'s turn ") + pad(parseInt((this.getTurnTime() / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+          }
+          return true;
+      }
+      return false;
     }
-    
+  
     setTurnTime(turnTime: number): void {
         this.turnTime = turnTime;
     }
-
     getTurnTime(): number{
         return this.turnTime;
     }
@@ -127,9 +261,16 @@ export default class TSC {
         this.userLabel.innerHTML = username;
     }
 
+    getUserName(index: number): string | null {
+      if (index >= 0 && index < this.queue.length) {
+        return this.queue[index];
+      }
+      return null;
+    }
+
     getCurrentUser(): string {
-        console.log(this.queue[0]); //undefined when using !remove
-        return this.queue[0]!;
+      console.log(this.queue[0]); //undefined when using !remove
+      return this.queue[0]!;
     }
     
     setCurrentTurn(currentTurn: boolean): void {
@@ -190,8 +331,9 @@ export default class TSC {
 
     // Reset turnTime, clear label, stop user timer, remove player
     fullReset(): void {
-        this.setTurnTime(301);
+        this.setTurnTime(this.turnTime);
         this.setCurrentTurn(false);
         this.setSpeedNotation(false);
     }
-}
+  }
+  
