@@ -34,12 +34,11 @@ export default class TSC {
     private userTurnTimer: NodeJS.Timer;
     private afkCountdown: NodeJS.Timer;
 
-
     constructor(eventID: string){
         this.eventID = eventID;
     }
 
-    async joinQueue(user: string): Promise<string> {
+    async joinQueue(username: string): Promise<string> {
       let msg = '';
     
       if (this.isTurns()) {
@@ -47,17 +46,17 @@ export default class TSC {
         const qLength = this.getQLength();
     
         if (qLength === 0) {
-          this.enqueue(user);
-          //twitch.isFollowing(user);
-          msg = `@${user}, it's your turn! Do !leaveQ when done`;
+          this.enqueue(username);
+          //twitch.isFollowing(username);
+          msg = `@${username}, it's your turn! Do !leaveQ when done`;
           this.kickAFK();
-        } else if (this.getCurrentUser() === user) {
-          msg = `@${user}, it's currently your turn!`;
-        } else if (!queue.includes(user)) {
-          this.enqueue(user);
-          msg = `@${user}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength - 1} user${qLength > 2 ? 's' : ''} in front of you`;
+        } else if (this.getCurrentUser() === username) {
+          msg = `@${username}, it's currently your turn!`;
+        } else if (!queue.includes(username)) {
+          this.enqueue(username);
+          msg = `@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength - 1} user${qLength > 2 ? 's' : ''} in front of you`;
         } else {
-          msg = `@${user}, you're already in the queue. Please wait :)`;
+          msg = `@${username}, you're already in the queue. Please wait :)`;
         }
       } else {
         msg = "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
@@ -66,51 +65,32 @@ export default class TSC {
       return msg;
     }    
 
-    async leaveQueue(user: string): Promise<string> {
+    async leaveQueue(username: string): Promise<string> {
       let msg = "";
     
       if (this.isTurns()) {
         const queue = this.getQueue();
         const currentUser = this.getCurrentUser();
     
-        const userIndex = queue.indexOf(user);
+        const userIndex = queue.indexOf(username);
     
         if (userIndex !== -1) {
-          if (currentUser === user) {
+          if (currentUser === username) {
             this.removeCurrentPlayer(false);
           } else {
             queue.splice(userIndex, 1);
           }
     
           clearInterval(this.afkCountdown);
-          msg = `@${user}, you have now left the queue`;
+          msg = `@${username}, you have now left the queue`;
         } else {
-          msg = `@${user}, you are not in the queue. Type !joinQ to join`;
+          msg = `@${username}, you are not in the queue. Type !joinQ to join`;
         }
       } else {
         msg = "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat";
       }
     
       return msg;
-    }
-    
-    async removeUser(name: string, delayMs: number): Promise<void> {
-      console.log(`${name} will be removed from the queue in ${delayMs} ms`);
-      
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-      
-      const indexToRemove = this.queue.indexOf(name);
-    
-      if (indexToRemove !== -1) {
-        const removedUser = this.queue.splice(indexToRemove, 1)[0];
-        console.log(`${removedUser} has been removed from the queue`);
-      } else {
-        console.log(`${name} was not found in the queue`);
-      }
-
-      if (this.getCurrentUser() === name) {
-        this.removeCurrentPlayer();
-      }
     }
 
     async removeCurrentPlayer(timeup = false): Promise<string> {
@@ -143,7 +123,8 @@ export default class TSC {
     }    
 
     async kickAFK(): Promise<string> {
-      //this.clearAfkCountdown();
+      this.clearAfkCountdown(); //Bug is here, if this is commented then the timer doesn't reset
+                                  // If it is not commented, then there are no errors but afk kicking won't work
 
       const afkTimerDurationSeconds = 120;
       let msg = '';
@@ -191,16 +172,16 @@ export default class TSC {
       this.queue.push(username);
     }
 
+    shiftQ(): void {
+      this.queue.shift();
+    }
+
     getQueue() {
       return this.queue;
     }
 
     getQLength(): number {
         return this.queue.length;
-    }
-
-    shiftQ(): void {
-        this.queue.shift();
     }
 
     getEventID(): string {
@@ -253,6 +234,7 @@ export default class TSC {
     setTurnTime(turnTime: number): void {
         this.turnTime = turnTime;
     }
+
     getTurnTime(): number{
         return this.turnTime;
     }
@@ -331,7 +313,7 @@ export default class TSC {
 
     // Reset turnTime, clear label, stop user timer, remove player
     fullReset(): void {
-        this.setTurnTime(this.turnTime);
+        this.setTurnTime(301);
         this.setCurrentTurn(false);
         this.setSpeedNotation(false);
     }

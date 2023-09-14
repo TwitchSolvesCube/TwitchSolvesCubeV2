@@ -39,7 +39,7 @@ chatClient.onMessage((channel:string, user: string, message: string, tags: Twitc
     var msg = message.toLowerCase();
 
     if (msg === "test"){
-      cube.tsc.joinQueue("TwitchSolvesBot");
+      cube.tsc.joinQueue("twitchsolvesbot");
     }
   
     if (msg === "!queue" || msg === "!q") {
