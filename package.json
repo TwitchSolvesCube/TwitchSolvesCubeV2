@@ -10,12 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@twurple/api": "^5.1.8",
-    "@twurple/auth": "^5.1.8",
-    "@twurple/chat": "^5.1.8",
+    "@parcel/core": "^2.9.3",
+    "@twurple/api": "^5.3.4",
+    "@twurple/auth": "^5.3.4",
+    "@twurple/chat": "^5.3.4",
     "cubing": "^0.28.1",
     "delay": "^5.0.0",
-    "parcel": "^2.6.2"
+    "parcel": "^2.9.3",
+    "typescript": "^5.2.2"
   },
   "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
   "repository": {
