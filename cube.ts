@@ -12,30 +12,30 @@ export const tsc = new TSC("333");
 
 // Array of all supported moves
 const moves333: Array<string> =
-    ["R", "R'", "R2", "r", "r'", "r2",
-        "L", "L'", "L2", "l", "l'", "l2",
-        "F", "F'", "F2", "f", "f'", "f2",
-        "B", "B'", "B2", "b", "b'", "b2",
-        "D", "D'", "D2", "d", "d'", "d2",
-        "U", "U'", "U2", "u", "u'", "u2",
-        "E", "E'", "E2",
-        "S", "S'", "S2",
-        "M", "M'", "M2",
-        "x", "x'", "x2",
-        "y", "y'", "y2",
-        "z", "z'", "z2"];
+  ["R", "R'", "R2", "r", "r'", "r2",
+    "L", "L'", "L2", "l", "l'", "l2",
+    "F", "F'", "F2", "f", "f'", "f2",
+    "B", "B'", "B2", "b", "b'", "b2",
+    "D", "D'", "D2", "d", "d'", "d2",
+    "U", "U'", "U2", "u", "u'", "u2",
+    "E", "E'", "E2",
+    "S", "S'", "S2",
+    "M", "M'", "M2",
+    "x", "x'", "x2",
+    "y", "y'", "y2",
+    "z", "z'", "z2"];
 
 const snMoves333: Array<string> =
-    ["i", "k", "u", "m",
-        "d", "e", "v", "r",
-        "h", "g",
-        "w", "o",
-        "s", "l", "z", "?",
-        "j", "f", ",", "c",
-        "5", "6", "x",
-        "t", "y", "b",
-        ";", "a",
-        "p", "q"];
+  ["i", "k", "u", "m",
+    "d", "e", "v", "r",
+    "h", "g",
+    "w", "o",
+    "s", "l", "z", "?",
+    "j", "f", ",", "c",
+    "5", "6", "x",
+    "t", "y", "b",
+    ";", "a",
+    "p", "q"];
 
 // Timers
 let timeSinceSolvedTimer: NodeJS.Timer;
@@ -44,8 +44,8 @@ export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
 var cubeState: KState;
 
-function appendMove(myMove : string){
-  if(moves333.includes(myMove)){
+function appendMove(myMove: string) {
+  if (moves333.includes(myMove)) {
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     cubeState = cubeState.applyMove(newMove);
@@ -53,10 +53,10 @@ function appendMove(myMove : string){
   }
 }
 
-async function appendAlg(myAlg : Array<string>){
+async function appendAlg(myAlg: Array<string>) {
   tsc.enableCube(false); //Can't move cube while appending move
-  if(myAlg.every(move => moves333.includes(move))){
-    for(var i = 0; i <= myAlg.length - 1; i++){
+  if (myAlg.every(move => moves333.includes(move))) {
+    for (var i = 0; i <= myAlg.length - 1; i++) {
       await delay(400);
       appendMove(myAlg[i]);
     }
@@ -81,24 +81,24 @@ async function scramblePuzzle(scramble?: Array<string>) {
   kpuzzle = await cube3x3x3.kpuzzle();
   cubeState = kpuzzle.identityTransformation().toKState();
 
-  if(scramble == null){ //If user does not provide scramble
+  if (scramble == null) { //If user does not provide scramble
     await tsc.newScrambleArray(); //Generate random scramble
     await appendAlg(tsc.getScrambleArray());  //Apply alg to cube
   }
-  else{
+  else {
     await appendAlg(scramble); //Apply user provided scramble to cube
   }
   tsc.resetMoves();
   tsc.resetTimeSS(); //Sets to 0 in class
 
   clearInterval(timeSinceSolvedTimer);
-  timeSinceSolvedTimer = setInterval(function (){tsc.incTimeSS()}, 1000); //Starts timer, timeSS is a function 
+  timeSinceSolvedTimer = setInterval(function () { tsc.incTimeSS() }, 1000); //Starts timer, timeSS is a function 
 }
 
 export function doCubeMoves(message: string) {
   //Player commands/settings
   var msg = message.toLowerCase();
-  
+
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
       scramblePuzzle();
@@ -198,8 +198,8 @@ export function doCubeMoves(message: string) {
 
 function isCubeStateSolved() {
   return cubeState.experimentalIsSolved({
-      ignorePuzzleOrientation: true,
-      ignoreCenterOrientation: true
+    ignorePuzzleOrientation: true,
+    ignoreCenterOrientation: true
   });
 }
 
@@ -211,7 +211,7 @@ async function checkSolved() {
 
     await delay(1000)
     player.backView = "none";
-    
+
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
