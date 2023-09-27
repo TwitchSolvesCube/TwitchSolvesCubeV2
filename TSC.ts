@@ -32,7 +32,6 @@ export default class TSC {
 
   // Timers
   private userTurnTimer: NodeJS.Timer;
-  private afkCountdown: NodeJS.Timer;
 
   constructor(eventID: string) {
     this.eventID = eventID;
@@ -81,8 +80,8 @@ export default class TSC {
         } else {
           queue.splice(userIndex, 1);
         }
-
-        this.clearAfkCountdown();
+        
+        //this.clearAfkCountdown();
         response = `@${username}, you have now left the queue`;
       } else {
         response = `@${username}, you are not in the queue. Type !joinQ to join`;
@@ -114,7 +113,7 @@ export default class TSC {
     if (currentUser) {
       //twitch.isFollowing(currentUser);
       response = `@${currentUser}, it's your turn! Do !leaveQ when done`;
-      this.kickAFK(); //TODO: Response
+      //this.kickAFK(); //TODO: Response
     } else {
       // Restarts and clears the bottom timer, response gets sent before person leaves queue
       response = `The queue is currently empty. Anyone is free to !joinQ`;
@@ -126,39 +125,6 @@ export default class TSC {
     return response;
   }
 
-  async kickAFK(): Promise<string> {
-    this.clearAfkCountdown(); //Bug is here, if this is commented then the timer doesn't reset
-    // If it is not commented, then there are no errors but afk kicking won't work
-
-    const afkTimerDurationSeconds = 120;
-    let response = '';
-    let remainingTime = afkTimerDurationSeconds;
-
-    this.afkCountdown = setInterval(() => {
-      console.log(remainingTime);
-      if (remainingTime === 0) {
-        const currentUser = this.getCurrentUser();
-
-        if (currentUser) {
-          response = `@${currentUser}, you have been kicked after not making any moves for 2 minutes!`;
-          console.log(response);
-          this.removeCurrentPlayer(); //TODO: Response
-          return response;
-        }
-
-        this.clearAfkCountdown();
-      }
-      remainingTime--;
-    }, 1000);
-
-    console.log(response);
-    return response;
-  }
-  
-  async clearAfkCountdown() {
-    clearInterval(this.afkCountdown);
-  }
-
   clearUserTurnTimer() {
     clearInterval(this.userTurnTimer);
   }
@@ -168,7 +134,7 @@ export default class TSC {
 
     this.userTurnTimer = setInterval(() => {
       if (!this.decTurnTime()) {
-        this.clearAfkCountdown();
+        //this.clearAfkCountdown();
         this.setSpeedNotation(false);
         this.removeCurrentPlayer(true); //TODO: Response
       }
@@ -267,7 +233,7 @@ export default class TSC {
   // }
 
   getCurrentUser(): string {
-    console.log(this.queue[0]); //undefined when using !remove
+    //console.log(this.queue[0]); //undefined when using !remove
     return this.queue[0]!;
   }
 

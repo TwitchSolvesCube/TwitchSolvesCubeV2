@@ -139,7 +139,6 @@ export function doCubeMoves(message: string) {
 
 
       if (moves333.find(elem => elem === msg) != undefined) {
-        tsc.kickAFK();
         appendMove(msg); //applys user msg move to puzzle
 
         // Update top right moves
@@ -158,8 +157,6 @@ export function doCubeMoves(message: string) {
           .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r'")
           .replace("u", "r").replace(",", "u").replace("c", "u'");
 
-        tsc.kickAFK();
-
         const newMove = new Move(msg);
         player.experimentalAddMove(newMove);
         cubeState = cubeState.applyMove(newMove);
@@ -174,8 +171,6 @@ export function doCubeMoves(message: string) {
       let algArray = message.split(' ');
 
       if (algArray.every(v => moves333.includes(v))) {
-
-        tsc.kickAFK();
         appendAlg(algArray);
       }
     }

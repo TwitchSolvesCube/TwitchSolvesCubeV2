@@ -86,7 +86,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
 
 
     currentUser = cube.tsc.getCurrentUser();
-    console.log(currentUser);
+    //console.log(currentUser);
     if (currentUser === user) {               //If the message sent by the user is the currentUser do cube moves
         if (!cube.tsc.isCurrentTurn()) {      //If the message is not the current user 
             cube.tsc.userTurnTime();
