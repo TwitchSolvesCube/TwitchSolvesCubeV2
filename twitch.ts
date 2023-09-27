@@ -79,22 +79,10 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
         }
     }
 
-    // currentUser = cube.tsc.getCurrentUser();
-    // if (currentUser === user && !cube.tsc.isCurrentTurn() && cube.tsc.isCubeEnabled()) {
-    //     cube.tsc.userTurnTime();
-    //     cube.tsc.setCurrentTurn(true);
-    //     cube.doCubeMoves(message);
-    //cube.tsc.scheduleUserRemoval(currentUser, 10, true);
-    // }
-
-
     currentUser = cube.tsc.getCurrentUser();
-    //console.log('[' + currentDate.toLocaleTimeString() + '] ' + currentUser);
-    if (currentUser === user) {               //If the message sent by the user is the currentUser do cube moves
-        if (!cube.tsc.isCurrentTurn()) {      //If the message is not the current user 
+    //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + currentUser);
+    if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
             cube.tsc.userTurnTime();
-            cube.tsc.setCurrentTurn(true);
-        }
         if (cube.tsc.isCubeEnabled()) {
             cube.doCubeMoves(message);
             //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
@@ -103,7 +91,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
 
     // Debug
     // cube.doCubeMoves(message);
-    // console.log('[' + currentDate.toLocaleTimeString() + '] ' + queue);
+    // console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + queue);
 });
 
 export async function isFollowing(username: string): Promise<void> {
@@ -113,4 +101,8 @@ export async function isFollowing(username: string): Promise<void> {
     //Sets user play time to 8 minutes if they're following, default time for players is 5 minutes
     //Added one second to visually see "correct" time
     cube.tsc.setTurnTime(isFollower ? 481 : 301);
+}
+
+function getCurrentDate() {
+    return new Date();
 }

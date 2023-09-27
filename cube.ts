@@ -184,12 +184,12 @@ export function doCubeMoves(message: string) {
     //   player.experimentalAddMove(new Move(String(message)));
     // }
     // catch(Error){
-    //   console.log('[' + currentDate.toLocaleTimeString() + '] ' + "Invalid Move or Not a Move");
+    //   console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Invalid Move or Not a Move");
     // }
     // This would be better because with other puzzles we don't need to know the moves
 
     tsc.setCubeSolved(isCubeStateSolved());
-    //console.log('[' + currentDate.toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
+    //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
   }
 }
 
@@ -218,7 +218,7 @@ async function checkSolved() {
     // Reconstruction of Solve need to shrink/shorten link
     // player.experimentalModel.twizzleLink().then(
     //   function (value) {
-    //     console.log('[' + currentDate.toLocaleTimeString() + '] ' + value)
+    //     console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + value)
     //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
     //   },
     //   function (error) { }
@@ -229,6 +229,10 @@ async function checkSolved() {
     scramblePuzzle();
     tsc.setCubeSolved(false);
   }
+}
+
+function getCurrentDate() {
+  return new Date();
 }
 
 // Starts cube scrambled

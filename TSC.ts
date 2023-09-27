@@ -19,7 +19,6 @@ export default class TSC {
   private totalMoves: number = 0;
 
   private queue: Array<string> = new Array();
-  private currentTurn: boolean = false;
   private isSolved: boolean = false;
   private turns: boolean = true;
   private speedNotation: boolean = false;
@@ -32,8 +31,6 @@ export default class TSC {
 
   // Timers
   private userTurnTimer: NodeJS.Timer;
-  // Date
-  private currentDate = new Date();
 
   constructor(eventID: string) {
     this.eventID = eventID;
@@ -63,12 +60,15 @@ export default class TSC {
       response = "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
     }
 
-    console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
+    console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
     return response;
   }
 
   async removePlayer(username: string): Promise<string> {
-    this.fullReset();
+    //Reset the Cube
+    this.setTurnTime(300);
+    this.setSpeedNotation(false);
+
     let response = "";
 
     const queue = this.getQueue();
@@ -100,7 +100,7 @@ export default class TSC {
       this.setUserLabel("");
     }
 
-    console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + response);
+    console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response);
     return response;
   }
 
@@ -114,7 +114,6 @@ export default class TSC {
     this.userTurnTimer = setInterval(() => {
       if (!this.decTurnTime()) {
         //this.clearAfkCountdown();
-        this.setSpeedNotation(false);
         this.removePlayer(this.getCurrentUser()); //TODO: Response
       }
     }, 1000);
@@ -212,14 +211,6 @@ export default class TSC {
     return this.queue[0]!;
   }
 
-  setCurrentTurn(currentTurn: boolean): void {
-    this.currentTurn = currentTurn;
-  }
-
-  isCurrentTurn(): boolean {
-    return this.currentTurn;
-  }
-
   setCubeSolved(isSolved: boolean): void {
     this.isSolved = isSolved;
   }
@@ -268,10 +259,7 @@ export default class TSC {
     return this.scramble;
   }
 
-  // Reset turnTime, clear label, stop user timer, remove player
-  fullReset(): void {
-    this.setTurnTime(300);
-    this.setCurrentTurn(false);
-    this.setSpeedNotation(false);
+  getCurrentDate() {
+    return new Date();
   }
 }
