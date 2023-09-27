@@ -66,21 +66,21 @@ export default class TSC {
   }
 
   async leaveQueue(username: string): Promise<string> {
+    this.fullReset();
     let response = "";
 
     if (this.isTurns()) {
       const queue = this.getQueue();
       const currentUser = this.getCurrentUser();
-
       const userIndex = queue.indexOf(username);
 
       if (userIndex !== -1) {
         if (currentUser === username) {
-          this.removeCurrentPlayer(false); //TODO: Response
+          this.removeCurrentPlayer(username); //TODO: Response
         } else {
           queue.splice(userIndex, 1);
         }
-        
+
         //this.clearAfkCountdown();
         response = `@${username}, you have now left the queue`;
       } else {
@@ -94,27 +94,26 @@ export default class TSC {
     return response;
   }
 
-  async removeCurrentPlayer(timeup = false): Promise<string> {
+  async removeCurrentPlayer(username: string): Promise<string> {
     this.fullReset();
     let response = "";
 
-    if (timeup && this.getQLength() > 0) {
-      const currentUser = this.getCurrentUser();
-      if (currentUser) {
-        response = `@${currentUser}, time is up, you may !joinq again`;
-      }
-      this.shiftQ();
-    } else {
-      this.shiftQ();
+    const queue = this.getQueue();
+    let currentUser = this.getCurrentUser();
+    const userIndex = queue.indexOf(username);
+
+    if (this.getQLength() > 0) {
+      response = `@${username}, time is up, you may !joinq again`;
+      this.queue.splice(userIndex, 1);
     }
 
-    const currentUser = this.getCurrentUser();
-
+    //If someone is in the queue after the removal of a user
+    currentUser = this.getCurrentUser();
     if (currentUser) {
       //twitch.isFollowing(currentUser);
       response = `@${currentUser}, it's your turn! Do !leaveQ when done`;
       //this.kickAFK(); //TODO: Response
-    } else {
+    } else { //If there is no user left in the queue
       // Restarts and clears the bottom timer, response gets sent before person leaves queue
       response = `The queue is currently empty. Anyone is free to !joinQ`;
       this.clearUserTurnTimer();
@@ -136,7 +135,7 @@ export default class TSC {
       if (!this.decTurnTime()) {
         //this.clearAfkCountdown();
         this.setSpeedNotation(false);
-        this.removeCurrentPlayer(true); //TODO: Response
+        this.removeCurrentPlayer(this.getCurrentUser()); //TODO: Response
       }
     }, 1000);
   }
