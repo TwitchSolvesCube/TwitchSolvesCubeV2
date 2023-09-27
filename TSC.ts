@@ -61,40 +61,11 @@ export default class TSC {
       response = "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
     }
 
-    console.log(response);
+    console.log(response); //TODO: Add timestamps to console logs
     return response;
   }
 
-  async leaveQueue(username: string): Promise<string> {
-    this.fullReset();
-    let response = "";
-
-    if (this.isTurns()) {
-      const queue = this.getQueue();
-      const currentUser = this.getCurrentUser();
-      const userIndex = queue.indexOf(username);
-
-      if (userIndex !== -1) {
-        if (currentUser === username) {
-          this.removeCurrentPlayer(username); //TODO: Response
-        } else {
-          queue.splice(userIndex, 1);
-        }
-
-        //this.clearAfkCountdown();
-        response = `@${username}, you have now left the queue`;
-      } else {
-        response = `@${username}, you are not in the queue. Type !joinQ to join`;
-      }
-    } else {
-      response = "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat";
-    }
-
-    console.log(response);
-    return response;
-  }
-
-  async removeCurrentPlayer(username: string): Promise<string> {
+  async removePlayer(username: string): Promise<string> {
     this.fullReset();
     let response = "";
 
@@ -102,9 +73,16 @@ export default class TSC {
     let currentUser = this.getCurrentUser();
     const userIndex = queue.indexOf(username);
 
-    if (this.getQLength() > 0) {
-      response = `@${username}, time is up, you may !joinq again`;
-      this.queue.splice(userIndex, 1);
+    if (this.isTurns()) {
+      if (userIndex !== -1) {
+        response = `@${username}, you have now left the queue`;
+        this.queue.splice(userIndex, 1);
+        //this.clearAfkCountdown();
+      } else {
+        response = `@${username}, you are not in the queue. Type !joinQ to join`;
+      }
+    } else {
+      response = "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat";
     }
 
     //If someone is in the queue after the removal of a user
@@ -135,17 +113,13 @@ export default class TSC {
       if (!this.decTurnTime()) {
         //this.clearAfkCountdown();
         this.setSpeedNotation(false);
-        this.removeCurrentPlayer(this.getCurrentUser()); //TODO: Response
+        this.removePlayer(this.getCurrentUser()); //TODO: Response
       }
     }, 1000);
   }
 
   enqueue(username: string): void {
     this.queue.push(username);
-  }
-
-  shiftQ(): void {
-    this.queue.shift();
   }
 
   getQueue() {

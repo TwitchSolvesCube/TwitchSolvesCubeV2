@@ -58,13 +58,13 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
             say(await cube.tsc.joinQueue(user));
         }
     } else if (msg === "!leaveq" || msg === "!lq") {
-        say(await cube.tsc.leaveQueue(user));
+        say(await cube.tsc.removePlayer(user));
     } else if ((msg.startsWith("!remove") || msg.startsWith("!rm")) && isMod) {
         const userToRemove = message.split(' ').pop()?.split('@').pop()!; //Non-null assertion operator in use
         if (queue.includes(userToRemove)) {
             if (currentUser === userToRemove) {
                 say(`@${currentUser} has been removed from the queue.`);
-                cube.tsc.removeCurrentPlayer(currentUser);
+                cube.tsc.removePlayer(currentUser);
             } else {
                 say(`@${userToRemove} has been removed from the queue.`);
                 queue.splice(queue.indexOf(userToRemove!), 1); //Possible error here
