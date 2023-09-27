@@ -64,7 +64,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
         if (queue.includes(userToRemove)) {
             if (currentUser === userToRemove) {
                 say(`@${currentUser} has been removed from the queue.`);
-                cube.tsc.removeCurrentPlayer();
+                cube.tsc.removeCurrentPlayer(currentUser);
             } else {
                 say(`@${userToRemove} has been removed from the queue.`);
                 queue.splice(queue.indexOf(userToRemove!), 1); //Possible error here
