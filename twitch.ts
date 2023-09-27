@@ -68,14 +68,25 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
             } else {
                 say(`@${userToRemove} has been removed from the queue.`);
                 queue.splice(queue.indexOf(userToRemove!), 1); //Possible error here
+                //cube.tsc.leaveQueue(userToRemove);
             }
-            cube.tsc.clearAfkCountdown();
+            //cube.tsc.clearAfkCountdown();
         } else {
             say(`@${user} this user is not in the queue.`);
         }
     }
 
+    // currentUser = cube.tsc.getCurrentUser();
+    // if (currentUser === user && !cube.tsc.isCurrentTurn() && cube.tsc.isCubeEnabled()) {
+    //     cube.tsc.userTurnTime();
+    //     cube.tsc.setCurrentTurn(true);
+    //     cube.doCubeMoves(message);
+    //cube.tsc.scheduleUserRemoval(currentUser, 10, true);
+    // }
+
+
     currentUser = cube.tsc.getCurrentUser();
+    console.log(currentUser);
     if (currentUser === user) {               //If the message sent by the user is the currentUser do cube moves
         if (!cube.tsc.isCurrentTurn()) {      //If the message is not the current user 
             cube.tsc.userTurnTime();
@@ -83,6 +94,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
         }
         if (cube.tsc.isCubeEnabled()) {
             cube.doCubeMoves(message);
+            //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
         }
     }
 
