@@ -32,6 +32,8 @@ export default class TSC {
 
   // Timers
   private userTurnTimer: NodeJS.Timer;
+  // Date
+  private currentDate = new Date();
 
   constructor(eventID: string) {
     this.eventID = eventID;
@@ -61,7 +63,7 @@ export default class TSC {
       response = "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
     }
 
-    console.log(response); //TODO: Add timestamps to console logs
+    console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
     return response;
   }
 
@@ -98,7 +100,7 @@ export default class TSC {
       this.setUserLabel("");
     }
 
-    console.log(response);
+    console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + response);
     return response;
   }
 
@@ -198,7 +200,7 @@ export default class TSC {
 
   // getCurrentUser(): string {
   //   if (this.queue && this.queue.length > 0) {
-  //       console.log(this.queue[0]);
+  //       console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]);
   //       return this.queue[0]!;
   //   } else {
   //       return "Queue is empty";
@@ -206,7 +208,7 @@ export default class TSC {
   // }
 
   getCurrentUser(): string {
-    //console.log(this.queue[0]); //undefined when using !remove
+    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]); //undefined when using !remove
     return this.queue[0]!;
   }
 
@@ -254,7 +256,7 @@ export default class TSC {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
     this.scramble = scramString.toString().split(' ');
-    //console.log(this.scramble);
+    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.scramble);
     return Array(this.scramble);
   }
 

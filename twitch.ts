@@ -6,6 +6,9 @@ import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMe
 
 import * as cube from "./cube";
 
+// Date
+let currentDate = new Date();
+
 const authProvider = new RefreshingAuthProvider(
     {
         clientId,
@@ -86,7 +89,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
 
 
     currentUser = cube.tsc.getCurrentUser();
-    //console.log(currentUser);
+    //console.log('[' + currentDate.toLocaleTimeString() + '] ' + currentUser);
     if (currentUser === user) {               //If the message sent by the user is the currentUser do cube moves
         if (!cube.tsc.isCurrentTurn()) {      //If the message is not the current user 
             cube.tsc.userTurnTime();
@@ -100,7 +103,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
 
     // Debug
     // cube.doCubeMoves(message);
-    // console.log(queue);
+    // console.log('[' + currentDate.toLocaleTimeString() + '] ' + queue);
 });
 
 export async function isFollowing(username: string): Promise<void> {

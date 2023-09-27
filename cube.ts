@@ -39,6 +39,8 @@ const snMoves333: Array<string> =
 
 // Timers
 let timeSinceSolvedTimer: NodeJS.Timer;
+// Date
+let currentDate = new Date();
 
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
@@ -182,12 +184,12 @@ export function doCubeMoves(message: string) {
     //   player.experimentalAddMove(new Move(String(message)));
     // }
     // catch(Error){
-    //   console.log("Invalid Move or Not a Move");
+    //   console.log('[' + currentDate.toLocaleTimeString() + '] ' + "Invalid Move or Not a Move");
     // }
     // This would be better because with other puzzles we don't need to know the moves
 
     tsc.setCubeSolved(isCubeStateSolved());
-    //console.log("Is cube solved? " + tsc.isCubeSolved());
+    //console.log('[' + currentDate.toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
   }
 }
 
@@ -216,7 +218,7 @@ async function checkSolved() {
     // Reconstruction of Solve need to shrink/shorten link
     // player.experimentalModel.twizzleLink().then(
     //   function (value) {
-    //     console.log(value)
+    //     console.log('[' + currentDate.toLocaleTimeString() + '] ' + value)
     //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
     //   },
     //   function (error) { }
