@@ -109,11 +109,10 @@ export function doCubeMoves(message: string) {
     }
   }
   if (msg === "!speednotation" || msg === "!sn") {
-    if (tsc.isSpeedNotation()) {
+      tsc.setSpeedNotation(true)
+  }
+  if (msg === "!normalnotation" || msg === "!nn") {
       tsc.setSpeedNotation(false);
-    } else {
-      tsc.setSpeedNotation(true);
-    }
   }
   if (msg === "!none") {
     player.backView = "none";
