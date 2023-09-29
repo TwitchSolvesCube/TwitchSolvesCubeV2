@@ -7,37 +7,37 @@
 
 html,
 body,
-twisty-player{
-  position: fixed;
-  width: 85%;
-  height: 85%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  vertical-align: middle;
-  background: #6441A5;
+twisty-player {
+	position: fixed;
+	width: 85%;
+	height: 85%;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	vertical-align: middle;
+	background: #6441A5;
 }
 
-#timeSinceSolved{
+#timeSinceSolved {
 	color: #FFF;
-	position: fixed; 
-	top: -15vh; 
+	position: fixed;
+	top: -15vh;
 	right: -23vh;
 	font-size: 10vh;
 	font-weight: 400;
 }
 
-#moveCount{
+#moveCount {
 	color: #FFF;
-	position: fixed; 
-  	top: -5vh;
+	position: fixed;
+	top: -5vh;
 	right: -23vh;
 	font-size: 10vh;
 	font-weight: 400;
 }
 
 /* Bottom Centered only works with relative position? */
-#userTurn{
+#userTurn {
 	color: #FFF;
 	position: relative;
 	text-align: center;

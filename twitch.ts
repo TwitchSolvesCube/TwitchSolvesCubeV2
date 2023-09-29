@@ -4,102 +4,105 @@ import { ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
-import * as cube from "./cube"
+import * as cube from "./cube";
+
+// Date
+let currentDate = new Date();
 
 const authProvider = new RefreshingAuthProvider(
     {
-      clientId,
-      clientSecret
+        clientId,
+        clientSecret
     },
     {
-      accessToken,
-      refreshToken,
-      scope,
-      expiresIn,
-      obtainmentTimestamp
+        accessToken,
+        refreshToken,
+        scope,
+        expiresIn,
+        obtainmentTimestamp
     }
 );
-  
+
 const apiClient = new ApiClient({ authProvider });
-const chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
+const chatClient = new ChatClient({ authProvider, channels: [channelName] });
 
-var isSub: boolean = false;
-var isFollower: boolean = false;
+let isSub: boolean = false;
+let isFollower: boolean = false;
 
-export function isSubscriber(): boolean{
+export function isSubscriber(): boolean {
     return isSub;
 }
 
-export function say(message: string){
+function say(message: string): void {
     chatClient.say(channelName, message);
 }
-  
+
 chatClient.connect().catch(console.error);
-chatClient.onMessage((channel:string, user: string, message: string, tags: TwitchPrivateMessage) => {
-    var msg = message.toLowerCase();
-  
-    if (msg === "!queue" || msg === "!q") {
-      if (cube.queue.length > 0) {
-        say(`${cube.queue}`);
-      }
-      else {
-        say(`There's currently no one in the queue, do !joinq`);
-      }
-    }
-    if (msg.includes("!joinq") || msg.includes("!jq")) {
-      //Code for !joinq (scramble)
-      /* if (msg.slice(msg.length - 8, msg.length) === "scramble" && msg.length < 16){
-        newScramble();
-      } */
-      if (msg === "!joinq" || msg === "!jq") {
-        cube.joinQueue(user);
-      }
-    }
-    if (msg === "!leaveq" || msg === "!lq") {
-        cube.leaveQueue(user);
-    }
-    if ((msg.includes("!remove") || msg.includes("!rm")) && tags.userInfo.isMod) {
-      var userToRemove = message.split(' ').pop()!.split('@').pop()!; //Non-null assertion operator in use
-  
-      if (cube.queue.find(name => name === userToRemove) === userToRemove) {
-        if (cube.queue[0] === userToRemove) {
-          say(`@${cube.queue[0]} has been removed from the queue.`)
-          cube.removeCurrentPlayer();
+chatClient.onMessage(async (channel: string, user: string, message: string, tags: TwitchPrivateMessage) => {
+    const msg = message.toLowerCase();
+    const queue = cube.tsc.getQueue();
+    let currentUser = cube.tsc.getCurrentUser();
+    const isMod = tags.userInfo.isMod;
+    let isSub = tags.userInfo.isSubscriber;
+
+    if (msg === "test") {
+        say(await cube.tsc.joinQueue("twitchsolvesbot"));
+    } else if (msg === "!queue" || msg === "!q") {
+        if (queue.length > 0) {
+            say(`${queue}`);
+        } else {
+            say(`There's currently no one in the queue, do !joinq`);
         }
-        else {
-          say(`@${userToRemove} has been removed from the queue.`);
-          cube.queue.splice(cube.queue.indexOf(userToRemove!), 1);//Possible error here
+    } else if (msg.startsWith("!joinq") || msg.startsWith("!jq")) {
+        if (msg.endsWith("scramble") && msg.length < 16) {
+            // cube.tsc.newScramble();
         }
-        cube.clearAfkCountdown();
-      } else {
-        say(`@${user} this user is not in the queue.`);
-      }
+        if (msg === "!joinq" || msg === "!jq") {
+            say(await cube.tsc.joinQueue(user));
+        }
+    } else if (msg === "!leaveq" || msg === "!lq") {
+        say(await cube.tsc.removePlayer(user));
+    } else if ((msg.startsWith("!remove") || msg.startsWith("!rm")) && isMod) {
+        const userToRemove = message.split(' ').pop()?.split('@').pop()!; //Non-null assertion operator in use
+        if (queue.includes(userToRemove)) {
+            if (currentUser === userToRemove) {
+                say(`@${currentUser} has been removed from the queue.`);
+                cube.tsc.removePlayer(currentUser);
+            } else {
+                say(`@${userToRemove} has been removed from the queue.`);
+                queue.splice(queue.indexOf(userToRemove!), 1); //Possible error here
+                //cube.tsc.leaveQueue(userToRemove);
+            }
+            //cube.tsc.clearAfkCountdown();
+        } else {
+            say(`@${user} this user is not in the queue.`);
+        }
     }
-  
-    if (cube.queue[0] === user) {
-      if (!cube.tsc.isCurrentTurn()) {
-        cube.userTurnTimeThing();
-        cube.tsc.setCurrentTurn(true);
-      }
-      isSub = tags.userInfo.isSubscriber;
-      if (cube.tsc.isCubeEnabled()){
-        cube.doCubeMoves(message);
-      }
+
+    currentUser = cube.tsc.getCurrentUser();
+    //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + currentUser);
+    if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
+            cube.tsc.userTurnTime();
+        if (cube.tsc.isCubeEnabled()) {
+            cube.doCubeMoves(message);
+            //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
+        }
     }
-  
+
     // Debug
-    // doCubeMoves(channel, tags, message);
-    // console.log(queue);
+    // cube.doCubeMoves(message);
+    // console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + queue);
 });
 
-export async function isFollowing(username: string) {
+export async function isFollowing(username: string): Promise<void> {
     //Gets UserID from UserName
     const userID = (await apiClient.users.getUserByName(username))!.id;
     isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
-    //Sets user play time to 8 minutes if they're following
-    if (isFollower) {
-      return 481;
-    }
-    //Default time for players is 5 minutes
-    return 301;
+    //Sets user play time to 8 minutes if they're following, default time for players is 5 minutes
+    //Added one second to visually see "correct" time
+    cube.tsc.setTurnTime(isFollower ? 481 : 301);
+}
+
+function getCurrentDate() {
+    return new Date();
 }
