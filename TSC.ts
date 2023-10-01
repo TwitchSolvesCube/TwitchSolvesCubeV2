@@ -19,7 +19,6 @@ export default class TSC {
   private totalMoves: number = 0;
 
   private queue: Array<string> = new Array();
-  private isSolved: boolean = false;
   private turns: boolean = true;
   private speedNotation: boolean = false;
   private movable: boolean;
@@ -209,14 +208,6 @@ export default class TSC {
   getCurrentUser(): string {
     //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]); //undefined when using !remove
     return this.queue[0]!;
-  }
-
-  setCubeSolved(isSolved: boolean): void {
-    this.isSolved = isSolved;
-  }
-
-  isCubeSolved(): boolean {
-    return this.isSolved;
   }
 
   setTurns(turns: boolean): void {

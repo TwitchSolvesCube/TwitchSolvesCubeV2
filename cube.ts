@@ -130,7 +130,7 @@ export function doCubeMoves(message: string) {
     player.experimentalStickering = "full";
   }
 
-  if (!tsc.isCubeSolved()) {
+  if (!isCubeStateSolved()) {
     if (!tsc.isSpeedNotation()) {
       // Ensure moves can be done
       msg = message.replace("`", "\'")
@@ -187,7 +187,6 @@ export function doCubeMoves(message: string) {
     // }
     // This would be better because with other puzzles we don't need to know the moves
 
-    tsc.setCubeSolved(isCubeStateSolved());
     //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
   }
 }
@@ -200,8 +199,7 @@ function isCubeStateSolved() {
 }
 
 async function checkSolved() {
-  tsc.setCubeSolved(isCubeStateSolved());
-  if (tsc.isCubeSolved()) {
+  if (isCubeStateSolved()) {
 
     tsc.enableCube(false); //Can't move cube once solved
 
@@ -226,7 +224,6 @@ async function checkSolved() {
     // Reset
     tsc.resetTimeSS();
     scramblePuzzle();
-    tsc.setCubeSolved(false);
   }
 }
 
