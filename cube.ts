@@ -1,7 +1,7 @@
 import { TwistyPlayer } from "cubing/twisty";
 import { Move } from "cubing/alg";
 import { cube3x3x3 } from "cubing/puzzles";
-import { KPuzzle, KState } from "cubing/kpuzzle";
+import { KPuzzle, KPattern } from "cubing/kpuzzle";
 
 import TSC from "./TSC";
 import * as twitch from "./twitch";
@@ -44,7 +44,7 @@ let currentDate = new Date();
 
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
-var cubeState: KState;
+var cubeState: KPattern;
 
 function appendMove(myMove: string) {
   if (moves333.includes(myMove)) {
@@ -81,7 +81,7 @@ async function scramblePuzzle(scramble?: Array<string>) {
   }));
 
   kpuzzle = await cube3x3x3.kpuzzle();
-  cubeState = kpuzzle.identityTransformation().toKState();
+  cubeState = kpuzzle.identityTransformation().toKPattern();
 
   if (scramble == null) { //If user does not provide scramble
     await tsc.newScrambleArray(); //Generate random scramble
