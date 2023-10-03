@@ -54,12 +54,12 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
             say(`There's currently no one in the queue, do !joinq`);
         }
     } else if (msg.startsWith("!joinq") || msg.startsWith("!jq")) {
-        if (msg.endsWith("scramble") && msg.length < 16) {
+        //if (msg.endsWith("scramble") && msg.length < 16) {
             // cube.tsc.newScramble();
-        }
-        if (msg === "!joinq" || msg === "!jq") {
-            say(await cube.tsc.joinQueue(user));
-        }
+        //}
+        // if (msg === "!joinq" || msg === "!jq") {
+        say(await cube.tsc.joinQueue(user));
+        //}
     } else if (msg === "!leaveq" || msg === "!lq") {
         say(await cube.tsc.removePlayer(user));
     } else if ((msg.startsWith("!remove") || msg.startsWith("!rm")) && isMod) {
@@ -67,7 +67,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
         if (queue.includes(userToRemove)) {
             if (currentUser === userToRemove) {
                 say(`@${currentUser} has been removed from the queue.`);
-                cube.tsc.removePlayer(currentUser);
+                say(await cube.tsc.removePlayer(currentUser));
             } else {
                 say(`@${userToRemove} has been removed from the queue.`);
                 queue.splice(queue.indexOf(userToRemove!), 1); //Possible error here
@@ -82,7 +82,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
     currentUser = cube.tsc.getCurrentUser();
     //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + currentUser);
     if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
-            cube.tsc.userTurnTime();
+            say(await cube.tsc.userTurnTime());
         if (cube.tsc.isCubeEnabled()) {
             cube.doCubeMoves(message);
             //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
