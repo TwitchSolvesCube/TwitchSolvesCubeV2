@@ -46,13 +46,15 @@ export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
 var cubeState: KPattern;
 
-function appendMove(myMove: string) {
+function appendMove(myMove: string): Promise<string> {
+  let response: Promise<string> = Promise.resolve("");
   if (moves333.includes(myMove)) {
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     cubeState = cubeState.applyMove(newMove);
-    checkSolved();
+    response = checkSolved();
   }
+  return response;
 }
 
 async function appendAlg(myAlg: Array<string>) {
@@ -97,9 +99,10 @@ async function scramblePuzzle(scramble?: Array<string>) {
   timeSinceSolvedTimer = setInterval(function () { tsc.incTimeSS() }, 1000); //Starts timer, timeSS is a function 
 }
 
-export function doCubeMoves(message: string) {
+export function doCubeMoves(message: string): Promise<string> {
   //Player commands/settings
   var msg = message.toLowerCase();
+  let response: Promise<string> = Promise.resolve("");
 
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
@@ -140,7 +143,7 @@ export function doCubeMoves(message: string) {
 
 
       if (moves333.find(elem => elem === msg) != undefined) {
-        appendMove(msg); //applys user msg move to puzzle
+        response = appendMove(msg); //applys user msg move to puzzle
 
         // Update top right moves
         tsc.incMoves();
@@ -189,6 +192,7 @@ export function doCubeMoves(message: string) {
 
     //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
   }
+  return response;
 }
 
 function isCubeStateSolved() {
@@ -199,6 +203,8 @@ function isCubeStateSolved() {
 }
 
 async function checkSolved() {
+  let response = "";
+
   if (isCubeStateSolved()) {
 
     tsc.enableCube(false); //Can't move cube once solved
@@ -207,6 +213,7 @@ async function checkSolved() {
     player.backView = "none";
 
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
+    response = "The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.";
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State
@@ -225,6 +232,7 @@ async function checkSolved() {
     tsc.resetTimeSS();
     scramblePuzzle();
   }
+  return response;
 }
 
 function getCurrentDate() {
