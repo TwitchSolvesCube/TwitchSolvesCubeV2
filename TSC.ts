@@ -19,7 +19,6 @@ export default class TSC {
   private totalMoves: number = 0;
 
   private queue: Array<string> = new Array();
-  private isSolved: boolean = false;
   private turns: boolean = true;
   private speedNotation: boolean = false;
   private movable: boolean;
@@ -68,55 +67,63 @@ export default class TSC {
     //Reset the Cube
     this.setTurnTime(300);
     this.setSpeedNotation(false);
-
-    let response = "";
-
+  
+    const responses: string[] = [];
+  
     const queue = this.getQueue();
     let currentUser = this.getCurrentUser();
     const userIndex = queue.indexOf(username);
-
+  
     if (this.isTurns()) {
       if (userIndex !== -1) {
-        response = `@${username}, you have now left the queue`;
+        responses.push(`@${username}, you have been removed from the queue. `);
         this.queue.splice(userIndex, 1);
         //this.clearAfkCountdown();
       } else {
-        response = `@${username}, you are not in the queue. Type !joinQ to join`;
+        responses.push(`@${username}, you are not in the queue. Type !joinQ to join. `);
       }
     } else {
-      response = "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat";
+      responses.push("The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ");
     }
-
+  
     //If someone is in the queue after the removal of a user
     currentUser = this.getCurrentUser();
     if (currentUser) {
       //twitch.isFollowing(currentUser);
-      response = `@${currentUser}, it's your turn! Do !leaveQ when done`;
-      //this.kickAFK(); //TODO: Response
+      responses.push(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
+      //this.kickAFK(); // TODO: Response
     } else { //If there is no user left in the queue
-      // Restarts and clears the bottom timer, response gets sent before person leaves queue
-      response = `The queue is currently empty. Anyone is free to !joinQ`;
+      //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
+      responses.push(`The queue is currently empty. Anyone is free to !joinQ. `);
       this.clearUserTurnTimer();
       this.setUserLabel("");
     }
-
-    console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response);
-    return response;
+  
+    console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
+    return responses.join('\n');
   }
 
   clearUserTurnTimer() {
     clearInterval(this.userTurnTimer);
   }
 
-  async userTurnTime() {
+  async userTurnTime(): Promise<string> {
+    let response: Promise<string> = Promise.resolve("");
+    
     this.clearUserTurnTimer();
-
-    this.userTurnTimer = setInterval(() => {
-      if (!this.decTurnTime()) {
-        //this.clearAfkCountdown();
-        this.removePlayer(this.getCurrentUser()); //TODO: Response
-      }
-    }, 1000);
+  
+    await new Promise<void>((resolve) => {
+      this.userTurnTimer = setInterval(() => {
+        if (!this.decTurnTime()) {
+          //this.clearAfkCountdown();
+          clearInterval(this.userTurnTimer);
+          response = this.removePlayer(this.getCurrentUser());
+          resolve();
+        }
+      }, 1000);
+    });
+  
+    return response;
   }
 
   enqueue(username: string): void {
@@ -209,14 +216,6 @@ export default class TSC {
   getCurrentUser(): string {
     //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]); //undefined when using !remove
     return this.queue[0]!;
-  }
-
-  setCubeSolved(isSolved: boolean): void {
-    this.isSolved = isSolved;
-  }
-
-  isCubeSolved(): boolean {
-    return this.isSolved;
   }
 
   setTurns(turns: boolean): void {
