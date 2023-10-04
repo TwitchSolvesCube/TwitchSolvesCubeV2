@@ -45,9 +45,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
     const isMod = tags.userInfo.isMod;
     let isSub = tags.userInfo.isSubscriber;
 
-    if (msg === "test") {
-        say(await cube.tsc.joinQueue("twitchsolvesbot"));
-    } else if (msg === "!queue" || msg === "!q") {
+    if (msg === "!queue" || msg === "!q") {
         if (queue.length > 0) {
             say(`${queue}`);
         } else {
