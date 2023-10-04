@@ -117,7 +117,6 @@ export default class TSC {
         //this.clearAfkCountdown();
         clearInterval(this.userTurnTimer);
         response = this.removePlayer(this.getCurrentUser());
-        resolve();
       }
     }, 1000);
   
