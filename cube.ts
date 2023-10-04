@@ -141,13 +141,13 @@ export function doCubeMoves(message: string): Promise<string> {
         .replace("X", "x").replace("Y", "y").replace("Z", "z")
         .replace("m", "M").replace("e", "E").replace("s", "S");
 
-
-      if (moves333.find(elem => elem === msg) != undefined) {
-        response = appendMove(msg); //applys user msg move to puzzle
-
-        // Update top right moves
-        tsc.incMoves();
-      }
+        // Moves with a "." are valid to prevent spam detection
+        if (moves333.includes(msg) || moves333.some(move => msg.includes(move + "."))) {
+          response = appendMove(msg.replace(/\.$/, ''));
+        
+          // Update top right moves
+          tsc.incMoves();
+        }
     } else if (tsc.isSpeedNotation()) {
       msg = message.toLowerCase();
 
