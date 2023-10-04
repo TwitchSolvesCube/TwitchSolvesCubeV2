@@ -14,7 +14,7 @@
     "@twurple/api": "^5.3.4",
     "@twurple/auth": "^5.3.4",
     "@twurple/chat": "^5.3.4",
-    "cubing": "^0.28.1",
+    "cubing": "^0.41.1",
     "delay": "^5.0.0",
     "parcel": "^2.9.3",
     "typescript": "^5.2.2"
