@@ -112,16 +112,14 @@ export default class TSC {
     
     this.clearUserTurnTimer();
   
-    await new Promise<void>((resolve) => {
-      this.userTurnTimer = setInterval(() => {
-        if (!this.decTurnTime()) {
-          //this.clearAfkCountdown();
-          clearInterval(this.userTurnTimer);
-          response = this.removePlayer(this.getCurrentUser());
-          resolve();
-        }
-      }, 1000);
-    });
+    this.userTurnTimer = setInterval(() => {
+      if (!this.decTurnTime()) {
+        //this.clearAfkCountdown();
+        clearInterval(this.userTurnTimer);
+        response = this.removePlayer(this.getCurrentUser());
+        resolve();
+      }
+    }, 1000);
   
     return response;
   }
