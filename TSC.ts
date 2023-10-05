@@ -143,6 +143,10 @@ export default class TSC {
     return wcaEventInfo(this.eventID)!.puzzleID;
   }
 
+  getTimeSinceSolved(): number {
+    return this.timeSinceSolved;
+  }
+
   incTimeSS(): void {
     ++this.timeSinceSolved;
     if (this.showLabels) {
@@ -155,6 +159,10 @@ export default class TSC {
 
   resetTimeSS(): void {
     this.timeSinceSolved = 0;
+  }
+
+  getTotalMoves(): number {
+    return this.totalMoves;
   }
 
   incMoves(): void {

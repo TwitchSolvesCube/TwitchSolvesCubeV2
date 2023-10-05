@@ -25,13 +25,15 @@ Users get kicked after 2 minutes of not entering a valid move
 
 - `!normal` or `!norm` (brings back cube from blind)
 - `!speednotation` or `!sn`
+  - These keyboard shortcuts are from https://cstimer.net/
 <img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/VirtualCubeKeyMap.png"  width="478" height="269">
-These keyboard shortcuts are from https://cstimer.net/
+
+- `!normalnotation` or `!nn` to remove speednotation
 
 # Contributing
 
 ## Install Requirements
-[NodeJs](https://nodejs.org/en/) and [Git](https://git-scm.com/download/win)
+[NodeJs >=19](https://nodejs.org/en/) and [Git](https://git-scm.com/download/win)
 
 #### Font (Optional)
 [Rubik](https://fonts.google.com/specimen/Rubik)

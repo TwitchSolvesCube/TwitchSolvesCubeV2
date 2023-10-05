@@ -82,7 +82,7 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
     if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
             say(await cube.tsc.userTurnTime());
         if (cube.tsc.isCubeEnabled()) {
-            cube.doCubeMoves(message);
+            say(await cube.doCubeMoves(message));
             //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
         }
     }
@@ -94,8 +94,8 @@ chatClient.onMessage(async (channel: string, user: string, message: string, tags
 
 export async function isFollowing(username: string): Promise<void> {
     //Gets UserID from UserName
-    const userID = (await apiClient.users.getUserByName(username))!.id;
-    isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
+    //const userID = (await apiClient.users.getUserByName(username))!.id;
+    //isFollower = await apiClient.users.userFollowsBroadcaster(userID, channelId);
     //Sets user play time to 8 minutes if they're following, default time for players is 5 minutes
     //Added one second to visually see "correct" time
     cube.tsc.setTurnTime(isFollower ? 481 : 301);
