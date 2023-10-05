@@ -1,6 +1,8 @@
 import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 
+import * as twitch from "./twitch";
+
 function pad(val: any): string {
   var valString = val + "";
   if (valString.length < 2) {
@@ -35,8 +37,7 @@ export default class TSC {
     this.eventID = eventID;
   }
 
-  async joinQueue(username: string): Promise<string> {
-    let response = '';
+  async joinQueue(username: string) {
 
     if (this.isTurns()) {
       const queue = this.getQueue();
@@ -45,30 +46,27 @@ export default class TSC {
       if (qLength === 0) {
         this.enqueue(username);
         //twitch.isFollowing(username);
-        response = `@${username}, it's your turn! Do !leaveQ when done`;
+        twitch.say(`@${username}, it's your turn! Do !leaveQ when done`);
         //response = await this.kickAFK(); //TODO: Response
       } else if (this.getCurrentUser() === username) {
-        response = `@${username}, it's currently your turn!`;
+        twitch.say(`@${username}, it's currently your turn!`);
       } else if (!queue.includes(username)) {
         this.enqueue(username);
-        response = `@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`;
+        twitch.say(`@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`);
       } else {
-        response = `@${username}, you're already in the queue. Please wait :)`;
+        twitch.say(`@${username}, you're already in the queue. Please wait :)`);
       }
     } else {
-      response = "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
+      twitch.say("The cube is currently in Vote mode. No need to !joinq, just type a move in chat");
     }
 
-    console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
-    return response;
+    //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
   }
 
-  async removePlayer(username: string): Promise<string> {
+  async removePlayer(username: string) {
     //Reset the Cube
     this.setTurnTime(300);
     this.setSpeedNotation(false);
-  
-    const responses: string[] = [];
   
     const queue = this.getQueue();
     let currentUser = this.getCurrentUser();
@@ -76,31 +74,30 @@ export default class TSC {
   
     if (this.isTurns()) {
       if (userIndex !== -1) {
-        responses.push(`@${username}, you have been removed from the queue. `);
+        twitch.say(`@${username}, you have been removed from the queue. `);
         this.queue.splice(userIndex, 1);
         //this.clearAfkCountdown();
       } else {
-        responses.push(`@${username}, you are not in the queue. Type !joinQ to join. `);
+        twitch.say(`@${username}, you are not in the queue. Type !joinQ to join. `);
       }
     } else {
-      responses.push("The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ");
+      twitch.say("The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ");
     }
   
     //If someone is in the queue after the removal of a user
     currentUser = this.getCurrentUser();
     if (currentUser) {
       //twitch.isFollowing(currentUser);
-      responses.push(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
+      twitch.say(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
       //this.kickAFK(); // TODO: Response
     } else { //If there is no user left in the queue
       //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
-      responses.push(`The queue is currently empty. Anyone is free to !joinQ. `);
+      twitch.say(`The queue is currently empty. Anyone is free to !joinQ. `);
       this.clearUserTurnTimer();
       this.setUserLabel("");
     }
-  
-    console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
-    return responses.join('\n');
+
+    //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
   }
 
   clearUserTurnTimer() {
@@ -116,7 +113,7 @@ export default class TSC {
       if (!this.decTurnTime()) {
         //this.clearAfkCountdown();
         clearInterval(this.userTurnTimer);
-        response = this.removePlayer(this.getCurrentUser());
+        this.removePlayer(this.getCurrentUser());
       }
     }, 1000);
   

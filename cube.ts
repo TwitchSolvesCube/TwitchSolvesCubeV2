@@ -46,15 +46,13 @@ export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
 var cubeState: KPattern;
 
-function appendMove(myMove: string): Promise<string> {
-  let response: Promise<string> = Promise.resolve("");
+function appendMove(myMove: string) {
   if (moves333.includes(myMove)) {
     const newMove = new Move(myMove);
     player.experimentalAddMove(newMove);
     cubeState = cubeState.applyMove(newMove);
-    response = checkSolved();
+    checkSolved();
   }
-  return response;
 }
 
 async function appendAlg(myAlg: Array<string>) {
@@ -99,10 +97,9 @@ async function scramblePuzzle(scramble?: Array<string>) {
   timeSinceSolvedTimer = setInterval(function () { tsc.incTimeSS() }, 1000); //Starts timer, timeSS is a function 
 }
 
-export function doCubeMoves(message: string): Promise<string> {
+export function doCubeMoves(message: string) {
   //Player commands/settings
   var msg = message.toLowerCase();
-  let response: Promise<string> = Promise.resolve("");
 
   if (msg.includes("scramble")) {
     if (msg === "scramble") {
@@ -143,7 +140,7 @@ export function doCubeMoves(message: string): Promise<string> {
 
         // Moves with a "." are valid to prevent spam detection
         if (moves333.includes(msg) || moves333.some(move => msg.includes(move + "."))) {
-          response = appendMove(msg.replace(/\.$/, ''));
+          appendMove(msg.replace(/\.$/, ''));
         
           // Update top right moves
           tsc.incMoves();
@@ -192,7 +189,6 @@ export function doCubeMoves(message: string): Promise<string> {
 
     //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
   }
-  return response;
 }
 
 function isCubeStateSolved() {
@@ -203,7 +199,6 @@ function isCubeStateSolved() {
 }
 
 async function checkSolved() {
-  let response = "";
 
   if (isCubeStateSolved()) {
 
@@ -213,7 +208,7 @@ async function checkSolved() {
     player.backView = "none";
 
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
-    response = "The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.";
+    twitch.say("The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.");
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State
@@ -232,7 +227,6 @@ async function checkSolved() {
     tsc.resetTimeSS();
     scramblePuzzle();
   }
-  return response;
 }
 
 function getCurrentDate() {
