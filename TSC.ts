@@ -143,17 +143,17 @@ export default class TSC {
     return wcaEventInfo(this.eventID)!.puzzleID;
   }
 
-  getTimeSinceSolved(): number {
-    return this.timeSinceSolved;
+  getTimeSinceSolved(): string {
+    var date = new Date(null!);
+    date.setSeconds(this.timeSinceSolved);
+    var result = date.toISOString().slice(12, 19);
+    return result;
   }
 
   incTimeSS(): void {
     ++this.timeSinceSolved;
     if (this.showLabels) {
-      var date = new Date(null!);
-      date.setSeconds(this.timeSinceSolved);
-      var result = date.toISOString().slice(12, 19);
-      this.timeLabel.innerHTML = pad(result); // Updates top right timer
+      this.timeLabel.innerHTML = pad(this.getTimeSinceSolved()); // Updates top right timer
     }
   }
 
