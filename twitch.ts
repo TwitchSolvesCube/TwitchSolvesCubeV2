@@ -1,49 +1,22 @@
-// import { clientId, clientSecret, accessToken, refreshToken, scope, expiresIn, obtainmentTimestamp, channelName, channelId } from "./config.json";
-// import { RefreshingAuthProvider } from "@twurple/auth";
-// import { ChatClient } from '@twurple/chat';
-// import { ApiClient } from '@twurple/api';
-// import { TwitchPrivateMessage } from "@twurple/chat/lib/commands/TwitchPrivateMessage";
 
-//const cube = require("./cube");
+// const cube = require("./cube.ts");
 
 // Date
 // let currentDate = new Date();
 
-// server.js
+//const { WebSocket } = require('ws');
+// const { RefreshingAuthProvider } = require('@twurple/auth');
+// const { ApiClient } = require('@twurple/api');
+// const { ChatClient } = require('@twurple/chat');
+// const fs = require('fs').promises;
+//import { WebSocketServer } from "ws";
+import { RefreshingAuthProvider } from '@twurple/auth';
+import { ApiClient } from '@twurple/api';
+import { ChatClient } from '@twurple/chat';
+import * as fs from 'fs/promises';
+import * as cube from "./cube";
 
-const WebSocket = require('ws');
-const { RefreshingAuthProvider } = require('@twurple/auth');
-const { Bot, createBotCommand } = require('@twurple/easy-bot');
-const fs = require('fs').promises;
-
-const wss = new WebSocket.Server({ port: 8080 });
-let wsConnection;
-
-wss.on('connection', (ws) => {
-  console.log('Client connected');
-
-  // Send initial data or perform actions here
-  ws.on('open', () => {
-    console.log('WebSocket connection is open.');
-  });
-
-  // Send a message to the connected client
-  ws.send('Welcome to the WebSocket server!');
-
-  wsConnection = ws;
-
-  // Handle messages from clients
-  ws.on('message', (message) => {
-    console.log(`Received from client: ${message}`);
-    
-    // Handle client messages here if needed
-  });
-
-  // Handle disconnection
-  ws.on('close', () => {
-    console.log('Client disconnected');
-  });
-});
+//const wss = new WebSocketServer({ port: 8080 });
 
 const clientId = '';
 const clientSecret = '';
@@ -62,30 +35,70 @@ async function main() {
 
     await authProvider.addUserForToken(tokenData, ['chat']);
 
-    const bot = new Bot({
-      authProvider,
-      channels: ['twitchsolvesbot'],
-      commands: [
-        createBotCommand('dice', (params, { userName, reply }) => {
-          const diceRoll = Math.floor(Math.random() * 6) + 1;
-          const message = `You rolled a ${diceRoll}`;
-          reply(message);
-          //cube.tsc.joinQueue(userName);
-          wsConnection.send(message);
-          console.log(message);
-        }),
-        createBotCommand('slap', (params, { userName, say }) => {
-          const message = `${userName} slaps ${params.join(' ')} around a bit with a large trout`;
-          say(message);
-		  
-		    //if (wsConnection) {
-				wsConnection.send(message);
-				console.log(message);
-			//}
-			
-        }),
-      ]
+    const apiClient = new ApiClient({ authProvider });
+    const chatClient = new ChatClient({ authProvider, channels: ['twitchsolvesbot'] });
+    chatClient.connect();
+
+    chatClient.onMessage(async (channel, user, message, tags) => {
+      console.log(channel);
+      console.log(user);
+      console.log(message);
+      console.log(tags);
+
+      const msg = message.toLowerCase();
+      const queue = cube.tsc.getQueue();
+      // let currentUser = cube.tsc.getCurrentUser();
+      const isMod = tags.userInfo.isMod;
+      let isSub = tags.userInfo.isSubscriber;
+
+      // if (msg === "!queue" || msg === "!q") {
+      //     if (queue.length > 0) {
+      //         chatClient.say(channel,`${queue}`);
+      //     } else {
+      //         chatClient.say(channel,`There's currently no one in the queue, do !joinq`);
+      //     }
+      // }
+      // } else if (msg.startsWith("!joinq") || msg.startsWith("!jq")) {
+      //     //if (msg.endsWith("scramble") && msg.length < 16) {
+      //         // cube.tsc.newScramble();
+      //     //}
+      //     // if (msg === "!joinq" || msg === "!jq") {
+      //     cube.tsc.joinQueue(user);
+      //     //}
+      // } else if (msg === "!leaveq" || msg === "!lq") {
+      //     cube.tsc.removePlayer(user);
+      // } else if ((msg.startsWith("!remove") || msg.startsWith("!rm")) && isMod) {
+      //     const userToRemove = message.split(' ').pop()?.split('@').pop(); //Non-null assertion operator in use
+      //     if (queue.includes(userToRemove)) {
+      //         if (currentUser === userToRemove) {
+      //             chatClient.say(`@${currentUser} has been removed from the queue.`);
+      //             cube.tsc.removePlayer(currentUser);
+      //         } else {
+      //             chatClient.say(`@${userToRemove} has been removed from the queue.`);
+      //             queue.splice(queue.indexOf(userToRemove), 1); //Possible error here
+      //             //cube.tsc.leaveQueue(userToRemove);
+      //         }
+      //         //cube.tsc.clearAfkCountdown();
+      //     } else {
+      //         chatClient.say(`@${user} this user is not in the queue.`);
+      //     }
+      // }
+
+      // currentUser = cube.tsc.getCurrentUser();
+      // //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + currentUser);
+      // if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
+      //         cube.tsc.userTurnTime();
+      //     if (cube.tsc.isCubeEnabled()) {
+      //         cube.doCubeMoves(message);
+      //         //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
+      //     }
+      // }
+
+      // Debug
+      // cube.doCubeMoves(message);
+      // console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + queue);
     });
+
 	} catch (error) {
 	console.error('Error:', error);
 	}

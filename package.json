@@ -1,9 +1,10 @@
 {
+  "type": "module",
   "name": "TSCv2",
   "version": "0.0.4",
   "main": "cube.js",
   "scripts": {
-    "start-node": "node .\\twitch.js",
+    "start-node": "ts-node .\\twitch.ts",
     "start-parcel": "npx parcel .\\cube.html",
     "start": "concurrently \"npm run start-node\" \"npm run start-parcel\""
   },
@@ -17,7 +18,7 @@
     "@twurple/chat": "^7.0.3",
     "@twurple/easy-bot": "^7.0.3",
     "concurrently": "^8.2.1",
-    "cubing": "^0.41.1",
+    "cubing": "^0.43.4",
     "delay": "^5.0.0",
     "parcel": "^2.9.3",
     "typescript": "^5.2.2",
@@ -37,6 +38,7 @@
     "crypto-browserify": "^3.12.0",
     "events": "^3.3.0",
     "process": "^0.11.10",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "ts-node": "^10.9.1"
   }
 }

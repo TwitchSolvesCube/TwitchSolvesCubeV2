@@ -1,0 +1,30 @@
+// {
+//     "compilerOptions": {
+//       "target": "ES6",
+//       "lib": ["ES6", "dom"]
+//     //   "module": "es2020",
+//     //   "moduleResolution": "bundler"
+//     }
+//   }
+// {
+//     "compilerOptions": {
+//       "target": "es2022",
+//       "module": "es2022",
+//       "moduleResolution": "bundler"
+//     }
+// }
+// {
+//   "compilerOptions": {
+//     "lib": ["es2020", "dom"],
+//     "module": "es2020",
+//     "moduleResolution": "bundler"
+//   }
+// }
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true, // avoids surprises with `cubing/twisty`
+  }
+}
