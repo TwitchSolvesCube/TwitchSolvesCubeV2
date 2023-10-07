@@ -4,7 +4,7 @@ import { cube3x3x3 } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
 
 import TSC from "./TSC";
-import * as twitch from "./twitch";
+//import * as twitch from "./twitch";
 import { spinCamera } from "./celebration";
 import delay from "delay";
 
@@ -40,7 +40,7 @@ const snMoves333: Array<string> =
 // Timers
 let timeSinceSolvedTimer: NodeJS.Timer;
 // Date
-let currentDate = new Date();
+// let currentDate = new Date();
 
 export var player: TwistyPlayer = new TwistyPlayer;
 var kpuzzle: KPuzzle;
@@ -167,14 +167,14 @@ export function doCubeMoves(message: string) {
       }
     }
 
-    if (twitch.isSubscriber() && message.length >= 3) {
-      //User is subscribed and typed a message longer than 2 characters (i.e R U)
-      let algArray = message.split(' ');
+    // if (twitch.isSubscriber() && message.length >= 3) {
+    //   //User is subscribed and typed a message longer than 2 characters (i.e R U)
+    //   let algArray = message.split(' ');
 
-      if (algArray.every(v => moves333.includes(v))) {
-        appendAlg(algArray);
-      }
-    }
+    //   if (algArray.every(v => moves333.includes(v))) {
+    //     appendAlg(algArray);
+    //   }
+    // }
 
     // This would be better but gets stuck in a loop once an error catches
     // This error gets thrown from kpuzzple.ts 
@@ -208,7 +208,7 @@ async function checkSolved() {
     player.backView = "none";
 
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
-    twitch.say("The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.");
+    //twitch.say("The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.");
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State

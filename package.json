@@ -3,21 +3,25 @@
   "version": "0.0.4",
   "main": "cube.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx parcel cube.html"
+    "start-node": "node .\\twitch.js",
+    "start-parcel": "npx parcel .\\cube.html",
+    "start": "concurrently \"npm run start-node\" \"npm run start-parcel\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@parcel/core": "^2.9.3",
-    "@twurple/api": "^5.3.4",
-    "@twurple/auth": "^5.3.4",
-    "@twurple/chat": "^5.3.4",
+    "@twurple/api": "^7.0.3",
+    "@twurple/auth": "^7.0.3",
+    "@twurple/chat": "^7.0.3",
+    "@twurple/easy-bot": "^7.0.3",
+    "concurrently": "^8.2.1",
     "cubing": "^0.41.1",
     "delay": "^5.0.0",
     "parcel": "^2.9.3",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "ws": "^8.14.2"
   },
   "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
   "repository": {
