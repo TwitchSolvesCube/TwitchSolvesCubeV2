@@ -61,10 +61,10 @@ git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2
 cd TwitchSolvesCubeV2
 ```
 ```
-npm install parcel cubing@0.41.1 @twurple/auth @twurple/chat @twurple/api delay concurrently ws
+npm run build
 ```
 ```
-npx parcel .\cube.html
+npm run start
 ```
 
 # License
