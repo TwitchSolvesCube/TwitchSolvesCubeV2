@@ -4,7 +4,7 @@ import { cube3x3x3 } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
 
 import TSC from "./TSC";
-//import * as twitch from "./twitch";
+import { send } from "./twitchClient"
 import { spinCamera } from "./celebration";
 import delay from "delay";
 
@@ -101,7 +101,7 @@ export function doCubeMoves(message: string) {
   //Player commands/settings
   var msg = message.toLowerCase();
 
-  if (msg.includes("scramble")) {
+  if (msg.startsWith("scramble")) {
     if (msg === "scramble") {
       scramblePuzzle();
     } else { //Allows a user to use their own scrambles
@@ -208,7 +208,7 @@ async function checkSolved() {
     player.backView = "none";
 
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
-    //twitch.say("The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.");
+    send("The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.");
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State

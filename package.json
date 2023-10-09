@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "main": "cube.js",
   "scripts": {
-    "start-node": "node .\\twitch.js",
+    "start-node": "node .\\twitchServer.js",
     "start-parcel": "npx parcel .\\cube.html",
     "start": "concurrently \"npm run start-node\" \"npm run start-parcel\""
   },
