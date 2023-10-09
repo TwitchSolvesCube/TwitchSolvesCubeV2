@@ -15,7 +15,6 @@
     "@twurple/api": "^7.0.3",
     "@twurple/auth": "^7.0.3",
     "@twurple/chat": "^7.0.3",
-    "@twurple/easy-bot": "^7.0.3",
     "concurrently": "^8.2.1",
     "cubing": "^0.41.1",
     "delay": "^5.0.0",
