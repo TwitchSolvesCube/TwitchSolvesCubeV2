@@ -3,10 +3,11 @@ const fs = require('fs').promises;
 const { RefreshingAuthProvider } = require('@twurple/auth');
 const { ApiClient  } = require('@twurple/api');
 const { ChatClient  } = require('@twurple/chat');
-const clientCredentials = require('./config.json');
+const confInfo = require('./config.json');
 
-const clientId = clientCredentials.clientId;
-const clientSecret = clientCredentials.clientSecret;
+const clientId = confInfo.clientId;
+const clientSecret = confInfo.clientSecret;
+const channelName = confInfo.channelName;
 let chatClient = new ChatClient();
 
 const wss = new WebSocket.Server({ port: 8080 });
@@ -30,7 +31,7 @@ wss.on('connection', (ws) => {
     try {
       const jsonData = JSON.parse(message);
       console.log(jsonData.message);
-      chatClient.say("twitchsolvesbot", jsonData.message)
+      chatClient.say(channelName, jsonData.message);
     } catch (error) {
       console.log('Received non-JSON data:', message);
     }
@@ -46,7 +47,7 @@ wss.on('connection', (ws) => {
 
 async function main() {
   try {
-    const tokenData = JSON.parse(await fs.readFile('./tokens.668628308.json', 'utf-8'));
+    const tokenData = JSON.parse(await fs.readFile('./tokens.668628308.json', 'utf-8')); //NOTE: Change this line to your tokens.json file, it will be renamed onRefresh
 
     const authProvider = new RefreshingAuthProvider({
       clientId,
@@ -60,7 +61,7 @@ async function main() {
     await authProvider.addUserForToken(tokenData, ['chat']);
 
     const apiClient = new ApiClient({ authProvider });
-    chatClient = new ChatClient({ authProvider, channels: ['twitchsolvesbot'] });
+    chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
     chatClient.connect();
 
     chatClient.onMessage(async (channel, user, message, tags) => {
