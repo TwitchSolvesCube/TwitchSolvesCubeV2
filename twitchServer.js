@@ -14,11 +14,11 @@ const wss = new WebSocket.Server({ port: 8080 });
 let wsConnection;
 
 wss.on('connection', (ws) => {
-  console.log('Client connected');
+  timeStampLog('Client connected');
 
   // Send initial data or perform actions here
   ws.on('open', () => {
-    console.log('WebSocket connection is open.');
+    timeStampLog('WebSocket connection is open.');
   });
 
   // Send a message to the connected client
@@ -30,10 +30,10 @@ wss.on('connection', (ws) => {
   ws.on('message', (message) => {
     try {
       const jsonData = JSON.parse(message);
-      console.log(jsonData.message);
+      timeStampLog(jsonData.message);
       chatClient.say(channelName, jsonData.message);
     } catch (error) {
-      console.log('Received non-JSON data:', message);
+      timeStampLog('Received non-JSON data:' + message);
     }
 
     // Handle client messages here if needed
@@ -41,7 +41,7 @@ wss.on('connection', (ws) => {
 
   // Handle disconnection
   ws.on('close', () => {
-    console.log('Client disconnected');
+    timeStampLog('Client disconnected');
   });
 });
 
@@ -65,8 +65,8 @@ async function main() {
     chatClient.connect();
 
     chatClient.onMessage(async (channel, user, message, tags) => {
-      timeStampLog(channel);
-      timeStampLog(user);
+      // timeStampLog(channel);
+      // timeStampLog(user);
       timeStampLog(message);
 
       const twitch = {

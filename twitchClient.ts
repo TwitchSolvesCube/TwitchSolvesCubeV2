@@ -53,7 +53,7 @@ ws.addEventListener('message', (event) => {
             cube.tsc.userTurnTime();
         if (cube.tsc.isCubeEnabled()) {
             cube.doCubeMoves(move);
-            //cube.tsc.scheduleUserRemoval(currentUser, 30, true);
+            //cube.tsc.scheduleUserRemoval(30);
         }
     }
 
