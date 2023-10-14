@@ -16,8 +16,9 @@ ws.addEventListener('message', (event) => {
     const move = jsonData.message;
     const message = jsonData.message.toLowerCase();
 
-    const isMod = jsonData.isMod;
+    const isFollower = jsonData.isFollower;
     const isSub = jsonData.isSub;
+    const isMod = jsonData.isMod;
 
     const queue = cube.tsc.getQueue();
     let currentUser = cube.tsc.getCurrentUser();
@@ -45,22 +46,33 @@ ws.addEventListener('message', (event) => {
         } else {
             send(`@${user} this user is not in the queue.`);
         }
+    } else if ( (message === "!clearqueue" || message === "!cq") && isMod) {
+      cube.tsc.clearQueue();
+      send(`The queue has now been cleared.`);
     }
     
     currentUser = cube.tsc.getCurrentUser();
     //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + currentUser);
     if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
-            cube.tsc.userTurnTime();
         if (cube.tsc.isCubeEnabled()) {
             cube.doCubeMoves(move);
             //cube.tsc.scheduleUserRemoval(30);
         }
     }
 
+    if (message === '!followage') {
+      if (isFollower) {
+        send(`@${user} You have been following`);
+      } else {
+        send(`@${user} You are not following!`);
+      }
+    }
+
     // timeStampLog('User: ' + user);
     // timeStampLog('Message: ' + message);
     // timeStampLog('isMod: ' + isMod);
     // timeStampLog('isSub: ' + isSub);
+    // timeStampLog('isFollower' + isFollower);
 
     // Debug
     // cube.doCubeMoves(message);
@@ -89,9 +101,9 @@ export function send(message: string) {
   }
 }
 
-function timeStampLog(message) {
-  const currentDate = new Date();
-  const formattedDate = '[' + currentDate.toLocaleTimeString() + '] ';
-  const timestampedMessage = formattedDate + message;
+function timeStampLog(message: string): void {
+  const currentDate: Date = new Date();
+  const formattedDateTime: string = '[' + currentDate.toLocaleString() + '] ';
+  const timestampedMessage: string = formattedDateTime + message;
   console.log(timestampedMessage);
 }

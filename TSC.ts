@@ -1,6 +1,7 @@
 import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 import { send } from "./twitchClient";
+import { PuzzleID } from "cubing/dist/types/twisty";
 
 function pad(val: any): string {
   var valString = val + "";
@@ -44,7 +45,8 @@ export default class TSC {
 
       if (qLength === 0) {
         this.enqueue(username);
-        //twitch.isFollowing(username);
+        //isFollowing(username);
+        this.userTurnTime();
         send(`@${username}, it's your turn! Do !leaveQ when done`);
         //response = await this.kickAFK(); //TODO: Response
       } else if (this.getCurrentUser() === username) {
@@ -75,6 +77,8 @@ export default class TSC {
       if (userIndex !== -1) {
         send(`@${username}, you have been removed from the queue. `);
         this.queue.splice(userIndex, 1);
+        this.clearUserTurnTimer();
+        this.setUserLabel("");
         //this.clearAfkCountdown();
       } else {
         send(`@${username}, you are not in the queue. Type !joinQ to join. `);
@@ -84,10 +88,11 @@ export default class TSC {
     }
   
     //If someone is in the queue after the removal of a user
-    currentUser = this.getCurrentUser();
+    currentUser = this.getCurrentUser(); //Bug?: If anyone leaves queue then it will send a msg from below
     if (currentUser) {
-      //twitch.isFollowing(currentUser);
+      //isFollowing(currentUser);
       send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
+      this.userTurnTime();
       //this.kickAFK(); // TODO: Response
     } else { //If there is no user left in the queue
       //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
@@ -103,28 +108,25 @@ export default class TSC {
     clearInterval(this.userTurnTimer);
   }
 
-  async userTurnTime(): Promise<string> {
-    let response: Promise<string> = Promise.resolve("");
-    
-    this.clearUserTurnTimer();
-  
+  async userTurnTime(): Promise<void> {
     this.userTurnTimer = setInterval(() => {
       if (!this.decTurnTime()) {
         //this.clearAfkCountdown();
-        clearInterval(this.userTurnTimer);
         this.removePlayer(this.getCurrentUser());
       }
     }, 1000);
-  
-    return response;
   }
 
   enqueue(username: string): void {
     this.queue.push(username);
   }
 
-  getQueue() {
+  getQueue(): Array<String> {
     return this.queue;
+  }
+
+  clearQueue(): void {
+    this.queue= new Array();
   }
 
   getQLength(): number {
@@ -135,7 +137,7 @@ export default class TSC {
     return this.eventID;
   }
 
-  getPuzzleID() {
+  getPuzzleID(): PuzzleID {
     return wcaEventInfo(this.eventID)!.puzzleID;
   }
 
@@ -183,6 +185,8 @@ export default class TSC {
       --this.turnTime;
       return true;
     }
+    this.clearUserTurnTimer();
+    this.setUserLabel("");
     return false;
   }
 

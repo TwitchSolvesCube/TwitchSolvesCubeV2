@@ -64,16 +64,21 @@ async function main() {
     chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
     chatClient.connect();
 
+    //668628308 664794842
+
     chatClient.onMessage(async (channel, user, message, tags) => {
+      const { data: [follow] } = await apiClient.channels.getChannelFollowers(668628308, tags.userInfo.userId);
+
       // timeStampLog(channel);
       // timeStampLog(user);
-      timeStampLog(message);
+      timeStampLog(user + ": " + message);
 
       const twitch = {
         "user": user,
         "message": message,
-        "isMod": tags.userInfo.isMod,
-        "isSub": tags.userInfo.isSubscriber
+        "isFollower": follow,
+        "isSub": tags.userInfo.isSubscriber,
+        "isMod": tags.userInfo.isMod
       };
 
       const twitchData = JSON.stringify(twitch);
@@ -87,8 +92,8 @@ async function main() {
 
 function timeStampLog(message) {
   const currentDate = new Date();
-  const formattedDate = '[' + currentDate.toLocaleTimeString() + '] ';
-  const timestampedMessage = formattedDate + message;
+  const formattedDateTime = '[' + currentDate.toLocaleString() + '] ';
+  const timestampedMessage = formattedDateTime + message;
   console.log(timestampedMessage);
 }
 
