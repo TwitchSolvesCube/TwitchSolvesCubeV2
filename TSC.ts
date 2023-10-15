@@ -262,4 +262,12 @@ export default class TSC {
   getScrambleArray(): Array<string> {
     return this.scramble;
   }
+
+  getScramble(): string {
+    return this.scramble.join(' ');
+  }
+
+  getSolvedMessage(): string {
+    return "The cube was solved in " + this.getTimeSinceSolved() + " and in " + this.getTotalMoves() + " moves. The scramble was " + this.getScramble() + ".";
+  }
 }

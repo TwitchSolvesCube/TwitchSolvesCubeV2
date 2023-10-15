@@ -33,21 +33,15 @@ ws.addEventListener('message', (event) => {
         cube.tsc.joinQueue(user);
     } else if (message === "!leaveq" || message === "!lq") {
         cube.tsc.removePlayer(user);
-    } else if (message.startsWith("!remove") || message.startsWith("!rm")) {
+    } else if ( (message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
         const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
         if (queue.includes(userToRemove)) {
-            if (currentUser === userToRemove) { //Check: Duplicate sends?
-                send(`@${currentUser} has been removed from the queue.`);
-                cube.tsc.removePlayer(currentUser);
-            } else {
-                send(`@${userToRemove} has been removed from the queue.`);
-                queue.splice(queue.indexOf(userToRemove!), 1);
-            }
+            cube.tsc.removePlayer(userToRemove);
         } else {
             send(`@${user} this user is not in the queue.`);
         }
     } else if ( (message === "!clearqueue" || message === "!cq") && isMod) {
-      cube.tsc.clearQueue();
+      cube.tsc.clearQueue(); //Bug: Undefined user is mentioned, but it's okay 
       send(`The queue has now been cleared.`);
     }
     

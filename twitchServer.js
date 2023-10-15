@@ -8,6 +8,7 @@ const confInfo = require('./config.json');
 const clientId = confInfo.clientId;
 const clientSecret = confInfo.clientSecret;
 const channelName = confInfo.channelName;
+const channelID = confInfo.channelID;
 let chatClient = new ChatClient();
 
 const wss = new WebSocket.Server({ port: 8080 });
@@ -64,10 +65,8 @@ async function main() {
     chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
     chatClient.connect();
 
-    //668628308 664794842
-
     chatClient.onMessage(async (channel, user, message, tags) => {
-      const { data: [follow] } = await apiClient.channels.getChannelFollowers(668628308, tags.userInfo.userId);
+      const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId); //If channelID == userID then userID can be used here instead
 
       // timeStampLog(channel);
       // timeStampLog(user);

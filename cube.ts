@@ -88,6 +88,7 @@ async function scramblePuzzle(scramble?: Array<string>) {
     await appendAlg(tsc.getScrambleArray());  //Apply alg to cube
   }
   else {
+    tsc.setScrambleArray(scramble);
     await appendAlg(scramble); //Apply user provided scramble to cube
   }
   tsc.resetMoves();
@@ -208,7 +209,7 @@ async function checkSolved() {
     player.backView = "none";
 
     clearInterval(timeSinceSolvedTimer); //"Pauses Timer"
-    send("The cube was solved in " + tsc.getTimeSinceSolved() + " and in " + tsc.getTotalMoves() + " moves.");
+    send(tsc.getSolvedMessage());
     spinCamera({ numSpins: 4, durationMs: 6000 });
 
     // Pause for 15 seconds to view Solved State
