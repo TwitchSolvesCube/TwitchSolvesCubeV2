@@ -104,8 +104,10 @@ export default class TSC {
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
   }
 
-  clearUserTurnTimer() {
-    clearInterval(this.userTurnTimer);
+  clearUserTurnTimer(): void {
+    if (typeof this.userTurnTimer === 'number') {
+      clearInterval(this.userTurnTimer);
+    }
   }
 
   async userTurnTime(): Promise<void> {

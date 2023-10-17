@@ -2,9 +2,10 @@
   "name": "TSCv2",
   "version": "0.0.4",
   "main": "cube.js",
+  "type": "module",
   "scripts": {
     "build": "npm install parcel cubing@0.41.1 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
-    "start-node": "node .\\twitchServer.js",
+    "start-node": "node .\\twitchServer.cjs",
     "start-parcel": "npx parcel .\\cube.html",
     "start": "concurrently \"npm run start-node\" \"npm run start-parcel\""
   },

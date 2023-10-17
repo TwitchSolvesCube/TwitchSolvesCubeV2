@@ -1,7 +1,8 @@
 import { TwistyPlayer } from "cubing/twisty";
-import { Move } from "cubing/alg";
+import { Move, Alg } from "cubing/alg";
 import { cube3x3x3 } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
+import { experimentalSolve3x3x3IgnoringCenters } from "cubing/search";
 
 import TSC from "./TSC";
 import { send } from "./twitchClient"
@@ -83,9 +84,13 @@ async function scramblePuzzle(scramble?: Array<string>) {
   kpuzzle = await cube3x3x3.kpuzzle();
   cubeState = kpuzzle.identityTransformation().toKPattern();
 
-  if (scramble == null) { //If user does not provide scramble
+  if (scramble == null || scramble.length > 40) { //If user does not provide scramble or if custom scramble is too long 
     await tsc.newScrambleArray(); //Generate random scramble
     await appendAlg(tsc.getScrambleArray());  //Apply alg to cube
+
+    //  Dev
+    // const myAlg = new Alg(await experimentalSolve3x3x3IgnoringCenters(kpuzzle.algToTransformation("R").toKPattern()));
+    // console.log(myAlg.toString());
   }
   else {
     tsc.setScrambleArray(scramble);

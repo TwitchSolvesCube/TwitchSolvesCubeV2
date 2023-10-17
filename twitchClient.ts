@@ -40,7 +40,7 @@ ws.addEventListener('message', (event) => {
         } else {
             send(`@${user} this user is not in the queue.`);
         }
-    } else if ( (message === "!clearqueue" || message === "!cq") && isMod) {
+    } else if ( (message === "!clearq" || message === "!cq") && isMod) {
       cube.tsc.clearQueue(); //Bug: Undefined user is mentioned, but it's okay 
       send(`The queue has now been cleared.`);
     }
