@@ -38,7 +38,7 @@ export default class TSC {
   }
 
   async joinQueue(username: string) {
-
+    username = username.toLowerCase();
     if (this.isTurns()) {
       const queue = this.getQueue();
       const qLength = this.getQLength();
@@ -64,22 +64,32 @@ export default class TSC {
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
   }
 
-  async removePlayer(username: string) {
-    //Reset the Cube
-    this.setTurnTime(300);
-    this.setSpeedNotation(false);
-  
-    const queue = this.getQueue();
-    let currentUser = this.getCurrentUser();
-    const userIndex = queue.indexOf(username);
+  async removePlayer(username: string, chatRemoval: boolean = false) {
+    username = username.toLowerCase();
+    const userIndex = this.getQueue().indexOf(username);
   
     if (this.isTurns()) {
       if (userIndex !== -1) {
         send(`@${username}, you have been removed from the queue. `);
         this.queue.splice(userIndex, 1);
-        this.clearUserTurnTimer();
-        this.setUserLabel("");
+        let currentUser = this.getCurrentUser();
+        // If the removed user was at index 0 then reset the timer for the next user
+        if (userIndex === 0) {
+          this.setTurnTime(300);
+          this.setSpeedNotation(false);
+        }
         //this.clearAfkCountdown();
+        if (currentUser && !chatRemoval) { // If the user is removed by the timer queue next player
+          //isFollowing(currentUser);
+          send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
+          this.userTurnTime();
+          //this.kickAFK();
+        } else if (this.queue.length === 0) { //If there is no user left in the queue
+          //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
+          send(`The queue is currently empty. Anyone is free to !joinQ. `);
+          this.clearUserTurnTimer();
+          this.setUserLabel("");
+        }
       } else {
         send(`@${username}, you are not in the queue. Type !joinQ to join. `);
       }
@@ -87,20 +97,6 @@ export default class TSC {
       send("The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ");
     }
   
-    //If someone is in the queue after the removal of a user
-    currentUser = this.getCurrentUser(); //Bug?: If anyone leaves queue then it will send a msg from below
-    if (currentUser) {
-      //isFollowing(currentUser);
-      send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
-      this.userTurnTime();
-      //this.kickAFK(); // TODO: Response
-    } else { //If there is no user left in the queue
-      //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
-      send(`The queue is currently empty. Anyone is free to !joinQ. `);
-      this.clearUserTurnTimer();
-      this.setUserLabel("");
-    }
-
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
   }
 
@@ -114,7 +110,11 @@ export default class TSC {
     this.userTurnTimer = setInterval(() => {
       if (!this.decTurnTime()) {
         //this.clearAfkCountdown();
-        this.removePlayer(this.getCurrentUser());
+        this.setTurnTime(300);
+        this.setSpeedNotation(false);
+        if (this.queue.length > 0) {
+          this.removePlayer(this.getCurrentUser(), false);
+        }
       }
     }, 1000);
   }
@@ -129,9 +129,13 @@ export default class TSC {
 
   clearQueue(): void {
     this.queue= new Array();
+    this.setTurnTime(10);
+    this.setSpeedNotation(false);
+    this.clearUserTurnTimer();
+    this.setUserLabel("");
   }
 
-  getQLength(): number {
+  getQLength(): number { //TODO: replace this.queue.length with this...
     return this.queue.length;
   }
 
@@ -180,7 +184,7 @@ export default class TSC {
   }
 
   decTurnTime(): boolean {
-    if (this.getTurnTime() > 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined) {
+    if (this.getTurnTime() >= 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined) {
       if (this.showLabels) {
         this.userLabel.innerHTML = pad(this.getCurrentUser() + "\'s turn ") + pad(parseInt((this.getTurnTime() / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
       }
@@ -188,7 +192,10 @@ export default class TSC {
       return true;
     }
     this.clearUserTurnTimer();
-    this.setUserLabel("");
+    console.log(this.getQLength());
+    if (this.getQLength() === 1){ //lenght is 1 before last player is removed where this function is called
+      this.setUserLabel("");
+    }
     return false;
   }
 

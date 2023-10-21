@@ -32,11 +32,11 @@ ws.addEventListener('message', (event) => {
     } else if (message.startsWith("!joinq") || message.startsWith("!jq")) {
         cube.tsc.joinQueue(user);
     } else if (message === "!leaveq" || message === "!lq") {
-        cube.tsc.removePlayer(user);
+        cube.tsc.removePlayer(user, true);
     } else if ( (message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
         const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
         if (queue.includes(userToRemove)) {
-            cube.tsc.removePlayer(userToRemove);
+            cube.tsc.removePlayer(userToRemove, true);
         } else {
             send(`@${user} this user is not in the queue.`);
         }
