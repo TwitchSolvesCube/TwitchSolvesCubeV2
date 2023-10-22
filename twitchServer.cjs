@@ -59,7 +59,8 @@ async function main() {
       await fs.writeFile(`./tokens.${userId}.json`, JSON.stringify(newTokenData, null, 4), 'utf-8');
     });
 
-    await authProvider.addUserForToken(tokenData, ['chat']);
+    //await authProvider.addUserForToken(tokenData, ['chat']);
+    authProvider.addUser("668628308", tokenData, ['chat']);
 
     const apiClient = new ApiClient({ authProvider });
     chatClient = new ChatClient({ authProvider, channels: [ channelName ] });

@@ -1,16 +1,7 @@
 import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 import { send } from "./twitchClient";
-import { PuzzleID } from "cubing/dist/types/twisty";
-
-function pad(val: any): string {
-  var valString = val + "";
-  if (valString.length < 2) {
-    return "0" + valString;
-  } else {
-    return valString;
-  }
-}
+import type { PuzzleID } from "cubing/twisty";
 
 export default class TSC {
 
@@ -157,12 +148,14 @@ export default class TSC {
   incTimeSS(): void {
     ++this.timeSinceSolved;
     if (this.showLabels) {
-      this.timeLabel.innerHTML = pad(this.getTimeSinceSolved()); // Updates top right timer
+      this.timeLabel.textContent = `${this.getTimeSinceSolved()}`;
     }
   }
 
   resetTimeSS(): void {
-    this.timeSinceSolved = 0;
+    if (this.showLabels) {
+      this.timeSinceSolved = 0;
+    }
   }
 
   getTotalMoves(): number {
@@ -172,21 +165,21 @@ export default class TSC {
   incMoves(): void {
     ++this.totalMoves;
     if (this.showLabels) {
-      this.movesLabel.innerHTML = pad(this.totalMoves); //Updates moves top right
+      this.movesLabel.textContent = `${this.totalMoves}`; //Updates moves top right
     }
   }
 
   resetMoves(): void {
     this.totalMoves = 0;
     if (this.showLabels) {
-      this.movesLabel.innerHTML = pad(0);
+      this.movesLabel.textContent = "0";
     }
   }
 
   decTurnTime(): boolean {
     if (this.getTurnTime() >= 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined) {
       if (this.showLabels) {
-        this.userLabel.innerHTML = pad(this.getCurrentUser() + "\'s turn ") + pad(parseInt((this.getTurnTime() / 60).toString())) + ":" + pad(this.turnTime % 60); //Updates bottom user timer
+        this.userLabel.textContent = `${this.getCurrentUser()}'s turn ${String(Math.floor(this.getTurnTime() / 60)).padStart(2, '0')}:${String(this.turnTime % 60).padStart(2, '0')}`;
       }
       --this.turnTime;
       return true;
@@ -208,7 +201,7 @@ export default class TSC {
   }
 
   setUserLabel(username: string): void {
-    this.userLabel.innerHTML = username;
+    this.userLabel.textContent = username;
   }
 
   getUserName(index: number): string | null {
