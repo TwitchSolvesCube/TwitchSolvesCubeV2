@@ -1,5 +1,7 @@
-import * as cube from "./cube";
+import tscCube from "./cube";
 const ws = new WebSocket('ws://localhost:8080');
+var cube = new tscCube("333");
+cube.scramblePuzzle();
 
 // Event handler for when the connection is established
 ws.addEventListener('open', (event) => {

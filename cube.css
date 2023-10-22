@@ -12,7 +12,7 @@ body {
 	place-content: center;
 	gap: 1em;
 	background: #6441A5;
-  }
+}
   
 twisty-player {
 	position: fixed;
@@ -30,7 +30,7 @@ twisty-player {
 	top: 0;
 	right: 0;
 	text-align: right;
-  }
+}
   
 .userTurn {
 	position: absolute;
