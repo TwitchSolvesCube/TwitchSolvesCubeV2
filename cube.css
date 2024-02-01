@@ -5,12 +5,19 @@
     -webkit-text-stroke-color: black; */
 }
 
-html,
-body,
+body {
+	height: 100%;
+	margin: 0;
+	display: grid;
+	place-content: center;
+	gap: 1em;
+	background: #6441A5;
+}
+  
 twisty-player {
 	position: fixed;
-	width: 85%;
-	height: 85%;
+	width: 60%;
+	height: 60%;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
@@ -18,30 +25,25 @@ twisty-player {
 	background: #6441A5;
 }
 
-#timeSinceSolved {
-	color: #FFF;
-	position: fixed;
-	top: -15vh;
-	right: -23vh;
-	font-size: 10vh;
-	font-weight: 400;
+.topRight {
+	position: absolute;
+	top: 0;
+	right: 0;
+	text-align: right;
 }
-
-#moveCount {
-	color: #FFF;
-	position: fixed;
-	top: -5vh;
-	right: -23vh;
-	font-size: 10vh;
-	font-weight: 400;
-}
-
-/* Bottom Centered only works with relative position? */
-#userTurn {
-	color: #FFF;
-	position: relative;
+  
+.userTurn {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
 	text-align: center;
-	bottom: -74vh;
-	font-size: 7vh;
-	font-weight: 400;
+	white-space: nowrap;
 }
+
+.topRight p, .userTurn p {
+	color: #FFF;
+	margin: 0;
+	font-size: 8.5vh;
+}
+  

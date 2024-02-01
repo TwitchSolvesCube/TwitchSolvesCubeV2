@@ -38,10 +38,19 @@ Users get kicked after 2 minutes of not entering a valid move
 #### Font (Optional)
 [Rubik](https://fonts.google.com/specimen/Rubik)
 
-## How to create `config.json`
+## How to create `tokens.*.json`
 Follow Steps 1 & 2 from here https://twurple.js.org/docs/examples/chat/basic-bot.html  
 To make things easier you may use https://reqbin.com/post-online for your POST request (Use this site at your own risk)   
-Then add the additional line for your channelName, use the empty configTemplate.json here as an example.   
+
+Example link for scopes, enter your CLIENT_ID and REDIRECT_URI.   
+```
+https://id.twitch.tv/oauth2/authorize?client_id=<CLIENT_ID>&redirect_uri=<REDIRECT_URI>&response_type=code&scope=chat:read+chat:edit+whispers:edit+whispers:read+channel:moderate+moderator:read:followers
+```
+
+On first run you will need to rename your file in the tokenData variable in twitchServer.js. After the first run it will create your tokens.*.json file. Now use this generated json to be read from.   
+
+## How to create `config.json`
+Paste in your clientId, clientSecret, and channelName you want to connect to.   
 
 ## Setting Up Dev Enviroment
 Run line by line
@@ -52,10 +61,10 @@ git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2
 cd TwitchSolvesCubeV2
 ```
 ```
-npm install parcel cubing@0.41.1 @twurple/auth @twurple/chat @twurple/api delay
+npm run build
 ```
 ```
-npx parcel .\cube.html
+npm run start
 ```
 
 # License
