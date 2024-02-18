@@ -14,9 +14,9 @@
   "license": "ISC",
   "dependencies": {
     "@parcel/core": "^2.9.3",
-    "@twurple/api": "^7.0.3",
-    "@twurple/auth": "^7.0.3",
-    "@twurple/chat": "^7.0.3",
+    "@twurple/api": "^7.0.8",
+    "@twurple/auth": "^7.0.8",
+    "@twurple/chat": "^7.0.8",
     "concurrently": "^8.2.1",
     "cubing": "^0.41.1",
     "delay": "^5.0.0",
