@@ -48,7 +48,7 @@ wss.on('connection', (ws) => {
 
 async function main() {
   try {
-    const tokenData = JSON.parse(await fs.readFile('./tokens.668628308.json', 'utf-8')); //NOTE: Change this line to your tokens.json file, it will be renamed onRefresh
+    const tokenData = JSON.parse(await fs.readFile('./server/tokens.668628308.json', 'utf-8')); //NOTE: Change this line to your tokens.json file, it will be renamed onRefresh
 
     const authProvider = new RefreshingAuthProvider({
       clientId,
@@ -56,7 +56,7 @@ async function main() {
     });
 
     authProvider.onRefresh(async (userId, newTokenData) => {
-      await fs.writeFile(`./tokens.${userId}.json`, JSON.stringify(newTokenData, null, 4), 'utf-8');
+      await fs.writeFile(`./server/tokens.${userId}.json`, JSON.stringify(newTokenData, null, 4), 'utf-8');
     });
 
     //await authProvider.addUserForToken(tokenData, ['chat']);
