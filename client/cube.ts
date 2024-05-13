@@ -6,27 +6,26 @@ import { KPuzzle, KPattern } from "cubing/kpuzzle";
 import { experimentalSolve3x3x3IgnoringCenters } from "cubing/search";
 
 import TSC from "./TSC";
-import { send } from "./twitchClient"
 import delay from "delay";
 
 export default class tscCube {
   private player: TwistyPlayer;
-
   public tsc: TSC;
+
   // Array of all supported moves
   private moves333: Array<string> =
-    ["R", "R'", "R2", "r", "r'", "r2",
-      "L", "L'", "L2", "l", "l'", "l2",
-      "F", "F'", "F2", "f", "f'", "f2",
-      "B", "B'", "B2", "b", "b'", "b2",
-      "D", "D'", "D2", "d", "d'", "d2",
-      "U", "U'", "U2", "u", "u'", "u2",
-      "E", "E'", "E2",
-      "S", "S'", "S2",
-      "M", "M'", "M2",
-      "x", "x'", "x2",
-      "y", "y'", "y2",
-      "z", "z'", "z2"];
+  ["R", "R'", "R2", "r", "r'", "r2",
+    "L", "L'", "L2", "l", "l'", "l2",
+    "F", "F'", "F2", "f", "f'", "f2",
+    "B", "B'", "B2", "b", "b'", "b2",
+    "D", "D'", "D2", "d", "d'", "d2",
+    "U", "U'", "U2", "u", "u'", "u2",
+    "E", "E'", "E2",
+    "S", "S'", "S2",
+    "M", "M'", "M2",
+    "x", "x'", "x2",
+    "y", "y'", "y2",
+    "z", "z'", "z2"];
 
   private snMoves333: Array<string> =
     ["i", "k", "u", "m",
@@ -41,15 +40,17 @@ export default class tscCube {
       "p", "q"];
 
   // Timers
-  private timeSinceSolvedTimer: NodeJS.Timer;
+  private timeSinceSolvedTimer;
   private kpuzzle: KPuzzle;
   private cubeState: KPattern;
 
+  private send: (message: string) => void;
+
   // Date
   // let currentDate = new Date();
-
-  constructor(puzzleId: string) {
-    this.tsc = new TSC(puzzleId);
+  constructor(puzzleId: string, send: (message: string) => void) {
+    this.send = send;
+    this.tsc = new TSC(puzzleId, this.send.bind(this));
     this.newCube();
   }
 
@@ -91,6 +92,7 @@ export default class tscCube {
 
   async scramblePuzzle(scramble?: Array<string>) {
     this.newCube();
+    this.tsc.setSolvedState(false);
 
     if (scramble == null || scramble.length > 40) { //If user does not provide scramble or if custom scramble is too long 
       await this.tsc.newScrambleArray(); //Generate random scramble
@@ -123,6 +125,7 @@ export default class tscCube {
       if (msg === "scramble") {
         this.scramblePuzzle();
       } else { //Allows a user to use their own scrambles
+        // TODO: Mention scramble is custom in getSolvedMessage()
         this.scramblePuzzle(message.slice(9, message.length).split(" "));
       }
     }
@@ -209,6 +212,53 @@ export default class tscCube {
     }
   }
 
+  async handleMessage(user: string, move: string, message: string, isFollower: boolean, isSub: boolean, isMod: boolean) {
+    const queue = this.tsc.getQueue();
+    let currentUser = this.tsc.getCurrentUser();
+  
+    if (message === "!queue" || message === "!q") {
+      if (queue.length > 0) {
+        this.send(`${queue}`);
+      } else {
+        this.send("There's currently no one in the queue, do !joinq");
+      }
+    } else if (message.startsWith("!joinq") || message.startsWith("!jq")) {
+      await this.tsc.joinQueue(user);
+    } else if (message === "!leaveq" || message === "!lq") {
+      await this.tsc.removePlayer(user, true);
+    } else if ((message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
+      const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
+      if (queue.includes(userToRemove)) {
+        await this.tsc.removePlayer(userToRemove, true);
+      } else {
+        this.send(`@${user} this user is not in the queue.`);
+      }
+    } else if ((message === "!clearq" || message === "!cq") && isMod) {
+      this.tsc.clearQueue();
+      this.send(`The queue has now been cleared.`);
+    }
+  
+    currentUser = this.tsc.getCurrentUser();
+  
+    if (currentUser === user) {
+      if (this.tsc.isCubeEnabled()) {
+        this.doCubeMoves(move);
+        console.log(this.tsc.getSolvedState());
+        if (this.tsc.getSolvedState()){
+          this.send(this.tsc.getSolvedMessage());
+        }
+      }
+    }
+  
+    if (message === '!followage') {
+      if (isFollower) {
+        this.send(`@${user} You have been following`);
+      } else {
+        this.send(`@${user} You are not following!`);
+      }
+    }
+  }
+
   isCubeStateSolved() {
     return this.cubeState.experimentalIsSolved({
       ignorePuzzleOrientation: true,
@@ -219,14 +269,13 @@ export default class tscCube {
   async checkSolved() {
 
     if (this.isCubeStateSolved()) {
-
+      this.tsc.setSolvedState(true);
       this.tsc.enableCube(false); //Can't move cube once solved
 
       await delay(1000)
       this.player.backView = "none";
 
       clearInterval(this.timeSinceSolvedTimer); //"Pauses Timer"
-      send(this.tsc.getSolvedMessage());
       this.spinCamera({ numSpins: 4, durationMs: 6000 });
 
       // Pause for 15 seconds to view Solved State
@@ -275,4 +324,5 @@ export default class tscCube {
   getCurrentDate() {
     return new Date();
   }
+  
 }

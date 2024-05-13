@@ -1,30 +1,31 @@
 {
-  "name": "TSCv2",
-  "version": "0.0.4",
-  "main": "cube.js",
+  "name": "tscv2",
+  "version": "24.05",
+  "main": "client/main.ts",
   "type": "module",
   "scripts": {
-    "build": "npm install parcel cubing@0.41.1 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
-    "start-node": "node .\\twitchServer.cjs",
-    "start-parcel": "npx parcel .\\cube.html",
-    "start": "concurrently \"npm run start-node\" \"npm run start-parcel\""
+    "build": "node script/build.js",
+    "client": "node script/build.js -- --dev",
+    "packages": "npm install cubing@0.48.4 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
+    "server": "node server/twitchServer.cjs",
+    "clean": "rm -rf ./dist",
+    "upgrade-cubing": "npm install --save cubing@latest",
+    "tsc": "concurrently \"npm run server\" \"npm run client\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@parcel/core": "^2.9.3",
-    "@twurple/api": "^7.0.3",
-    "@twurple/auth": "^7.0.3",
-    "@twurple/chat": "^7.0.3",
-    "concurrently": "^8.2.1",
-    "cubing": "^0.41.1",
-    "delay": "^5.0.0",
-    "parcel": "^2.9.3",
-    "typescript": "^5.2.2",
-    "ws": "^8.14.2"
+    "@twurple/api": "^7.1.0",
+    "@twurple/auth": "^7.1.0",
+    "@twurple/chat": "^7.1.0",
+    "concurrently": "^8.2.2",
+    "cubing": "^0.48.4",
+    "delay": "^6.0.0",
+    "typescript": "^5.4.5",
+    "ws": "^8.17.0"
   },
-  "description": "```\r npm init -y\r npm install parcel cubing twitch-js\r npx parcel .\\cube.html\r ```",
+  "description": "```\r npm init -y\r npm run packages\r npm run start\r ```",
   "repository": {
     "type": "git",
     "url": "git+https://TwitchSolvesCube@github.com/TwitchSolvesCube/TwitchSolvesCubeV2.git"
@@ -34,10 +35,6 @@
   },
   "homepage": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2#readme",
   "devDependencies": {
-    "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.0",
-    "events": "^3.3.0",
-    "process": "^0.11.10",
-    "stream-browserify": "^3.0.0"
+    "barely-a-dev-server": "^0.6.1"
   }
 }

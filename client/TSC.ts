@@ -1,6 +1,5 @@
 import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
-import { send } from "./twitchClient";
 import type { PuzzleID } from "cubing/twisty";
 
 export default class TSC {
@@ -15,6 +14,7 @@ export default class TSC {
   private turns: boolean = true;
   private speedNotation: boolean = false;
   private movable: boolean;
+  private solved: boolean = false;
 
   private showLabels: boolean = true;
   private timeLabel: HTMLElement = document.getElementById("timeSinceSolved") as HTMLElement;
@@ -24,8 +24,11 @@ export default class TSC {
   // Timers
   private userTurnTimer: NodeJS.Timer;
 
-  constructor(eventID: string) {
+  private send: (message: string) => void;
+
+  constructor(eventID: string, send: (message: string) => void) {
     this.eventID = eventID;
+    this.send = send;
   }
 
   async joinQueue(username: string) {
@@ -38,18 +41,18 @@ export default class TSC {
         this.enqueue(username);
         //isFollowing(username);
         this.userTurnTime();
-        send(`@${username}, it's your turn! Do !leaveQ when done`);
+        this.send(`@${username}, it's your turn! Do !leaveQ when done`);
         //response = await this.kickAFK(); //TODO: Response
       } else if (this.getCurrentUser() === username) {
-        send(`@${username}, it's currently your turn!`);
+        this.send(`@${username}, it's currently your turn!`);
       } else if (!queue.includes(username)) {
         this.enqueue(username);
-        send(`@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`);
+        this.send(`@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`);
       } else {
-        send(`@${username}, you're already in the queue. Please wait :)`);
+        this.send(`@${username}, you're already in the queue. Please wait :)`);
       }
     } else {
-      send("The cube is currently in Vote mode. No need to !joinq, just type a move in chat");
+       this.send("The cube is currently in Vote mode. No need to !joinq, just type a move in chat");
     }
 
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
@@ -61,7 +64,6 @@ export default class TSC {
   
     if (this.isTurns()) {
       if (userIndex !== -1) {
-        send(`@${username}, you have been removed from the queue. `);
         this.queue.splice(userIndex, 1);
         let currentUser = this.getCurrentUser();
         // If the removed user was at index 0 then reset the timer for the next user
@@ -72,20 +74,21 @@ export default class TSC {
         //this.clearAfkCountdown();
         if (currentUser && !chatRemoval) { // If the user is removed by the timer queue next player
           //isFollowing(currentUser);
-          send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
           this.userTurnTime();
+          this.send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
           //this.kickAFK();
         } else if (this.queue.length === 0) { //If there is no user left in the queue
           //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
-          send(`The queue is currently empty. Anyone is free to !joinQ. `);
           this.clearUserTurnTimer();
           this.setUserLabel("");
+          this.send(`The queue is currently empty. Anyone is free to !joinQ. `);
         }
+        this.send(`@${username}, you have been removed from the queue. `);
       } else {
-        send(`@${username}, you are not in the queue. Type !joinQ to join. `);
+          this.send(`@${username}, you are not in the queue. Type !joinQ to join. `);
       }
     } else {
-      send("The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ");
+        this.send(`The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. `);
     }
   
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
@@ -104,6 +107,7 @@ export default class TSC {
         this.setTurnTime(300);
         this.setSpeedNotation(false);
         if (this.queue.length > 0) {
+          //TODO: Once a player's time is out there is no return to twitch chat because messages are only sent on moves
           this.removePlayer(this.getCurrentUser(), false);
         }
       }
@@ -146,10 +150,10 @@ export default class TSC {
   }
 
   incTimeSS(): void {
-    ++this.timeSinceSolved;
     if (this.showLabels) {
       this.timeLabel.textContent = `${this.getTimeSinceSolved()}`;
     }
+    ++this.timeSinceSolved;
   }
 
   resetTimeSS(): void {
@@ -249,6 +253,13 @@ export default class TSC {
     return this.movable;
   }
 
+  setSolvedState(solved: boolean): void {
+    this.solved = solved;
+  }
+
+  getSolvedState(): boolean {
+    return this.solved;
+  }
   async newScrambleArray(): Promise<string[][]> {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
