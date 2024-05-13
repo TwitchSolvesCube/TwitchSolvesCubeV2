@@ -1,0 +1,14 @@
+{
+    "accessToken": "",
+    "refreshToken": "",
+    "scope": [
+        "channel:moderate",
+        "chat:edit",
+        "chat:read",
+        "moderator:read:followers",
+        "whispers:edit",
+        "whispers:read"
+    ],
+    "expiresIn": <num>,
+    "obtainmentTimestamp": <num>
+}
