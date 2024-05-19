@@ -1,6 +1,5 @@
 import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
-import { send } from "./twitchClient";
 import type { PuzzleID } from "cubing/twisty";
 
 export default class TSC {
@@ -15,6 +14,7 @@ export default class TSC {
   private turns: boolean = true;
   private speedNotation: boolean = false;
   private movable: boolean;
+  private solved: boolean = false;
 
   private showLabels: boolean = true;
   private timeLabel: HTMLElement = document.getElementById("timeSinceSolved") as HTMLElement;
@@ -28,7 +28,7 @@ export default class TSC {
     this.eventID = eventID;
   }
 
-  async joinQueue(username: string) {
+  async joinQueue(username: string): Promise<string> {
     username = username.toLowerCase();
     if (this.isTurns()) {
       const queue = this.getQueue();
@@ -38,30 +38,29 @@ export default class TSC {
         this.enqueue(username);
         //isFollowing(username);
         this.userTurnTime();
-        send(`@${username}, it's your turn! Do !leaveQ when done`);
+        return `@${username}, it's your turn! Do !leaveQ when done`;
         //response = await this.kickAFK(); //TODO: Response
       } else if (this.getCurrentUser() === username) {
-        send(`@${username}, it's currently your turn!`);
+        return `@${username}, it's currently your turn!`;
       } else if (!queue.includes(username)) {
         this.enqueue(username);
-        send(`@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`);
+        return `@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`;
       } else {
-        send(`@${username}, you're already in the queue. Please wait :)`);
+        return `@${username}, you're already in the queue. Please wait :)`;
       }
     } else {
-      send("The cube is currently in Vote mode. No need to !joinq, just type a move in chat");
+      return "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
     }
 
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
   }
 
-  async removePlayer(username: string, chatRemoval: boolean = false) {
+  async removePlayer(username: string, chatRemoval: boolean = false): Promise<string> {
     username = username.toLowerCase();
     const userIndex = this.getQueue().indexOf(username);
   
     if (this.isTurns()) {
       if (userIndex !== -1) {
-        send(`@${username}, you have been removed from the queue. `);
         this.queue.splice(userIndex, 1);
         let currentUser = this.getCurrentUser();
         // If the removed user was at index 0 then reset the timer for the next user
@@ -72,20 +71,21 @@ export default class TSC {
         //this.clearAfkCountdown();
         if (currentUser && !chatRemoval) { // If the user is removed by the timer queue next player
           //isFollowing(currentUser);
-          send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
           this.userTurnTime();
+          return `@${currentUser}, it's your turn! Do !leaveQ when done. `;
           //this.kickAFK();
         } else if (this.queue.length === 0) { //If there is no user left in the queue
           //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
-          send(`The queue is currently empty. Anyone is free to !joinQ. `);
           this.clearUserTurnTimer();
           this.setUserLabel("");
+          return `The queue is currently empty. Anyone is free to !joinQ. `;
         }
+        return `@${username}, you have been removed from the queue. `;
       } else {
-        send(`@${username}, you are not in the queue. Type !joinQ to join. `);
+        return `@${username}, you are not in the queue. Type !joinQ to join. `;
       }
     } else {
-      send("The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ");
+      return "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ";
     }
   
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
@@ -249,6 +249,13 @@ export default class TSC {
     return this.movable;
   }
 
+  setSolvedState(solved: boolean): void {
+    this.solved = solved;
+  }
+
+  getSolvedState(): boolean {
+    return this.solved;
+  }
   async newScrambleArray(): Promise<string[][]> {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
