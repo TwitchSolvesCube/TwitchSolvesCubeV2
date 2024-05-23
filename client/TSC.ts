@@ -104,6 +104,7 @@ export default class TSC {
         this.setTurnTime(300);
         this.setSpeedNotation(false);
         if (this.queue.length > 0) {
+          //TODO: Once a player's time is out there is no return to twitch chat because messages are only sent on moves
           this.removePlayer(this.getCurrentUser(), false);
         }
       }
@@ -146,10 +147,10 @@ export default class TSC {
   }
 
   incTimeSS(): void {
-    ++this.timeSinceSolved;
     if (this.showLabels) {
       this.timeLabel.textContent = `${this.getTimeSinceSolved()}`;
     }
+    ++this.timeSinceSolved;
   }
 
   resetTimeSS(): void {

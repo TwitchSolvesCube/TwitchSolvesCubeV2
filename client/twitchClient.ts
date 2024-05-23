@@ -61,7 +61,6 @@ export class twitchClient {
           if (this.cube.tsc.isCubeEnabled()) {
               this.cube.doCubeMoves(move);
               //cube.tsc.scheduleUserRemoval(30);
-              //TODO
               console.log(this.cube.tsc.getSolvedState());
               if (this.cube.tsc.getSolvedState()){
                 this.send(this.cube.tsc.getSolvedMessage());

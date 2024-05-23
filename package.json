@@ -6,11 +6,11 @@
   "scripts": {
     "build": "node script/build.js",
     "client": "node script/build.js -- --dev",
-    "packages": "npm install cubing@0.41.1 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
+    "packages": "npm install cubing@0.48.4 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
     "server": "node server/twitchServer.cjs",
     "clean": "rm -rf ./dist",
     "upgrade-cubing": "npm install --save cubing@latest",
-    "start": "concurrently \"npm run server\" \"npm run client\""
+    "tsc": "concurrently \"npm run server\" \"npm run client\""
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,7 @@
     "@twurple/auth": "^7.1.0",
     "@twurple/chat": "^7.1.0",
     "concurrently": "^8.2.2",
-    "cubing": "^0.41.1",
+    "cubing": "^0.48.4",
     "delay": "^6.0.0",
     "typescript": "^5.4.5",
     "ws": "^8.17.0"

@@ -60,11 +60,13 @@ git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2
 ```
 cd TwitchSolvesCubeV2
 ```
+Installs npm packages
 ```
-npm run build
+npm run packages
 ```
+Starts the client and server
 ```
-npm run start
+npm run tsc
 ```
 
 # License
