@@ -212,6 +212,53 @@ export default class tscCube {
     }
   }
 
+  async handleMessage(user: string, move: string, message: string, isFollower: boolean, isSub: boolean, isMod: boolean) {
+    const queue = this.tsc.getQueue();
+    let currentUser = this.tsc.getCurrentUser();
+  
+    if (message === "!queue" || message === "!q") {
+      if (queue.length > 0) {
+        this.send(`${queue}`);
+      } else {
+        this.send("There's currently no one in the queue, do !joinq");
+      }
+    } else if (message.startsWith("!joinq") || message.startsWith("!jq")) {
+      await this.tsc.joinQueue(user);
+    } else if (message === "!leaveq" || message === "!lq") {
+      await this.tsc.removePlayer(user, true);
+    } else if ((message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
+      const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
+      if (queue.includes(userToRemove)) {
+        await this.tsc.removePlayer(userToRemove, true);
+      } else {
+        this.send(`@${user} this user is not in the queue.`);
+      }
+    } else if ((message === "!clearq" || message === "!cq") && isMod) {
+      this.tsc.clearQueue();
+      this.send(`The queue has now been cleared.`);
+    }
+  
+    currentUser = this.tsc.getCurrentUser();
+  
+    if (currentUser === user) {
+      if (this.tsc.isCubeEnabled()) {
+        this.doCubeMoves(move);
+        console.log(this.tsc.getSolvedState());
+        if (this.tsc.getSolvedState()){
+          this.send(this.tsc.getSolvedMessage());
+        }
+      }
+    }
+  
+    if (message === '!followage') {
+      if (isFollower) {
+        this.send(`@${user} You have been following`);
+      } else {
+        this.send(`@${user} You are not following!`);
+      }
+    }
+  }
+
   isCubeStateSolved() {
     return this.cubeState.experimentalIsSolved({
       ignorePuzzleOrientation: true,

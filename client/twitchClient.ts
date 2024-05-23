@@ -31,51 +31,7 @@ export class twitchClient {
       const isSub = jsonData.isSub;
       const isMod = jsonData.isMod;
   
-      const queue = this.cube.tsc.getQueue();
-      let currentUser = this.cube.tsc.getCurrentUser();
-  
-      if (message === "!queue" || message === "!q") {
-        if (queue.length > 0) {
-            this.send(`${queue}`);
-        } else {
-            this.send("There's currently no one in the queue, do !joinq");
-        }
-      } else if (message.startsWith("!joinq") || message.startsWith("!jq")) {
-          await this.cube.tsc.joinQueue(user);
-      } else if (message === "!leaveq" || message === "!lq") {
-          await this.cube.tsc.removePlayer(user, true);
-      } else if ( (message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
-          const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
-          if (queue.includes(userToRemove)) {
-            await this.cube.tsc.removePlayer(userToRemove, true);
-          } else {
-            this.send(`@${user} this user is not in the queue.`);
-          }
-      } else if ( (message === "!clearq" || message === "!cq") && isMod) {
-        this.cube.tsc.clearQueue(); //Bug: Undefined user is mentioned, but it's okay 
-        this.send(`The queue has now been cleared.`);
-      }
-      
-      currentUser = this.cube.tsc.getCurrentUser();
-      //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + currentUser);
-      if (currentUser === user) { //If the message sent by the user is the currentUser do cube moves 
-          if (this.cube.tsc.isCubeEnabled()) {
-              this.cube.doCubeMoves(move);
-              //cube.tsc.scheduleUserRemoval(30);
-              console.log(this.cube.tsc.getSolvedState());
-              if (this.cube.tsc.getSolvedState()){
-                this.send(this.cube.tsc.getSolvedMessage());
-              }
-          }
-      }
-  
-      if (message === '!followage') {
-        if (isFollower) {
-          this.send(`@${user} You have been following`);
-        } else {
-          this.send(`@${user} You are not following!`);
-        }
-      }
+      this.cube.handleMessage(user, move, message, isFollower, isSub, isMod);
   
       // timeStampLog('User: ' + user);
       // timeStampLog('Message: ' + message);
