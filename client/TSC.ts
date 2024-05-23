@@ -24,11 +24,14 @@ export default class TSC {
   // Timers
   private userTurnTimer: NodeJS.Timer;
 
-  constructor(eventID: string) {
+  private send: (message: string) => void;
+
+  constructor(eventID: string, send: (message: string) => void) {
     this.eventID = eventID;
+    this.send = send;
   }
 
-  async joinQueue(username: string): Promise<string> {
+  async joinQueue(username: string) {
     username = username.toLowerCase();
     if (this.isTurns()) {
       const queue = this.getQueue();
@@ -38,24 +41,24 @@ export default class TSC {
         this.enqueue(username);
         //isFollowing(username);
         this.userTurnTime();
-        return `@${username}, it's your turn! Do !leaveQ when done`;
+        this.send(`@${username}, it's your turn! Do !leaveQ when done`);
         //response = await this.kickAFK(); //TODO: Response
       } else if (this.getCurrentUser() === username) {
-        return `@${username}, it's currently your turn!`;
+        this.send(`@${username}, it's currently your turn!`);
       } else if (!queue.includes(username)) {
         this.enqueue(username);
-        return `@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`;
+        this.send(`@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`);
       } else {
-        return `@${username}, you're already in the queue. Please wait :)`;
+        this.send(`@${username}, you're already in the queue. Please wait :)`);
       }
     } else {
-      return "The cube is currently in Vote mode. No need to !joinq, just type a move in chat";
+       this.send("The cube is currently in Vote mode. No need to !joinq, just type a move in chat");
     }
 
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
   }
 
-  async removePlayer(username: string, chatRemoval: boolean = false): Promise<string> {
+  async removePlayer(username: string, chatRemoval: boolean = false) {
     username = username.toLowerCase();
     const userIndex = this.getQueue().indexOf(username);
   
@@ -72,20 +75,20 @@ export default class TSC {
         if (currentUser && !chatRemoval) { // If the user is removed by the timer queue next player
           //isFollowing(currentUser);
           this.userTurnTime();
-          return `@${currentUser}, it's your turn! Do !leaveQ when done. `;
+          this.send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
           //this.kickAFK();
         } else if (this.queue.length === 0) { //If there is no user left in the queue
           //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
           this.clearUserTurnTimer();
           this.setUserLabel("");
-          return `The queue is currently empty. Anyone is free to !joinQ. `;
+          this.send(`The queue is currently empty. Anyone is free to !joinQ. `);
         }
-        return `@${username}, you have been removed from the queue. `;
+        this.send(`@${username}, you have been removed from the queue. `);
       } else {
-        return `@${username}, you are not in the queue. Type !joinQ to join. `;
+          this.send(`@${username}, you are not in the queue. Type !joinQ to join. `);
       }
     } else {
-      return "The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. ";
+        this.send(`The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. `);
     }
   
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));

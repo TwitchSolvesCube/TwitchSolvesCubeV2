@@ -3,10 +3,11 @@ import tscCube from "./cube";
 export class twitchClient {
 
   private ws: WebSocket;
-  private cube: tscCube = new tscCube("333");
+  private cube: tscCube;
 
   constructor() {
     this.ws = new WebSocket('ws://localhost:8080');
+    this.cube = new tscCube("333", this.send.bind(this));
     this.cube.scramblePuzzle();
     
     this.ws.addEventListener('open', this.onOpen.bind(this));
@@ -18,7 +19,7 @@ export class twitchClient {
     //ws.send('Hello, Server!');
   }
 
-  private async onMessage(event: MessageEvent) {
+  public async onMessage(event: MessageEvent) {
     try {
       const jsonData = JSON.parse(event.data);
   
@@ -40,15 +41,15 @@ export class twitchClient {
             this.send("There's currently no one in the queue, do !joinq");
         }
       } else if (message.startsWith("!joinq") || message.startsWith("!jq")) {
-          this.send(await this.cube.tsc.joinQueue(user));
+          await this.cube.tsc.joinQueue(user);
       } else if (message === "!leaveq" || message === "!lq") {
-          this.send(await this.cube.tsc.removePlayer(user, true));
+          await this.cube.tsc.removePlayer(user, true);
       } else if ( (message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
           const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
           if (queue.includes(userToRemove)) {
-            this.send(await this.cube.tsc.removePlayer(userToRemove, true));
+            await this.cube.tsc.removePlayer(userToRemove, true);
           } else {
-              this.send(`@${user} this user is not in the queue.`);
+            this.send(`@${user} this user is not in the queue.`);
           }
       } else if ( (message === "!clearq" || message === "!cq") && isMod) {
         this.cube.tsc.clearQueue(); //Bug: Undefined user is mentioned, but it's okay 

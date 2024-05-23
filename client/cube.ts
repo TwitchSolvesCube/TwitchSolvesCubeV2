@@ -44,10 +44,13 @@ export default class tscCube {
   private kpuzzle: KPuzzle;
   private cubeState: KPattern;
 
+  private send: (message: string) => void;
+
   // Date
   // let currentDate = new Date();
-  constructor(puzzleId: string) {
-    this.tsc = new TSC(puzzleId);
+  constructor(puzzleId: string, send: (message: string) => void) {
+    this.send = send;
+    this.tsc = new TSC(puzzleId, this.send.bind(this));
     this.newCube();
   }
 
