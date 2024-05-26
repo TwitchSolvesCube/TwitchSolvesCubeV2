@@ -67,7 +67,7 @@ async function main() {
     chatClient.connect();
 
     chatClient.onMessage(async (channel, user, message, tags) => {
-      const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId); //If channelID == userID then userID can be used here instead
+      //const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId); //If channelID == userID then userID can be used here instead
 
       // timeStampLog(channel);
       // timeStampLog(user);
@@ -76,7 +76,7 @@ async function main() {
       const twitch = {
         "user": user,
         "message": message,
-        "isFollower": follow,
+        // "isFollower": follow,
         "isSub": tags.userInfo.isSubscriber,
         "isMod": tags.userInfo.isMod
       };
@@ -86,7 +86,7 @@ async function main() {
     });
 
 	} catch (error) {
-	console.error('Error:', error);
+	  console.error('Error:', error);
 	}
 }
 
