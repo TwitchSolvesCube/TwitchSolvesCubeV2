@@ -264,7 +264,7 @@ export default class TSC {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
     this.scramble = scramString.toString().split(' ');
-    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.scramble);
+    //console.log(this.scramble);
     return Array(this.scramble);
   }
 
