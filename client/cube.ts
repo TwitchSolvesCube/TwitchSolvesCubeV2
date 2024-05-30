@@ -1,7 +1,7 @@
 import "cubing/twisty";
 import { TwistyPlayer } from "cubing/twisty";
 import { Move, Alg } from "cubing/alg";
-import { cube3x3x3 } from "cubing/puzzles";
+import { cube2x2x2, cube3x3x3, puzzles } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
 import { experimentalSolve3x3x3IgnoringCenters } from "cubing/search";
 
@@ -11,21 +11,6 @@ import delay from "delay";
 export default class tscCube {
   private player: TwistyPlayer;
   public tsc: TSC;
-
-  // Array of all supported moves
-  private moves333: Array<string> =
-  ["R", "R'", "R2", "r", "r'", "r2",
-    "L", "L'", "L2", "l", "l'", "l2",
-    "F", "F'", "F2", "f", "f'", "f2",
-    "B", "B'", "B2", "b", "b'", "b2",
-    "D", "D'", "D2", "d", "d'", "d2",
-    "U", "U'", "U2", "u", "u'", "u2",
-    "E", "E'", "E2",
-    "S", "S'", "S2",
-    "M", "M'", "M2",
-    "x", "x'", "x2",
-    "y", "y'", "y2",
-    "z", "z'", "z2"];
 
   private snMoves333: Array<string> =
     ["i", "k", "u", "m",
@@ -42,15 +27,15 @@ export default class tscCube {
   // Timers
   private timeSinceSolvedTimer;
   private kpuzzle: KPuzzle;
-  private cubeState: KPattern;
+  private puzzleState: KPattern;
 
   private send: (message: string) => void;
 
   // Date
   // let currentDate = new Date();
-  constructor(puzzleId: string, send: (message: string) => void) {
+  constructor(eventID: string, send: (message: string) => void) {
     this.send = send;
-    this.tsc = new TSC(puzzleId, this.send.bind(this));
+    this.tsc = new TSC(eventID, this.send.bind(this));
     this.newCube();
   }
 
@@ -64,26 +49,55 @@ export default class tscCube {
       experimentalDragInput: "none"
     }));
 
-    this.kpuzzle = await cube3x3x3.kpuzzle();
-    this.cubeState = this.kpuzzle.identityTransformation().toKPattern();
+    // Most likely will not do 5x5x5 or Megaminx
+    if (this.tsc.getPuzzleID() === "2x2x2") {
+      this.kpuzzle = await cube2x2x2.kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "3x3x3") {
+      this.kpuzzle = await cube3x3x3.kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "4x4x4") {
+      this.kpuzzle = await puzzles["4x4x4"].kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "5x5x5") {
+      this.kpuzzle = await puzzles["5x5x5"].kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "skewb") {
+      this.kpuzzle = await puzzles["skewb"].kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "pyraminx") {
+      this.kpuzzle = await puzzles["pyraminx"].kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "megaminx") {
+      this.kpuzzle = await puzzles["megaminx"].kpuzzle();
+    }
+    if (this.tsc.getPuzzleID() === "clock") {
+      this.kpuzzle = await puzzles["clock"].kpuzzle();
+    }
+
+    this.puzzleState = this.kpuzzle.identityTransformation().toKPattern();
   }
 
   appendMove(myMove: string) {
-    if (this.moves333.includes(myMove)) {
-      const newMove = new Move(myMove);
-      this.player.experimentalAddMove(newMove);
-      this.cubeState = this.cubeState.applyMove(newMove);
-      this.checkSolved();
+    // This will ensure moves are valid for the puzzle type
+    try{
+      var result = this.kpuzzle.moveToTransformation(new Move(myMove));
+      if (typeof result === 'object') {
+        const newMove = new Move(myMove);
+        this.player.experimentalAddMove(newMove);
+        this.puzzleState = this.puzzleState.applyMove(newMove);
+        this.checkSolved();
+      }
+    } catch (error) {
+      console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + myMove + ' is not a move for ' + this.tsc.getPuzzleID());
     }
   }
 
   async appendAlg(myAlg: Array<string>) {
     this.tsc.enableCube(false); //Can't move cube while appending move
-    if (myAlg.every(move => this.moves333.includes(move))) {
-      for (var i = 0; i <= myAlg.length - 1; i++) {
-        await delay(400);
-        this.appendMove(myAlg[i]);
-      }
+    for (var i = 0; i <= myAlg.length - 1; i++) {
+      await delay(400);
+      this.appendMove(myAlg[i]);
     }
     this.tsc.enableCube(true); //Allows moves on cube again
     //Debug
@@ -159,13 +173,12 @@ export default class tscCube {
           .replace("X", "x").replace("Y", "y").replace("Z", "z")
           .replace("m", "M").replace("e", "E").replace("s", "S");
 
-          // Moves with a "." are valid to prevent spam detection
-          if (this.moves333.includes(msg) || this.moves333.some(move => msg.includes(move + "."))) {
-            this.appendMove(msg.replace(/\.$/, ''));
-          
-            // Update top right moves
-            this.tsc.incMoves();
-          }
+        // Moves with a "." are valid to prevent spam detection
+        // This line will still execute if "scramble" condition above is met, but doesn't seem to cause an issue
+        this.appendMove(msg.replace(/\.$/, ''));
+      
+        // Update top right moves
+        this.tsc.incMoves();
       } else if (this.tsc.isSpeedNotation()) {
         msg = message.toLowerCase();
 
@@ -181,7 +194,7 @@ export default class tscCube {
 
           const newMove = new Move(msg);
           this.player.experimentalAddMove(newMove);
-          this.cubeState = this.cubeState.applyMove(newMove);
+          this.puzzleState = this.puzzleState.applyMove(newMove);
 
           // Update top right moves
           this.tsc.incMoves();
@@ -196,17 +209,6 @@ export default class tscCube {
       //     appendAlg(algArray);
       //   }
       // }
-
-      // This would be better but gets stuck in a loop once an error catches
-      // This error gets thrown from kpuzzple.ts 
-      //  "throw new Error("Unknown move: " + move.toString());"
-      // try{
-      //   player.experimentalAddMove(new Move(String(message)));
-      // }
-      // catch(Error){
-      //   console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Invalid Move or Not a Move");
-      // }
-      // This would be better because with other puzzles we don't need to know the moves
 
       //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
     }
@@ -260,10 +262,11 @@ export default class tscCube {
   }
 
   isCubeStateSolved() {
-    return this.cubeState.experimentalIsSolved({
-      ignorePuzzleOrientation: true,
-      ignoreCenterOrientation: true
-    });
+    // return this.cubeState.experimentalIsSolved({
+    //   ignorePuzzleOrientation: true,
+    //   ignoreCenterOrientation: true
+    // });
+    return false;
   }
 
   async checkSolved() {
