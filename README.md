@@ -47,7 +47,7 @@ Example link for scopes, enter your CLIENT_ID and REDIRECT_URI.
 https://id.twitch.tv/oauth2/authorize?client_id=<CLIENT_ID>&redirect_uri=<REDIRECT_URI>&response_type=code&scope=chat:read+chat:edit+whispers:edit+whispers:read+channel:moderate+moderator:read:followers
 ```
 
-On first run you will need to rename your file in the tokenData variable in twitchServer.js. After the first run it will create your tokens.*.json file. Now use this generated json to be read from.   
+Place the `tokens.*.json` file in the server folder.   
 
 ## How to create `config.json`
 Paste in your clientId, clientSecret, and channelName you want to connect to.   
@@ -60,11 +60,13 @@ git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2
 ```
 cd TwitchSolvesCubeV2
 ```
+Installs npm packages
 ```
-npm run build
+npm run packages
 ```
+Starts the client and server
 ```
-npm run start
+npm run tsc
 ```
 
 # License
