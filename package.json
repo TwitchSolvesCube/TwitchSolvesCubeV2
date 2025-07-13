@@ -1,12 +1,12 @@
 {
   "name": "tscv2",
-  "version": "24.05",
+  "version": "25.07",
   "main": "client/main.ts",
   "type": "module",
   "scripts": {
     "build": "node script/build.js",
     "client": "node script/build.js -- --dev",
-    "packages": "npm install cubing@0.48.4 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
+    "packages": "npm install cubing@0.57.1 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
     "server": "node server/twitchServer.cjs",
     "clean": "rm -rf ./dist",
     "upgrade-cubing": "npm install --save cubing@latest",
@@ -16,14 +16,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@twurple/api": "^7.1.0",
-    "@twurple/auth": "^7.1.0",
-    "@twurple/chat": "^7.1.0",
-    "concurrently": "^8.2.2",
-    "cubing": "^0.48.4",
+    "@twurple/api": "^7.3.0",
+    "@twurple/auth": "^7.3.0",
+    "@twurple/chat": "^7.3.0",
+    "concurrently": "^9.2.0",
+    "cubing": "^0.57.1",
     "delay": "^6.0.0",
     "typescript": "^5.4.5",
-    "ws": "^8.17.0"
+    "ws": "^8.18.3"
   },
   "description": "```\r npm init -y\r npm run packages\r npm run start\r ```",
   "repository": {
@@ -35,6 +35,6 @@
   },
   "homepage": "https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2#readme",
   "devDependencies": {
-    "barely-a-dev-server": "^0.6.1"
+    "barely-a-dev-server": "^0.8.1"
   }
 }

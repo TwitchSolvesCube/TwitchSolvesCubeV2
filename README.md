@@ -1,13 +1,16 @@
 # TwitchSolvesCubeV2
+
 [![](https://img.shields.io/badge/Powered_By-cubing.js-blueviolet?logo=github)](https://github.com/cubing/cubing.js)  
 
 ## Features
+
 Various cube perspectives  
 Back of cube is visible with "hints"  
 Play Time: Followers 8 Minutes vs Non-Followers 5 Minutes  
 Users get kicked after 2 minutes of not entering a valid move
 
 ## Chat Commands!
+
 - `!joinq` or `!jq`
 - `!leaveq` or `!lq`
 - `!queue` or `!q`
@@ -33,12 +36,15 @@ Users get kicked after 2 minutes of not entering a valid move
 # Contributing
 
 ## Install Requirements
-[NodeJs >=19](https://nodejs.org/en/) and [Git](https://git-scm.com/download/win)
+
+[NodeJs >=22.3.0](https://nodejs.org/en/download) and [Git](https://git-scm.com/download/win)
 
 #### Font (Optional)
+
 [Rubik](https://fonts.google.com/specimen/Rubik)
 
 ## How to create `tokens.*.json`
+
 Follow Steps 1 & 2 from here https://twurple.js.org/docs/examples/chat/basic-bot.html  
 To make things easier you may use https://reqbin.com/post-online for your POST request (Use this site at your own risk)   
 
@@ -50,24 +56,34 @@ https://id.twitch.tv/oauth2/authorize?client_id=<CLIENT_ID>&redirect_uri=<REDIRE
 Place the `tokens.*.json` file in the server folder.   
 
 ## How to create `config.json`
+
 Paste in your clientId, clientSecret, and channelName you want to connect to.   
 
 ## Setting Up Dev Enviroment
+
 Run line by line
+
 ```
 git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2  
 ```
+
 ```
 cd TwitchSolvesCubeV2
+
 ```
+
 Installs npm packages
+
 ```
 npm run packages
 ```
+
 Starts the client and server
+
 ```
 npm run tsc
 ```
 
 # License
+
 This project is under GPL3 which means you are free to use this program, but **must publicly publish any code that uses it.** View full license for exact details [here](https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/LICENSE).
