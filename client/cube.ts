@@ -68,11 +68,20 @@ export default class tscCube {
     this.cubeState = this.kpuzzle.identityTransformation().toKPattern();
   }
 
+  playAudio(url: string): void {
+    const audio = new Audio(url);
+    audio.play().catch(e => console.error("Audio playback failed:", e));
+  }
+
   appendMove(myMove: string) {
     if (this.moves333.includes(myMove)) {
       const newMove = new Move(myMove);
       this.player.experimentalAddMove(newMove);
       this.cubeState = this.cubeState.applyMove(newMove);
+      if (myMove.includes("2") ) {
+        this.playAudio('./sounds/doubleMove.mp3');
+      }
+      this.playAudio('./sounds/singleMove.mp3');
       this.checkSolved();
     }
   }
