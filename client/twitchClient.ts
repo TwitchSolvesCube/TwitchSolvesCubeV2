@@ -1,4 +1,5 @@
 import tscCube from "./cube";
+const { serverPort } = require('../server/config.json');
 
 export class twitchClient {
 
@@ -6,7 +7,8 @@ export class twitchClient {
   private cube: tscCube;
 
   constructor() {
-    this.ws = new WebSocket('ws://localhost:8080');
+    this.ws = new WebSocket(`ws://localhost:${serverPort}`);
+    console.log('Running Websocket on Port ' + serverPort);
     this.cube = new tscCube("333", this.send.bind(this));
     this.cube.scramblePuzzle();
     

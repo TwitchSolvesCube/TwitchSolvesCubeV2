@@ -2,5 +2,7 @@
     "clientId": "",
     "clientSecret": "",
     "channelName": "",
-    "channelID": ""
+    "channelID": "",
+    "clientPort": "1234",
+    "serverPort": "8080"
 }

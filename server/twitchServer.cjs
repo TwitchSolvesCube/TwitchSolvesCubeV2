@@ -11,7 +11,7 @@ const channelName = confInfo.channelName;
 const channelID = confInfo.channelID;
 let chatClient = new ChatClient();
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: confInfo.serverPort });
 let wsConnection;
 
 wss.on('connection', (ws) => {
