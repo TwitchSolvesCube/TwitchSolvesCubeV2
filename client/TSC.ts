@@ -41,7 +41,7 @@ export default class TSC {
         this.enqueue(username);
         //isFollowing(username);
         this.userTurnTime();
-        this.send(`@${username}, it's your turn! Do !leaveQ when done`);
+        this.send(`@${username}, it's your turn! Do !leave when done`);
         //response = await this.kickAFK(); //TODO: Response
       } else if (this.getCurrentUser() === username) {
         this.send(`@${username}, it's currently your turn!`);
@@ -52,7 +52,7 @@ export default class TSC {
         this.send(`@${username}, you're already in the queue. Please wait :)`);
       }
     } else {
-       this.send("The cube is currently in Vote mode. No need to !joinq, just type a move in chat");
+       this.send("The cube is currently in Vote mode. No need to !join, just type a move in chat");
     }
 
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
@@ -75,20 +75,20 @@ export default class TSC {
         if (currentUser && !chatRemoval) { // If the user is removed by the timer queue next player
           //isFollowing(currentUser);
           this.userTurnTime();
-          this.send(`@${currentUser}, it's your turn! Do !leaveQ when done. `);
+          this.send(`@${currentUser}, it's your turn! Do !leave when done. `);
           //this.kickAFK();
         } else if (this.queue.length === 0) { //If there is no user left in the queue
           //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
           this.clearUserTurnTimer();
           this.setUserLabel("");
-          this.send(`The queue is currently empty. Anyone is free to !joinQ. `);
+          this.send(`The queue is currently empty. Anyone is free to !join. `);
         }
         this.send(`@${username}, you have been removed from the queue. `);
       } else {
-          this.send(`@${username}, you are not in the queue. Type !joinQ to join. `);
+          this.send(`@${username}, you are not in the queue. Type !join to join. `);
       }
     } else {
-        this.send(`The cube is currently in Vote mode. No need to !leaveq, just type a move in chat. `);
+        this.send(`The cube is currently in Vote mode. No need to !leave, just type a move in chat. `);
     }
   
     //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
