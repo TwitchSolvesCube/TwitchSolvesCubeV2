@@ -57,7 +57,9 @@ Place the `tokens.*.json` file in the server folder.
 
 ## How to create `config.json`
 
-Paste in your clientId, clientSecret, and channelName you want to connect to.   
+Paste in your `clientId`, `clientSecret`, and `channelName` you want to connect to.
+
+Edit `clientPort` and `serverPort` if running more than two instances.
 
 ## Setting Up Dev Enviroment
 
