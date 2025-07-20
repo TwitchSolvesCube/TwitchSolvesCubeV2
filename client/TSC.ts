@@ -134,6 +134,10 @@ export default class TSC {
     return this.queue.length;
   }
 
+  setEventID(eventID: string): void {
+    this.eventID = eventID;
+  }
+
   getEventID(): string {
     return this.eventID;
   }
@@ -260,6 +264,7 @@ export default class TSC {
   getSolvedState(): boolean {
     return this.solved;
   }
+  
   async newScrambleArray(): Promise<string[][]> {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
@@ -281,6 +286,6 @@ export default class TSC {
   }
 
   getSolvedMessage(): string {
-    return "The cube was solved in " + this.getTimeSinceSolved() + " and in " + this.getTotalMoves() + " moves. The scramble was " + this.getScramble() + ".";
+    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and in ${this.getTotalMoves()} moves. The scramble was ${this.getScramble()}.`;
   }
 }
