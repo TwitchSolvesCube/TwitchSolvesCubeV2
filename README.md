@@ -11,8 +11,8 @@ Users get kicked after 2 minutes of not entering a valid move
 
 ## Chat Commands!
 
-- `!joinq` or `!jq`
-- `!leaveq` or `!lq`
+- `!join` or `!j`
+- `!leave` or `!l`
 - `!queue` or `!q`
 - `scramble` completes a random scramble on the puzzle
 - `scramble <alg>` set a custom scramble. 

@@ -224,16 +224,19 @@ export default class tscCube {
   async handleMessage(user: string, move: string, message: string, isFollower: boolean, isSub: boolean, isMod: boolean) {
     const queue = this.tsc.getQueue();
     let currentUser = this.tsc.getCurrentUser();
+
+    const joinCommands = ["!join", "!j", "!joinq", "!jq"];
+    const leaveCommands = ["!leave", "!l", "!leaveq", "!lq"];
   
     if (message === "!queue" || message === "!q") {
       if (queue.length > 0) {
         this.send(`${queue}`);
       } else {
-        this.send("There's currently no one in the queue, do !joinq");
+        this.send("There's currently no one in the queue, do !join");
       }
-    } else if (message.startsWith("!joinq") || message.startsWith("!jq")) {
+    } else if (joinCommands.includes(message)) {
       await this.tsc.joinQueue(user);
-    } else if (message === "!leaveq" || message === "!lq") {
+    } else if (leaveCommands.includes(message)) {
       await this.tsc.removePlayer(user, true);
     } else if ((message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
       const userToRemove = message!.split(' ').pop()?.split('@').pop()!;
