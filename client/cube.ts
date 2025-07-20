@@ -12,8 +12,9 @@ export default class tscCube {
   private player: TwistyPlayer;
   public tsc: TSC;
 
-  private validPuzzle: Array<string> = ["222", "333", "444", "555"];
   //Not Supported upstream "clock", "pyram", "skewb", "minx"
+  private validPuzzle: Array<string> = ["222", "333", "444", "555"];
+  private moreKpuzzles: Array<string> = ["4x4x4", "5x5x5", "skewb", "pyraminx", "megaminx", "clock"];
 
   private validMove: Array<string> = [
     // Standard 3x3x3 moves (single-layer)
@@ -66,8 +67,9 @@ export default class tscCube {
   }
 
   private async newCube() {
+    const newPuzzleID = this.tsc.getPuzzleID();
     this.player = document.body.appendChild(new TwistyPlayer({
-      puzzle: this.tsc.getPuzzleID(),
+      puzzle: newPuzzleID,
       hintFacelets: "floating",
       backView: "top-right",
       background: "none",
@@ -76,29 +78,14 @@ export default class tscCube {
     }));
 
     // kpuzzle needs to match the puzzleID in order to validate moves.
-    if (this.tsc.getPuzzleID() === "2x2x2") {
+    if (newPuzzleID === "2x2x2") {
       this.kpuzzle = await cube2x2x2.kpuzzle();
     }
-    if (this.tsc.getPuzzleID() === "3x3x3") {
+    if (newPuzzleID === "3x3x3") {
       this.kpuzzle = await cube3x3x3.kpuzzle();
     }
-    if (this.tsc.getPuzzleID() === "4x4x4") {
-      this.kpuzzle = await puzzles["4x4x4"].kpuzzle();
-    }
-    if (this.tsc.getPuzzleID() === "5x5x5") {
-      this.kpuzzle = await puzzles["5x5x5"].kpuzzle();
-    }
-    if (this.tsc.getPuzzleID() === "skewb") {
-      this.kpuzzle = await puzzles["skewb"].kpuzzle();
-    }
-    if (this.tsc.getPuzzleID() === "pyraminx") {
-      this.kpuzzle = await puzzles["pyraminx"].kpuzzle();
-    }
-    if (this.tsc.getPuzzleID() === "megaminx") {
-      this.kpuzzle = await puzzles["megaminx"].kpuzzle();
-    }
-    if (this.tsc.getPuzzleID() === "clock") {
-      this.kpuzzle = await puzzles["clock"].kpuzzle();
+    if (this.moreKpuzzles.includes(newPuzzleID)) {
+      this.kpuzzle = await puzzles[newPuzzleID].kpuzzle();
     }
     
     this.puzzleState = this.kpuzzle.identityTransformation().toKPattern();
