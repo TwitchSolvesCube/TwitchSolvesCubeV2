@@ -6,10 +6,10 @@ export class twitchClient {
   private ws: WebSocket;
   private cube: tscCube;
 
-  constructor(eventID: string) {
+  constructor() {
     this.ws = new WebSocket(`ws://localhost:${serverPort}`);
     console.log('Running Websocket on Port ' + serverPort);
-    this.cube = new tscCube(eventID, this.send.bind(this));
+    this.cube = new tscCube("333", this.send.bind(this));
     this.cube.scramblePuzzle();
     
     this.ws.addEventListener('open', this.onOpen.bind(this));

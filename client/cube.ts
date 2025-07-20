@@ -12,6 +12,9 @@ export default class tscCube {
   private player: TwistyPlayer;
   public tsc: TSC;
 
+  private validPuzzle: Array<string> = ["222", "333", "444", "555"];
+  //Not Supported upstream "clock", "pyram", "skewb", "minx"
+
   private validMove: Array<string> = [
     // Standard 3x3x3 moves (single-layer)
     "R", "R'", "R2", "L", "L'", "L2",
@@ -189,6 +192,10 @@ export default class tscCube {
     }
     if (msg === "!normal" || msg === "!norm") {
       this.player.experimentalStickering = "full";
+    }
+    if (this.validPuzzle.includes(message)) {
+      this.tsc.setEventID(message);
+      this.scramblePuzzle();
     }
 
     if (!this.isCubeStateSolved()) {
