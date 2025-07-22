@@ -77,7 +77,7 @@ export default class TSC {
           this.userTurnTime();
           this.send(`@${currentUser}, it's your turn! Do !leave when done. `);
           //this.kickAFK();
-        } else if (this.queue.length === 0) { //If there is no user left in the queue
+        } else if (this.getQLength() === 0) { //If there is no user left in the queue
           //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
           this.clearUserTurnTimer();
           this.setUserLabel("");
@@ -106,7 +106,7 @@ export default class TSC {
         //this.clearAfkCountdown();
         this.setTurnTime(300);
         this.setSpeedNotation(false);
-        if (this.queue.length > 0) {
+        if (this.getQLength() > 0) {
           //TODO: Once a player's time is out there is no return to twitch chat because messages are only sent on moves
           this.removePlayer(this.getCurrentUser(), false);
         }
@@ -130,7 +130,7 @@ export default class TSC {
     this.setUserLabel("");
   }
 
-  getQLength(): number { //TODO: replace this.queue.length with this...
+  getQLength(): number {
     return this.queue.length;
   }
 
@@ -213,14 +213,14 @@ export default class TSC {
   }
 
   getUserName(index: number): string | null {
-    if (index >= 0 && index < this.queue.length) {
+    if (index >= 0 && index < this.getQLength()) {
       return this.queue[index];
     }
     return null;
   }
 
   // getCurrentUser(): string {
-  //   if (this.queue && this.queue.length > 0) {
+  //   if (this.queue && getQLength() > 0) {
   //       console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]);
   //       return this.queue[0]!;
   //   } else {
