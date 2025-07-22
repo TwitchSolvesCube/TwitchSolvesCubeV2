@@ -16,7 +16,18 @@ export default class tscCube {
   private validPuzzle: Array<string> = ["222", "333", "444", "555"];
   private moreKpuzzles: Array<string> = ["4x4x4", "5x5x5", "skewb", "pyraminx", "megaminx", "clock"];
 
-  private validMove: Array<string> = [
+  // Cubingjs does understand valid moves per puzzle, but that includes R* for any number. Ex, R100.
+  // This is not desirable for a future database, and is not standard notation.
+  private moves222: Array<string> = [
+    // Standard 3x3x3 moves (single-layer)
+    "R", "R'", "R2", "L", "L'", "L2",
+    "U", "U'", "U2", "D", "D'", "D2",
+    "F", "F'", "F2", "B", "B'", "B2",
+    // Cube rotations
+    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
+  ];
+
+  private moves333: Array<string> = [
     // Standard 3x3x3 moves (single-layer)
     "R", "R'", "R2", "L", "L'", "L2",
     "U", "U'", "U2", "D", "D'", "D2",
@@ -28,7 +39,18 @@ export default class tscCube {
     // Slice moves (middle layers)
     "M", "M'", "M2", "E", "E'", "E2", "S", "S'", "S2",
     // Cube rotations
-    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2",
+    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
+  ];
+  
+  private moves444: Array<string> = [
+    // Standard 3x3x3 moves (single-layer)
+    "R", "R'", "R2", "L", "L'", "L2",
+    "U", "U'", "U2", "D", "D'", "D2",
+    "F", "F'", "F2", "B", "B'", "B2",
+    // Wide moves (double-layer, lowercase)
+    "r", "r'", "r2", "l", "l'", "l2",
+    "u", "u'", "u2", "d", "d'", "d2",
+    "f", "f'", "f2", "b", "b'", "b2",
     // 4x4x4 and 5x5x5 specific moves (wide moves with 'w' notation)
     "Rw", "Rw'", "Rw2", "Lw", "Lw'", "Lw2",
     "Uw", "Uw'", "Uw2", "Dw", "Dw'", "Dw2",
@@ -36,8 +58,42 @@ export default class tscCube {
     // 4x4x4 slice moves (inner layers)
     "3Rw", "3Rw'", "3Rw2", "3Lw", "3Lw'", "3Lw2",
     "3Uw", "3Uw'", "3Uw2", "3Dw", "3Dw'", "3Dw2",
-    "3Fw", "3Fw'", "3Fw2", "3Bw", "3Bw'", "3Bw2"
+    "3Fw", "3Fw'", "3Fw2", "3Bw", "3Bw'", "3Bw2",
+    // Cube rotations
+    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
   ];
+
+  private moves555: Array<string> = [
+    // Standard 3x3x3 moves (single-layer)
+    "R", "R'", "R2", "L", "L'", "L2",
+    "U", "U'", "U2", "D", "D'", "D2",
+    "F", "F'", "F2", "B", "B'", "B2",
+    // Wide moves (double-layer, lowercase)
+    "r", "r'", "r2", "l", "l'", "l2",
+    "u", "u'", "u2", "d", "d'", "d2",
+    "f", "f'", "f2", "b", "b'", "b2",
+    // Slice moves (middle layers)
+    "M", "M'", "M2", "E", "E'", "E2", "S", "S'", "S2",
+    // 4x4x4 and 5x5x5 specific moves (wide moves with 'w' notation)
+    "Rw", "Rw'", "Rw2", "Lw", "Lw'", "Lw2",
+    "Uw", "Uw'", "Uw2", "Dw", "Dw'", "Dw2",
+    "Fw", "Fw'", "Fw2", "Bw", "Bw'", "Bw2",
+    // 4x4x4 slice moves (inner layers)
+    "3Rw", "3Rw'", "3Rw2", "3Lw", "3Lw'", "3Lw2",
+    "3Uw", "3Uw'", "3Uw2", "3Dw", "3Dw'", "3Dw2",
+    "3Fw", "3Fw'", "3Fw2", "3Bw", "3Bw'", "3Bw2",
+    // Cube rotations
+    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
+  ];
+
+  private movesMap = {
+    "222": this.moves222,
+    "333": this.moves333,
+    "444": this.moves444,
+    "555": this.moves555
+  };
+
+  private validMove: Array<string> = [];
 
   private snMoves333: Array<string> =
     ["i", "k", "u", "m",
@@ -68,6 +124,11 @@ export default class tscCube {
 
   private async newCube() {
     const newPuzzleID = this.tsc.getPuzzleID();
+
+    if (this.movesMap[this.tsc.getEventID()]) {
+      this.validMove = this.movesMap[this.tsc.getEventID()];
+    }
+
     this.player = document.body.appendChild(new TwistyPlayer({
       puzzle: newPuzzleID,
       hintFacelets: "floating",
