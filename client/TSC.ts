@@ -123,7 +123,7 @@ export default class TSC {
   }
 
   clearQueue(): void {
-    this.queue= new Array();
+    this.queue = new Array();
     this.setTurnTime(10);
     this.setSpeedNotation(false);
     this.clearUserTurnTimer();
@@ -224,12 +224,11 @@ export default class TSC {
   //       console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]);
   //       return this.queue[0]!;
   //   } else {
-  //       return "Queue is empty";
+  //       return "Queue is empty"; // This will return "@Queue is empty, it's your turn! Do !leave when done."
   //   }
   // }
 
   getCurrentUser(): string {
-    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]); //undefined when using !remove
     return this.queue[0]!;
   }
 
