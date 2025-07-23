@@ -1,5 +1,13 @@
 import tscCube from "./cube";
-const { serverPort } = require('../server/config.json');
+import { serverPort } from '../server/config.json';
+
+interface TwitchMessage {
+  user: string;
+  message: string;
+  isFollower: boolean;
+  isSub: boolean;
+  isMod: boolean;
+}
 
 export class twitchClient {
 
@@ -12,48 +20,48 @@ export class twitchClient {
     this.cube = new tscCube("333", this.send.bind(this));
     this.cube.scramblePuzzle();
     
-    this.ws.addEventListener('open', this.onOpen.bind(this));
-    this.ws.addEventListener('message', this.onMessage.bind(this));
+    this.setupEventListeners();
   }
 
-  private onOpen(event: Event) {
+  private setupEventListeners(): void {
+    this.ws.addEventListener('open', this.onOpen);
+    this.ws.addEventListener('message', this.onMessage);
+    this.ws.addEventListener('close', this.onClose);
+    this.ws.addEventListener('error', this.onError);
+  }
+
+  private onOpen = (event: Event) => {
     console.log('WebSocket connection opened:', event);
-    //ws.send('Hello, Server!');
   }
 
-  public async onMessage(event: MessageEvent) {
+  private onMessage = async (event: MessageEvent) => {
     try {
-      const jsonData = JSON.parse(event.data);
+      const jsonData = JSON.parse(event.data) as TwitchMessage;
+      this.cube.handleMessage(
+        jsonData.user,
+        jsonData.message,
+        jsonData.message.toLowerCase(),
+        jsonData.isFollower,
+        jsonData.isSub,
+        jsonData.isMod
+      );
   
-      const user = jsonData.user;
-      const move = jsonData.message;
-      const message = jsonData.message.toLowerCase();
+      this.timeStampLog('User: ' + jsonData.user);
+      this.timeStampLog('Message: ' + jsonData.message);
+      this.timeStampLog('isMod: ' + jsonData.isMod);
+      this.timeStampLog('isSub: ' + jsonData.isSub);
+      this.timeStampLog('isFollower:' + jsonData.isFollower);
   
-      const isFollower = jsonData.isFollower;
-      const isSub = jsonData.isSub;
-      const isMod = jsonData.isMod;
-  
-      this.cube.handleMessage(user, move, message, isFollower, isSub, isMod);
-  
-      // timeStampLog('User: ' + user);
-      // timeStampLog('Message: ' + message);
-      // timeStampLog('isMod: ' + isMod);
-      // timeStampLog('isSub: ' + isSub);
-      // timeStampLog('isFollower' + isFollower);
-  
-      // Debug
-      // cube.doCubeMoves(message);
-      // console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + queue);
     } catch (error) {
       console.log('Received non-JSON data:', event.data);
     }
   }
-
-  private onClose(event: CloseEvent) {
-    console.log('WebSocket connection closed:', event);
+  
+  private onClose = (event: CloseEvent) => {
+    console.log('WebSocket connection closed:', event.reason);
   }
 
-  private onError(event: Event) {
+  private onError = (event: Event) => {
     console.error('WebSocket error:', event);
   }
 
@@ -67,9 +75,7 @@ export class twitchClient {
   }
   
   private timeStampLog(message: string): void {
-    const currentDate: Date = new Date();
-    const formattedDateTime: string = '[' + currentDate.toLocaleString() + '] ';
-    const timestampedMessage: string = formattedDateTime + message;
-    console.log(timestampedMessage);
+    const timestamp = new Date().toLocaleString();
+    console.log(`[${timestamp}] ${message}`);
   }
 }
