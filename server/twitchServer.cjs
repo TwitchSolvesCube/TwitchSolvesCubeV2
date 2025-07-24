@@ -59,7 +59,7 @@ wss.on('connection', (ws) => {
 async function main() {
   timeStampLog(`Server running on port ${serverPort}`);
   try {
-    const tokenData = JSON.parse(await fs.readFile('./server/tokens.668628308.json', 'utf-8')); //NOTE: Change this line to your tokens.json file, it will be renamed onRefresh
+    const tokenData = JSON.parse(await fs.readFile(`./server/tokens.${channelID}.json`, 'utf-8')); //NOTE: Change this line to your tokens.json file, it will be renamed onRefresh
     
     const authProvider = new RefreshingAuthProvider({
       clientId,
@@ -71,7 +71,7 @@ async function main() {
     });
 
     //await authProvider.addUserForToken(tokenData, ['chat']);
-    authProvider.addUser("668628308", tokenData, ['chat']);
+    authProvider.addUser(channelID, tokenData, ['chat']);
 
     const apiClient = new ApiClient({ authProvider });
     chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
@@ -82,16 +82,16 @@ async function main() {
         timeStampLog('No client connected.');
         return; 
       }
-      //const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId); //If channelID == userID then userID can be used here instead
 
-      // timeStampLog(channel);
-      // timeStampLog(user);
+      //https://twurple.js.org/reference/api/classes/HelixChannelFollower.html
+      const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId);
+      const isFollowing = typeof follow !== 'undefined' && follow !== '';
       timeStampLog(user + ": " + message);
 
       const twitchData = JSON.stringify({
         "user": user,
         "message": message,
-        // "isFollower": follow,
+        "isFollowing": isFollowing,
         "isSub": tags.userInfo.isSubscriber,
         "isMod": tags.userInfo.isMod
       });

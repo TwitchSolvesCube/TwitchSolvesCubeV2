@@ -4,7 +4,7 @@ import { serverPort } from '../server/config.json';
 interface TwitchMessage {
   user: string;
   message: string;
-  isFollower: boolean;
+  isFollowing: boolean;
   isSub: boolean;
   isMod: boolean;
 }
@@ -41,7 +41,7 @@ export class twitchClient {
         jsonData.user,
         jsonData.message,
         jsonData.message.toLowerCase(),
-        jsonData.isFollower,
+        jsonData.isFollowing,
         jsonData.isSub,
         jsonData.isMod
       );
@@ -50,7 +50,7 @@ export class twitchClient {
       this.timeStampLog('Message: ' + jsonData.message);
       this.timeStampLog('isMod: ' + jsonData.isMod);
       this.timeStampLog('isSub: ' + jsonData.isSub);
-      this.timeStampLog('isFollower:' + jsonData.isFollower);
+      this.timeStampLog('isFollowing: ' + jsonData.isFollowing);
   
     } catch (error) {
       console.log('Received non-JSON data:', event.data);
