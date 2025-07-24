@@ -1,31 +1,35 @@
 const WebSocket = require('ws');
 const fs = require('fs').promises;
+
 const { RefreshingAuthProvider } = require('@twurple/auth');
 const { ApiClient  } = require('@twurple/api');
 const { ChatClient  } = require('@twurple/chat');
+
 const confInfo = require('./config.json');
 
 const clientId = confInfo.clientId;
 const clientSecret = confInfo.clientSecret;
 const channelName = confInfo.channelName;
 const channelID = confInfo.channelID;
+const serverPort = confInfo.serverPort;
+
 let chatClient = new ChatClient();
 
-const wss = new WebSocket.Server({ port: confInfo.serverPort });
-let wsConnection;
+const wss = new WebSocket.Server({ port: serverPort });
+let activeConnection = null; 
 
 wss.on('connection', (ws) => {
-  timeStampLog('Client connected');
+  if (activeConnection) {
+    ws.close(1008, 'Only one client allowed at a time');
+    timeStampLog('Rejected duplicate client');
+    return;
+  }
 
-  // Send initial data or perform actions here
-  ws.on('open', () => {
-    timeStampLog('WebSocket connection is open.');
-  });
+  activeConnection = ws;
+  timeStampLog('Client connected');
 
   // Send a message to the connected client
   ws.send('Welcome to the WebSocket server!');
-
-  wsConnection = ws;
 
   // Handle messages from clients
   ws.on('message', (message) => {
@@ -42,14 +46,21 @@ wss.on('connection', (ws) => {
 
   // Handle disconnection
   ws.on('close', () => {
+    activeConnection = null;
     timeStampLog('Client disconnected');
+  });
+
+  ws.on('error', (err) => {
+    activeConnection = null;
+    timeStampLog(`WebSocket error: ${err}`);
   });
 });
 
 async function main() {
+  timeStampLog(`Server running on port ${serverPort}`);
   try {
     const tokenData = JSON.parse(await fs.readFile('./server/tokens.668628308.json', 'utf-8')); //NOTE: Change this line to your tokens.json file, it will be renamed onRefresh
-
+    
     const authProvider = new RefreshingAuthProvider({
       clientId,
       clientSecret
@@ -67,22 +78,25 @@ async function main() {
     chatClient.connect();
 
     chatClient.onMessage(async (channel, user, message, tags) => {
+      if (!activeConnection) {
+        timeStampLog('No client connected.');
+        return; 
+      }
       //const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId); //If channelID == userID then userID can be used here instead
 
       // timeStampLog(channel);
       // timeStampLog(user);
       timeStampLog(user + ": " + message);
 
-      const twitch = {
+      const twitchData = JSON.stringify({
         "user": user,
         "message": message,
         // "isFollower": follow,
         "isSub": tags.userInfo.isSubscriber,
         "isMod": tags.userInfo.isMod
-      };
+      });
 
-      const twitchData = JSON.stringify(twitch);
-      wsConnection.send(twitchData);
+      activeConnection.send(twitchData);
     });
 
 	} catch (error) {
@@ -90,11 +104,6 @@ async function main() {
 	}
 }
 
-function timeStampLog(message) {
-  const currentDate = new Date();
-  const formattedDateTime = '[' + currentDate.toLocaleString() + '] ';
-  const timestampedMessage = formattedDateTime + message;
-  console.log(timestampedMessage);
-}
+const timeStampLog = (message) => console.log(`[${new Date().toLocaleString()}] ${message}`);
 
 main();
