@@ -296,7 +296,7 @@ export default class tscCube {
     }
   }
 
-  async handleMessage(user: string, move: string, message: string, isFollower: boolean, isSub: boolean, isMod: boolean) {
+  async handleMessage(user: string, move: string, message: string, isFollowing: boolean, isSub: boolean, isMod: boolean) {
     const queue = this.tsc.getQueue();
     let currentUser = this.tsc.getCurrentUser();
 
@@ -338,7 +338,7 @@ export default class tscCube {
     }
   
     if (message === '!followage') {
-      if (isFollower) {
+      if (isFollowing) {
         this.send(`@${user} You have been following`);
       } else {
         this.send(`@${user} You are not following!`);
