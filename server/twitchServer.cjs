@@ -38,7 +38,7 @@ wss.on('connection', (ws) => {
       timeStampLog(jsonData.message);
       chatClient.say(channelName, jsonData.message);
     } catch (error) {
-      timeStampLog('Received non-JSON data:' + message);
+      timeStampLog(`Received non-JSON data: ${message}`);
     }
 
     // Handle client messages here if needed
@@ -86,7 +86,7 @@ async function main() {
       //https://twurple.js.org/reference/api/classes/HelixChannelFollower.html
       const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId);
       const isFollowing = typeof follow !== 'undefined' && follow !== '';
-      timeStampLog(user + ": " + message);
+      timeStampLog(`${user}: ${message}`);
 
       const twitchData = JSON.stringify({
         "user": user,

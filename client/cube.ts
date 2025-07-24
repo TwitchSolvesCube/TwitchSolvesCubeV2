@@ -167,6 +167,8 @@ export default class tscCube {
       }
       this.playAudio('./sounds/singleMove.mp3');
       this.checkSolved();
+    } else {
+      this.tsc.timeStampLog(`${myMove} is not a move.`);
     }
   }
 
@@ -188,12 +190,7 @@ export default class tscCube {
     if (scramble == null || scramble.length > 40) { //If user does not provide scramble or if custom scramble is too long 
       await this.tsc.newScrambleArray(); //Generate random scramble
       await this.appendAlg(this.tsc.getScrambleArray());  //Apply alg to cube
-
-      //  Dev
-      // const myAlg = new Alg(await experimentalSolve3x3x3IgnoringCenters(kpuzzle.algToTransformation("R").toKPattern()));
-      // console.log(myAlg.toString());
-    }
-    else {
+    } else {
       this.tsc.setScrambleArray(scramble);
       await this.appendAlg(scramble); //Apply user provided scramble to cube
     }
@@ -291,8 +288,6 @@ export default class tscCube {
       //     appendAlg(algArray);
       //   }
       // }
-
-      //console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + "Is cube solved? " + tsc.isCubeSolved());
     }
   }
 
@@ -330,18 +325,9 @@ export default class tscCube {
     if (currentUser === user) {
       if (this.tsc.isCubeEnabled()) {
         this.doCubeMoves(move);
-        console.log(this.tsc.getSolvedState());
         if (this.tsc.getSolvedState()){
           this.send(this.tsc.getSolvedMessage());
         }
-      }
-    }
-  
-    if (message === '!followage') {
-      if (isFollowing) {
-        this.send(`@${user} You have been following`);
-      } else {
-        this.send(`@${user} You are not following!`);
       }
     }
   }
@@ -371,7 +357,7 @@ export default class tscCube {
       // Reconstruction of Solve need to shrink/shorten link
       // player.experimentalModel.twizzleLink().then(
       //   function (value) {
-      //     console.log('[' + getCurrentDate().toLocaleTimeString() + '] ' + value)
+      //     this.tsc.timeStampLog(`Value: ${value}`)
       //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
       //   },
       //   function (error) { }

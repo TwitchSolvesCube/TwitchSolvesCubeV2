@@ -16,7 +16,7 @@ export class twitchClient {
 
   constructor() {
     this.ws = new WebSocket(`ws://localhost:${serverPort}`);
-    console.log('Running Websocket on Port ' + serverPort);
+    this.timeStampLog(`Running Websocket on Port ${serverPort}`);
     this.cube = new tscCube("333", this.send.bind(this));
     this.cube.scramblePuzzle();
     
@@ -31,7 +31,7 @@ export class twitchClient {
   }
 
   private onOpen = (event: Event) => {
-    console.log('WebSocket connection opened:', event);
+    this.timeStampLog(`WebSocket connection opened: ${event}`);
   }
 
   private onMessage = async (event: MessageEvent) => {
@@ -45,20 +45,19 @@ export class twitchClient {
         jsonData.isSub,
         jsonData.isMod
       );
-  
-      this.timeStampLog('User: ' + jsonData.user);
-      this.timeStampLog('Message: ' + jsonData.message);
-      this.timeStampLog('isMod: ' + jsonData.isMod);
-      this.timeStampLog('isSub: ' + jsonData.isSub);
-      this.timeStampLog('isFollowing: ' + jsonData.isFollowing);
+
+      this.timeStampLog((`${jsonData.user}: ${jsonData.message}`));
+      this.cube.tsc.timeStampLog(`isMod: ${jsonData.isMod}`);
+      this.cube.tsc.timeStampLog(`isSub: ${jsonData.isSub}`);
+      this.cube.tsc.timeStampLog(`isFollowing: ${jsonData.isFollowing}`);
   
     } catch (error) {
-      console.log('Received non-JSON data:', event.data);
+      this.timeStampLog(`Received non-JSON data: ${event}`);
     }
   }
   
   private onClose = (event: CloseEvent) => {
-    console.log('WebSocket connection closed:', event.reason);
+    this.timeStampLog(`WebSocket connection closed: ${event}`);
   }
 
   private onError = (event: Event) => {

@@ -15,6 +15,7 @@ export default class TSC {
   private speedNotation: boolean = false;
   private movable: boolean;
   private solved: boolean = false;
+  private enableDebug = false;
 
   private showLabels: boolean = true;
   private timeLabel: HTMLElement = document.getElementById("timeSinceSolved") as HTMLElement;
@@ -55,7 +56,7 @@ export default class TSC {
        this.send("The cube is currently in Vote mode. No need to !join, just type a move in chat");
     }
 
-    //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
+    //this.timeStampLog(`Response ${response}`);
   }
 
   async removePlayer(username: string, chatRemoval: boolean = false) {
@@ -91,7 +92,7 @@ export default class TSC {
         this.send(`The cube is currently in Vote mode. No need to !leave, just type a move in chat. `);
     }
   
-    //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
+    //this.timeStampLog(`responses.join ${responses.join('\n')}`);
   }
 
   clearUserTurnTimer(): void {
@@ -193,8 +194,8 @@ export default class TSC {
       return true;
     }
     this.clearUserTurnTimer();
-    console.log(this.getQLength());
-    if (this.getQLength() === 1){ //lenght is 1 before last player is removed where this function is called
+    this.timeStampLog(`Queue Length: ${this.getQLength()}`);
+    if (this.getQLength() === 1){ // length is 1 before last player is removed where this function is called
       this.setUserLabel("");
     }
     return false;
@@ -221,7 +222,7 @@ export default class TSC {
 
   // getCurrentUser(): string {
   //   if (this.queue && getQLength() > 0) {
-  //       console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]);
+  //       this.timeStampLog(`${this.queue[0]}`);  //undefined when using !remove
   //       return this.queue[0]!;
   //   } else {
   //       return "Queue is empty"; // This will return "@Queue is empty, it's your turn! Do !leave when done."
@@ -261,6 +262,7 @@ export default class TSC {
   }
 
   getSolvedState(): boolean {
+    this.timeStampLog(`Solved: ${this.solved}`);
     return this.solved;
   }
   
@@ -268,7 +270,7 @@ export default class TSC {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
     this.scramble = scramString.toString().split(' ');
-    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.scramble);
+    this.timeStampLog(`Scramble: ${this.scramble}`);
     return Array(this.scramble);
   }
 
@@ -286,5 +288,16 @@ export default class TSC {
 
   getSolvedMessage(): string {
     return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and in ${this.getTotalMoves()} moves. The scramble was ${this.getScramble()}.`;
+  }
+
+  setDebug(enableDebug: boolean): void {
+    this.enableDebug = enableDebug;
+  }
+
+  timeStampLog(message: string): void {
+    if (this.enableDebug) {
+      const timestamp = new Date().toLocaleString();
+      console.log(`[${timestamp}] ${message}`);
+    }
   }
 }
