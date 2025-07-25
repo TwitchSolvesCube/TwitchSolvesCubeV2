@@ -186,9 +186,10 @@ export default class TSC {
   }
 
   decTurnTime(): boolean {
-    if (this.getTurnTime() >= 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined) {
+    const currentUser = this.getCurrentUser();
+    if (this.getTurnTime() >= 0 && this.getQLength() > 0 && currentUser != undefined) {
       if (this.showLabels) {
-        this.userLabel.textContent = `${this.getCurrentUser()}'s turn ${String(Math.floor(this.getTurnTime() / 60)).padStart(2, '0')}:${String(this.turnTime % 60).padStart(2, '0')}`;
+        this.userLabel.textContent = `${currentUser}'s turn ${String(Math.floor(this.getTurnTime() / 60)).padStart(2, '0')}:${String(this.turnTime % 60).padStart(2, '0')}`;
       }
       --this.turnTime;
       return true;
