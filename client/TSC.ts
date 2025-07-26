@@ -6,6 +6,7 @@ export default class TSC {
 
   private eventID: string;
   private scramble: Array<string> = new Array();
+  private customScramble: boolean = false;
   private timeSinceSolved: number = 0;
   private turnTime: number = 300;
   private totalMoves: number = 0;
@@ -15,6 +16,7 @@ export default class TSC {
   private speedNotation: boolean = false;
   private movable: boolean;
   private solved: boolean = false;
+  private enableDebug = false;
 
   private showLabels: boolean = true;
   private timeLabel: HTMLElement = document.getElementById("timeSinceSolved") as HTMLElement;
@@ -55,7 +57,7 @@ export default class TSC {
        this.send("The cube is currently in Vote mode. No need to !join, just type a move in chat");
     }
 
-    //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + response); //TODO: Add timestamps to console logs
+    //this.timeStampLog(`Response ${response}`);
   }
 
   async removePlayer(username: string, chatRemoval: boolean = false) {
@@ -77,7 +79,7 @@ export default class TSC {
           this.userTurnTime();
           this.send(`@${currentUser}, it's your turn! Do !leave when done. `);
           //this.kickAFK();
-        } else if (this.queue.length === 0) { //If there is no user left in the queue
+        } else if (this.getQLength() === 0) { //If there is no user left in the queue
           //Restarts and clears the bottom timer, response gets sent before the person leaves the queue
           this.clearUserTurnTimer();
           this.setUserLabel("");
@@ -91,7 +93,7 @@ export default class TSC {
         this.send(`The cube is currently in Vote mode. No need to !leave, just type a move in chat. `);
     }
   
-    //console.log('[' + this.getCurrentDate().toLocaleTimeString() + '] ' + responses.join('\n'));
+    //this.timeStampLog(`responses.join ${responses.join('\n')}`);
   }
 
   clearUserTurnTimer(): void {
@@ -106,7 +108,7 @@ export default class TSC {
         //this.clearAfkCountdown();
         this.setTurnTime(300);
         this.setSpeedNotation(false);
-        if (this.queue.length > 0) {
+        if (this.getQLength() > 0) {
           //TODO: Once a player's time is out there is no return to twitch chat because messages are only sent on moves
           this.removePlayer(this.getCurrentUser(), false);
         }
@@ -123,14 +125,14 @@ export default class TSC {
   }
 
   clearQueue(): void {
-    this.queue= new Array();
+    this.queue = new Array();
     this.setTurnTime(10);
     this.setSpeedNotation(false);
     this.clearUserTurnTimer();
     this.setUserLabel("");
   }
 
-  getQLength(): number { //TODO: replace this.queue.length with this...
+  getQLength(): number {
     return this.queue.length;
   }
 
@@ -185,16 +187,17 @@ export default class TSC {
   }
 
   decTurnTime(): boolean {
-    if (this.getTurnTime() >= 0 && this.getQLength() > 0 && this.getCurrentUser() != undefined) {
+    const currentUser = this.getCurrentUser();
+    if (this.getTurnTime() >= 0 && this.getQLength() > 0 && currentUser != undefined) {
       if (this.showLabels) {
-        this.userLabel.textContent = `${this.getCurrentUser()}'s turn ${String(Math.floor(this.getTurnTime() / 60)).padStart(2, '0')}:${String(this.turnTime % 60).padStart(2, '0')}`;
+        this.userLabel.textContent = `${currentUser}'s turn ${String(Math.floor(this.getTurnTime() / 60)).padStart(2, '0')}:${String(this.turnTime % 60).padStart(2, '0')}`;
       }
       --this.turnTime;
       return true;
     }
     this.clearUserTurnTimer();
-    console.log(this.getQLength());
-    if (this.getQLength() === 1){ //lenght is 1 before last player is removed where this function is called
+    this.timeStampLog(`Queue Length: ${this.getQLength()}`);
+    if (this.getQLength() === 1){ // length is 1 before last player is removed where this function is called
       this.setUserLabel("");
     }
     return false;
@@ -213,23 +216,22 @@ export default class TSC {
   }
 
   getUserName(index: number): string | null {
-    if (index >= 0 && index < this.queue.length) {
+    if (index >= 0 && index < this.getQLength()) {
       return this.queue[index];
     }
     return null;
   }
 
   // getCurrentUser(): string {
-  //   if (this.queue && this.queue.length > 0) {
-  //       console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]);
+  //   if (this.queue && getQLength() > 0) {
+  //       this.timeStampLog(`${this.queue[0]}`);  //undefined when using !remove
   //       return this.queue[0]!;
   //   } else {
-  //       return "Queue is empty";
+  //       return "Queue is empty"; // This will return "@Queue is empty, it's your turn! Do !leave when done."
   //   }
   // }
 
   getCurrentUser(): string {
-    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.queue[0]); //undefined when using !remove
     return this.queue[0]!;
   }
 
@@ -262,6 +264,7 @@ export default class TSC {
   }
 
   getSolvedState(): boolean {
+    this.timeStampLog(`Solved: ${this.solved}`);
     return this.solved;
   }
   
@@ -269,7 +272,7 @@ export default class TSC {
     var scramString = await randomScrambleForEvent(this.eventID);
     // Turn scramble string into an array
     this.scramble = scramString.toString().split(' ');
-    //console.log('[' + this.currentDate.toLocaleTimeString() + '] ' + this.scramble);
+    this.timeStampLog(`Scramble: ${this.scramble}`);
     return Array(this.scramble);
   }
 
@@ -285,7 +288,28 @@ export default class TSC {
     return this.scramble.join(' ');
   }
 
+  isCustomScramble(): boolean {
+    return this.customScramble;
+  }
+
+  setCustomScramble(customScramble: boolean): void {
+    this.customScramble = customScramble;
+  }
+
   getSolvedMessage(): string {
-    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and in ${this.getTotalMoves()} moves. The scramble was ${this.getScramble()}.`;
+    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} ` +
+       `and in ${this.getTotalMoves()} moves. The ` +
+       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`;
+  }
+
+  setDebug(enableDebug: boolean): void {
+    this.enableDebug = enableDebug;
+  }
+
+  timeStampLog(message: string): void {
+    if (this.enableDebug) {
+      const timestamp = new Date().toLocaleString();
+      console.log(`[${timestamp}] ${message}`);
+    }
   }
 }
