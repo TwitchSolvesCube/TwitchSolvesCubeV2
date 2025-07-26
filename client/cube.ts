@@ -190,9 +190,11 @@ export default class tscCube {
     if (scramble == null || scramble.length > 40) { //If user does not provide scramble or if custom scramble is too long 
       await this.tsc.newScrambleArray(); //Generate random scramble
       await this.appendAlg(this.tsc.getScrambleArray());  //Apply alg to cube
+      this.tsc.setCustomScramble(false);
     } else {
       this.tsc.setScrambleArray(scramble);
       await this.appendAlg(scramble); //Apply user provided scramble to cube
+      this.tsc.setCustomScramble(true);
     }
     
     this.tsc.resetMoves();
@@ -212,9 +214,17 @@ export default class tscCube {
     if (msg.startsWith("scramble")) {
       if (msg === "scramble") {
         this.scramblePuzzle();
-      } else { //Allows a user to use their own scrambles
-        // TODO: Mention scramble is custom in getSolvedMessage()
-        this.scramblePuzzle(message.slice(9, message.length).split(" "));
+      } else {
+        //Allows a user to use their own scrambles
+        const scramblePart = message.slice(8).trim(); // Remove "scramble" prefix
+        const userScramble = scramblePart.split(/\s+/); // Split on any whitespace
+        
+        if (userScramble.every(move => this.validMove.includes(move))) { //TODO: Bug with axis moves
+          this.scramblePuzzle(userScramble);
+        } else {
+          const invalidMoves = userScramble.filter(move => !this.validMove.includes(move));
+          this.send(`Invalid move/scramble detected: ${invalidMoves.join(', ')}`);
+        }
       }
     }
     if (msg === "!speednotation" || msg === "!sn") {

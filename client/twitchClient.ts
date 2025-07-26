@@ -39,7 +39,7 @@ export class twitchClient {
       const jsonData = JSON.parse(event.data) as TwitchMessage;
       this.cube.handleMessage(
         jsonData.user,
-        jsonData.message,
+        jsonData.message, //This is the puzzle move
         jsonData.message.toLowerCase(),
         jsonData.isFollowing,
         jsonData.isSub,
