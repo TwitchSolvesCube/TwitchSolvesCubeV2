@@ -18,82 +18,62 @@ export default class tscCube {
 
   // Cubingjs does understand valid moves per puzzle, but that includes R* for any number. Ex, R100.
   // This is not desirable for a future database, and is not standard notation.
-  private moves222: Array<string> = [
-    // Standard 3x3x3 moves (single-layer)
-    "R", "R'", "R2", "L", "L'", "L2",
-    "U", "U'", "U2", "D", "D'", "D2",
-    "F", "F'", "F2", "B", "B'", "B2",
-    // Cube rotations
-    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
-  ];
+  private baseMoves = ["", "'", "2"];
+  private rotations = ["x", "y", "z"];
+  private standardFaces = ["R", "L", "U", "D", "F", "B"];
+  private wideFaces = ["r", "l", "u", "d", "f", "b"];
+  private sliceMoves = ["M", "E", "S"];
+  private wideNotationFaces = ["Rw", "Lw", "Uw", "Dw", "Fw", "Bw"];
+  private innerSliceFaces = ["3Rw", "3Lw", "3Uw", "3Dw", "3Fw", "3Bw"];
 
-  private moves333: Array<string> = [
-    // Standard 3x3x3 moves (single-layer)
-    "R", "R'", "R2", "L", "L'", "L2",
-    "U", "U'", "U2", "D", "D'", "D2",
-    "F", "F'", "F2", "B", "B'", "B2",
-    // Wide moves (double-layer, lowercase)
-    "r", "r'", "r2", "l", "l'", "l2",
-    "u", "u'", "u2", "d", "d'", "d2",
-    "f", "f'", "f2", "b", "b'", "b2",
-    // Slice moves (middle layers)
-    "M", "M'", "M2", "E", "E'", "E2", "S", "S'", "S2",
-    // Cube rotations
-    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
-  ];
-  
-  private moves444: Array<string> = [
-    // Standard 3x3x3 moves (single-layer)
-    "R", "R'", "R2", "L", "L'", "L2",
-    "U", "U'", "U2", "D", "D'", "D2",
-    "F", "F'", "F2", "B", "B'", "B2",
-    // Wide moves (double-layer, lowercase)
-    "r", "r'", "r2", "l", "l'", "l2",
-    "u", "u'", "u2", "d", "d'", "d2",
-    "f", "f'", "f2", "b", "b'", "b2",
-    // 4x4x4 and 5x5x5 specific moves (wide moves with 'w' notation)
-    "Rw", "Rw'", "Rw2", "Lw", "Lw'", "Lw2",
-    "Uw", "Uw'", "Uw2", "Dw", "Dw'", "Dw2",
-    "Fw", "Fw'", "Fw2", "Bw", "Bw'", "Bw2",
-    // 4x4x4 slice moves (inner layers)
-    "3Rw", "3Rw'", "3Rw2", "3Lw", "3Lw'", "3Lw2",
-    "3Uw", "3Uw'", "3Uw2", "3Dw", "3Dw'", "3Dw2",
-    "3Fw", "3Fw'", "3Fw2", "3Bw", "3Bw'", "3Bw2",
-    // Cube rotations
-    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
-  ];
+  private generateMoves(faces: string[], suffixes: string[]): string[] {
+    return faces.flatMap(face => 
+      suffixes.map(suffix => `${face}${suffix}`)
+    );
+  }
 
-  private moves555: Array<string> = [
-    // Standard 3x3x3 moves (single-layer)
-    "R", "R'", "R2", "L", "L'", "L2",
-    "U", "U'", "U2", "D", "D'", "D2",
-    "F", "F'", "F2", "B", "B'", "B2",
-    // Wide moves (double-layer, lowercase)
-    "r", "r'", "r2", "l", "l'", "l2",
-    "u", "u'", "u2", "d", "d'", "d2",
-    "f", "f'", "f2", "b", "b'", "b2",
-    // Slice moves (middle layers)
-    "M", "M'", "M2", "E", "E'", "E2", "S", "S'", "S2",
-    // 4x4x4 and 5x5x5 specific moves (wide moves with 'w' notation)
-    "Rw", "Rw'", "Rw2", "Lw", "Lw'", "Lw2",
-    "Uw", "Uw'", "Uw2", "Dw", "Dw'", "Dw2",
-    "Fw", "Fw'", "Fw2", "Bw", "Bw'", "Bw2",
-    // 4x4x4 slice moves (inner layers)
-    "3Rw", "3Rw'", "3Rw2", "3Lw", "3Lw'", "3Lw2",
-    "3Uw", "3Uw'", "3Uw2", "3Dw", "3Dw'", "3Dw2",
-    "3Fw", "3Fw'", "3Fw2", "3Bw", "3Bw'", "3Bw2",
-    // Cube rotations
-    "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"
-  ];
+  private faceMoves = {
+    "222": [
+      ...this.generateMoves(this.standardFaces, this.baseMoves)
+    ],
+    "333": [
+      ...this.generateMoves(this.standardFaces, this.baseMoves),
+      ...this.generateMoves(this.wideFaces, this.baseMoves),
+      ...this.generateMoves(this.sliceMoves, this.baseMoves)
+    ],
+    "444": [
+      ...this.generateMoves(this.standardFaces, this.baseMoves),
+      ...this.generateMoves(this.wideFaces, this.baseMoves),
+      ...this.generateMoves(this.wideNotationFaces, this.baseMoves),
+      ...this.generateMoves(this.innerSliceFaces, this.baseMoves)
+    ],
+    "555": [
+      ...this.generateMoves(this.standardFaces, this.baseMoves),
+      ...this.generateMoves(this.wideFaces, this.baseMoves),
+      ...this.generateMoves(this.sliceMoves, this.baseMoves),
+      ...this.generateMoves(this.wideNotationFaces, this.baseMoves),
+      ...this.generateMoves(this.innerSliceFaces, this.baseMoves)
+    ]
+  };
+
+  private rotationMoves = this.generateMoves(this.rotations, this.baseMoves);
 
   private movesMap = {
-    "222": this.moves222,
-    "333": this.moves333,
-    "444": this.moves444,
-    "555": this.moves555
+    "222": [...this.faceMoves["222"], ...this.rotationMoves],
+    "333": [...this.faceMoves["333"], ...this.rotationMoves],
+    "444": [...this.faceMoves["444"], ...this.rotationMoves],
+    "555": [...this.faceMoves["555"], ...this.rotationMoves]
+  };
+
+  private scrambleMap = {
+    "222": [...this.faceMoves["222"]],
+    "333": [...this.faceMoves["333"]],
+    "444": [...this.faceMoves["444"]],
+    "555": [...this.faceMoves["555"]]
   };
 
   private validMove: Array<string> = [];
+  private validScramble: Array<string> = [];
 
   private snMoves333: Array<string> =
     ["i", "k", "u", "m",
@@ -127,6 +107,7 @@ export default class tscCube {
 
     if (this.movesMap[this.tsc.getEventID()]) {
       this.validMove = this.movesMap[this.tsc.getEventID()];
+      this.validScramble = this.scrambleMap[this.tsc.getEventID()];
     }
 
     this.player = document.body.appendChild(new TwistyPlayer({
@@ -218,11 +199,11 @@ export default class tscCube {
         //Allows a user to use their own scrambles
         const scramblePart = message.slice(8).trim(); // Remove "scramble" prefix
         const userScramble = scramblePart.split(/\s+/); // Split on any whitespace
-        
-        if (userScramble.every(move => this.validMove.includes(move))) { //TODO: Bug with axis moves
+
+        if (userScramble.every(move => this.validScramble.includes(move))) {
           this.scramblePuzzle(userScramble);
         } else {
-          const invalidMoves = userScramble.filter(move => !this.validMove.includes(move));
+          const invalidMoves = userScramble.filter(move => !this.validScramble.includes(move));
           this.send(`Invalid move/scramble detected: ${invalidMoves.join(', ')}`);
         }
       }
