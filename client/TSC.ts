@@ -6,6 +6,7 @@ export default class TSC {
 
   private eventID: string;
   private scramble: Array<string> = new Array();
+  private customScramble: boolean = false;
   private timeSinceSolved: number = 0;
   private turnTime: number = 300;
   private totalMoves: number = 0;
@@ -287,8 +288,18 @@ export default class TSC {
     return this.scramble.join(' ');
   }
 
+  isCustomScramble(): boolean {
+    return this.customScramble;
+  }
+
+  setCustomScramble(customScramble: boolean): void {
+    this.customScramble = customScramble;
+  }
+
   getSolvedMessage(): string {
-    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and in ${this.getTotalMoves()} moves. The scramble was ${this.getScramble()}.`;
+    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} ` +
+       `and in ${this.getTotalMoves()} moves. The ` +
+       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`;
   }
 
   setDebug(enableDebug: boolean): void {
