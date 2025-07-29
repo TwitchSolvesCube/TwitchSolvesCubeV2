@@ -342,17 +342,31 @@ export default class tscCube {
       clearInterval(this.timeSinceSolvedTimer); //"Pauses Timer"
       this.spinCamera({ numSpins: 4, durationMs: 6000 });
 
+      //TODO: Send link to tsc class
+      //This is a long and complicated way to get the scramble to show in setup in the twizzle player
+      //This is because 'experimentalSetupAlg' cannot be used to animate cube movements
+      this.player.experimentalSetupAlg = this.tsc.getScramble(); //The cube can no longer be changed, so we configure the setupalg here to be the scramble
+      const twizzleLink = await this.player.experimentalModel.twizzleLink(); //The twizzlelink still has a scramble applied and needs to be removed
+
+      //Parse the twizzle URL
+      const url = new URL(twizzleLink);
+
+      //Get the value of 'alg=' and 'setup-alg='
+      let algValue = url.searchParams.get('alg');
+      const setupAlgValue = url.searchParams.get('setup-alg');
+
+      //Remove 'setup-alg=' from the beginning of 'alg=' which is the scramble from this.player.experimentalSetupAlg = this.tsc.getScramble(); above
+      if (algValue.startsWith(setupAlgValue)) {
+        algValue = algValue.slice(setupAlgValue.length).trim();
+      }
+      //Update the 'alg=' parameter with the new value that has the scramble removed
+      url.searchParams.set('alg', algValue);
+      //Get the updated URL
+      const updatedTwizzleLink = url.toString();
+      console.log(updatedTwizzleLink);
+
       // Pause for 15 seconds to view Solved State
       await delay(15000);
-      // Shorten links only if moves/timeSS is less than x or send to discord?
-      // Reconstruction of Solve need to shrink/shorten link
-      // player.experimentalModel.twizzleLink().then(
-      //   function (value) {
-      //     this.tsc.timeStampLog(`Value: ${value}`)
-      //     chatClient.say(channel, `Here's the complete reconstruction of the solve! ${value}`);
-      //   },
-      //   function (error) { }
-      // );
 
       // Reset
       this.tsc.resetTimeSS();
