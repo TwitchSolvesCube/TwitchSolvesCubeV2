@@ -7,7 +7,7 @@ export default class TSC {
   private eventID: string;
   private scramble: Array<string> = new Array();
   private customScramble: boolean = false;
-  private timeSinceSolved: number = 0;
+  private secondsSinceSolved: number = 0;
   private turnTime: number = 300;
   private totalMoves: number = 0;
   private twizzleLink: string;
@@ -151,21 +151,25 @@ export default class TSC {
 
   getTimeSinceSolved(): string {
     var date = new Date(null!);
-    date.setSeconds(this.timeSinceSolved);
+    date.setSeconds(this.secondsSinceSolved);
     var result = date.toISOString().slice(12, 19);
     return result;
+  }
+
+  getSecondsSinceSolved(): number {
+    return this.secondsSinceSolved;
   }
 
   incTimeSS(): void {
     if (this.showLabels) {
       this.timeLabel.textContent = `${this.getTimeSinceSolved()}`;
     }
-    ++this.timeSinceSolved;
+    ++this.secondsSinceSolved;
   }
 
   resetTimeSS(): void {
     if (this.showLabels) {
-      this.timeSinceSolved = 0;
+      this.secondsSinceSolved = 0;
     }
   }
 
