@@ -297,8 +297,8 @@ export default class TSC {
   }
 
   getSolvedMessage(): string {
-    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} ` +
-       `and in ${this.getTotalMoves()} moves. The ` +
+    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
+       `finished by @${this.getCurrentUser()} in ${this.getTotalMoves()} moves. The ` +
        `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`;
   }
 
