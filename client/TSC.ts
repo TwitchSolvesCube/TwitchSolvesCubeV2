@@ -10,6 +10,7 @@ export default class TSC {
   private timeSinceSolved: number = 0;
   private turnTime: number = 300;
   private totalMoves: number = 0;
+  private twizzleLink: string;
 
   private queue: Array<string> = new Array();
   private turns: boolean = true;
@@ -294,6 +295,18 @@ export default class TSC {
 
   setCustomScramble(customScramble: boolean): void {
     this.customScramble = customScramble;
+  }
+
+  setTwizzleLink(twizzleLink: string): void {
+    this.twizzleLink = twizzleLink;
+  }
+
+  getTwizzleLink(): string {
+    return this.twizzleLink;
+  }
+
+  getTwizzleLinkMsg(): string {
+    return `See the replay here ${this.getTwizzleLink()}`;
   }
 
   getSolvedMessage(): string {

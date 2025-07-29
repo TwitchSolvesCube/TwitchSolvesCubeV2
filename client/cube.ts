@@ -316,9 +316,6 @@ export default class tscCube {
     if (currentUser === user) {
       if (this.tsc.isCubeEnabled()) {
         this.doCubeMoves(move);
-        if (this.tsc.getSolvedState()){
-          this.send(this.tsc.getSolvedMessage());
-        }
       }
     }
   }
@@ -342,7 +339,6 @@ export default class tscCube {
       clearInterval(this.timeSinceSolvedTimer); //"Pauses Timer"
       this.spinCamera({ numSpins: 4, durationMs: 6000 });
 
-      //TODO: Send link to tsc class
       //This is a long and complicated way to get the scramble to show in setup in the twizzle player
       //This is because 'experimentalSetupAlg' cannot be used to animate cube movements
       this.player.experimentalSetupAlg = this.tsc.getScramble(); //The cube can no longer be changed, so we configure the setupalg here to be the scramble
@@ -364,6 +360,11 @@ export default class tscCube {
       //Get the updated URL
       const updatedTwizzleLink = url.toString();
       console.log(updatedTwizzleLink);
+      this.tsc.setTwizzleLink(updatedTwizzleLink);
+      this.send(this.tsc.getSolvedMessage());
+      if (this.tsc.getTwizzleLink().length <= 500 ) {
+        this.send(this.tsc.getTwizzleLinkMsg());
+      }
 
       // Pause for 15 seconds to view Solved State
       await delay(15000);
