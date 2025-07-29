@@ -168,7 +168,12 @@ export default class tscCube {
     this.newCube();
     this.tsc.setSolvedState(false);
 
-    if (scramble == null || scramble.length > 40) { //If user does not provide scramble or if custom scramble is too long 
+    if (scramble == null) { //If user does not provide scramble
+      await this.tsc.newScrambleArray(); //Generate random scramble
+      await this.appendAlg(this.tsc.getScrambleArray());  //Apply alg to cube
+      this.tsc.setCustomScramble(false);
+    } else if (scramble.length > 40) { //If custom scramble is too long 
+      this.send("Your custom scramble is too long, applying random scramble.");
       await this.tsc.newScrambleArray(); //Generate random scramble
       await this.appendAlg(this.tsc.getScrambleArray());  //Apply alg to cube
       this.tsc.setCustomScramble(false);
