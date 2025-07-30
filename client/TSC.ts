@@ -152,7 +152,7 @@ export default class TSC {
   getTimeSinceSolved(): string {
     var date = new Date(null!);
     date.setSeconds(this.secondsSinceSolved);
-    var result = date.toISOString().slice(12, 19);
+    var result = date.toISOString().slice(11, 19);
     return result;
   }
 
