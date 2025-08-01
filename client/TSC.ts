@@ -2,6 +2,15 @@ import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 import type { PuzzleID } from "cubing/twisty";
 
+interface SolveData {
+  username: string;
+  puzzle_id: string;
+  solve_time: string;
+  total_moves: number;
+  scramble: string;
+  twizzle_link: string;
+}
+
 export default class TSC {
 
   private eventID: string;
@@ -310,13 +319,26 @@ export default class TSC {
   }
 
   getTwizzleLinkMsg(): string {
-    return `See the replay here ${this.getTwizzleLink()}`;
+    return `Replay ${this.getTwizzleLink()}`;
   }
 
   getSolvedMessage(): string {
     return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
        `finished by @${this.getCurrentUser()} in ${this.getTotalMoves()} moves. The ` +
        `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`;
+  }
+
+  getSolvedData(): SolveData {
+    const solveData: SolveData = {
+      username: this.getCurrentUser(),
+      puzzle_id: this.getPuzzleID(),
+      solve_time: this.getTimeSinceSolved(),
+      total_moves: this.getTotalMoves(),
+      scramble: this.getScramble(),
+      twizzle_link: this.getTwizzleLink()
+    };
+
+    return solveData;
   }
 
   setDebug(enableDebug: boolean): void {
