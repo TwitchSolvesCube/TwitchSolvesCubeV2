@@ -1,12 +1,12 @@
 {
   "name": "tscv2",
-  "version": "25.07",
+  "version": "25.08",
   "main": "client/main.ts",
   "type": "module",
   "scripts": {
     "build": "node script/build.js",
     "client": "node script/build.js -- --dev",
-    "packages": "npm install cubing@0.57.1 @twurple/auth @twurple/chat @twurple/api delay concurrently ws",
+    "packages": "npm install cubing@0.57.1 @twurple/auth @twurple/chat @twurple/api @supabase/supabase-js delay concurrently ws",
     "server": "node server/twitchServer.cjs",
     "clean": "rm -rf ./dist",
     "upgrade-cubing": "npm install --save cubing@latest",
@@ -16,9 +16,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@twurple/api": "^7.3.0",
-    "@twurple/auth": "^7.3.0",
-    "@twurple/chat": "^7.3.0",
+    "@supabase/supabase-js": "^2.53.0",
+    "@twurple/api": "^7.4.0",
+    "@twurple/auth": "^7.4.0",
+    "@twurple/chat": "^7.4.0",
     "concurrently": "^9.2.0",
     "cubing": "^0.57.1",
     "delay": "^6.0.0",
