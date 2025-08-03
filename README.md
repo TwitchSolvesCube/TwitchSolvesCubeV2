@@ -6,14 +6,22 @@
 
 Various cube perspectives  
 Back of cube is visible with "hints"  
-Play Time: Followers 8 Minutes vs Non-Followers 5 Minutes  
-Users get kicked after 2 minutes of not entering a valid move
+Multiple Puzzles
+Database functions to store solves and times  
+TODO: Followers 8 Minutes vs Non-Followers 5 Minutes  
 
 ## Chat Commands!
+
+### Common commands
 
 - `!join` or `!j`
 - `!leave` or `!l`
 - `!queue` or `!q`
+
+### Playing commands
+
+These are commands that can only be used when its a players turn.
+
 - `scramble` completes a random scramble on the puzzle
 - `scramble <alg>` set a custom scramble 
   - Example `scramble R U' L2 U2 B R2 B2 R2 D2 B' F2 L2 U2 F' U' F' L B' U2 L' F2`
@@ -33,6 +41,16 @@ Users get kicked after 2 minutes of not entering a valid move
 <img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/VirtualCubeKeyMap.png"  width="478" height="269">
 
 - `!normalnotation` or `!nn` to remove speednotation
+
+### Statistics commands
+
+- `!top <puzzle_id>` Alias: `!leaderboard` `!lb`
+  - `!top`
+  - `!top 5x5x5`
+- `!usertop <user> <puzzle_id>` Alias: `!ut`
+  - `!usertop`
+  - `!usertop 4x4x4`
+  - `!usertop @username 4x4x4`
 
 # Contributing
 
@@ -63,6 +81,8 @@ Paste in your `clientId`, `clientSecret`, and `channelName` you want to connect 
 
 Edit `clientPort` and `serverPort` if running more than two instances.
 
+If a database, aka leaderboards and stats, is desired add `supabaseUrl` and `supabaseKey`. More details at [supabase.com](https://supabase.com).
+
 ## Setting Up Dev Enviroment
 
 Run line by line
@@ -73,7 +93,6 @@ git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2
 
 ```
 cd TwitchSolvesCubeV2
-
 ```
 
 Installs npm packages
