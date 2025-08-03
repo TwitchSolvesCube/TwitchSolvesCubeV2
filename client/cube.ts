@@ -3,7 +3,8 @@ import { TwistyPlayer } from "cubing/twisty";
 import { Move, Alg } from "cubing/alg";
 import { cube2x2x2, cube3x3x3, puzzles } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
-import { experimentalSolve3x3x3IgnoringCenters } from "cubing/search";
+import { insertData } from "./database/databaseQueries";
+import * as query from './database/chatQueries';
 
 import TSC from "./TSC";
 import delay from "delay";
@@ -323,6 +324,19 @@ export default class tscCube {
         this.doCubeMoves(move);
       }
     }
+
+    //Database queries
+    const topCommands: Array<string> = ["!top", "!leaderboard", "!lb"];
+
+    if (topCommands.includes(message) || topCommands.some(cmd => message.startsWith(cmd + " "))) {
+      const puzzle = message.split(" ")[1];
+      const topQueryResult = await query.topQuery(puzzle);
+      this.send(topQueryResult);
+    }
+    if (message.startsWith("!usertop") || message.startsWith("!ut")) {
+      const userTopResult: string = await query.userTopQuery(message, user);
+      this.send(userTopResult);
+    }
   }
 
   isCubeStateSolved() {
@@ -367,6 +381,12 @@ export default class tscCube {
       console.log(updatedTwizzleLink);
       this.tsc.setTwizzleLink(updatedTwizzleLink);
       this.send(this.tsc.getSolvedMessage());
+
+      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble()){
+        const uuidMsg = await insertData(this.tsc.getSolvedData());
+        //this.send(`@${this.tsc.getCurrentUser()} your solve id is ${uuidMsg}`);
+      }
+
       if (this.tsc.getTwizzleLink().length <= 500 ) {
         this.send(this.tsc.getTwizzleLinkMsg());
       }
