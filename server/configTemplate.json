@@ -7,5 +7,8 @@
     "serverPort": "8080",
     "supabaseUrl": "",
     "supabaseTable": "",
-    "supabaseKey": ""
+    "supabaseKey": "",
+    "kuttURL": "",
+    "kuttDomain": "",
+    "kuttKey": ""
 }
