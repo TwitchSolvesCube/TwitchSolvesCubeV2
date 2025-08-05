@@ -14,15 +14,33 @@ const clientSecret = confInfo.clientSecret;
 const channelName = confInfo.channelName;
 const channelID = confInfo.channelID;
 const serverPort = confInfo.serverPort;
-const kuttURL = confInfo.kuttURL;
-const kuttDomain = confInfo.kuttDomain;
-const kuttKey = confInfo.kuttKey;
+
+const kuttConfig = {
+  enabled: confInfo.kuttKey && confInfo.kuttURL && confInfo.kuttDomain,
+  url: confInfo.kuttURL,
+  domain: confInfo.kuttDomain,
+  key: confInfo.kuttKey
+};
+
+const timeStampLog = (message) => console.log(`[${new Date().toLocaleString()}] ${message}`);
+
+let kutt;
+if (kuttConfig.enabled) {
+  try {
+    const { Kutt } = require("kutt");
+    kutt = new Kutt()
+      .set("api", kuttConfig.url)
+      .set("key", kuttConfig.key);
+    timeStampLog("Kutt URL shortener initialized");
+  } catch (err) {
+    kuttConfig.enabled = false;
+    timeStampLog("Kutt initialization failed, falling back to twizzle URLs");
+  }
+} else {
+  timeStampLog("Kutt not configured, falling back to twizzle URLs");
+}
 
 let chatClient = new ChatClient();
-
-const kutt = new Kutt()
-  .set("api", kuttURL)
-  .set("key", kuttKey);
 
 const wss = new WebSocket.Server({ port: serverPort });
 let activeConnection = null; 
@@ -79,12 +97,17 @@ wss.on('connection', (ws) => {
 });
 
 async function createShortLink(twizzlelink, uuid) {
+  if (!kuttConfig.enabled) {
+    timeStampLog(`Kutt not available, returning original link: ${twizzlelink}`);
+    return twizzlelink;
+  }
+
   try {
     const links = kutt.links();
     const shortLink = await links.create({
       target: twizzlelink,
       customurl: uuid,
-      domain: kuttDomain
+      domain: kuttConfig.kuttDomain
     });
     console.log("Shortened URL:", shortLink.link);
     return shortLink.link;
@@ -141,7 +164,5 @@ async function main() {
 	  console.error('Error:', error);
 	}
 }
-
-const timeStampLog = (message) => console.log(`[${new Date().toLocaleString()}] ${message}`);
 
 main();
