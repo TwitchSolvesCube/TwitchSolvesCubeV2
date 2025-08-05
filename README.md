@@ -83,6 +83,9 @@ Edit `clientPort` and `serverPort` if running more than two instances.
 
 If a database, aka leaderboards and stats, is desired add `supabaseUrl` and `supabaseKey`. More details at [supabase.com](https://supabase.com).
 
+In order to shorten twizzle links this project makes use of [kutt](https://github.com/thedevs-network/kutt).
+To use this feature set `kuttURL` `kuttDomain` and `kuttKey`.
+
 ## Setting Up Dev Enviroment
 
 Run line by line
