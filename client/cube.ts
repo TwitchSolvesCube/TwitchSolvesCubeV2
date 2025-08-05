@@ -3,7 +3,7 @@ import { TwistyPlayer } from "cubing/twisty";
 import { Move, Alg } from "cubing/alg";
 import { cube2x2x2, cube3x3x3, puzzles } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
-import { insertData } from "./database/databaseQueries";
+import { insertData, setShortlinkForUUID } from "./database/databaseQueries";
 import * as query from './database/chatQueries';
 
 import TSC from "./TSC";
@@ -94,11 +94,13 @@ export default class tscCube {
   private puzzleState: KPattern;
 
   private send: (message: string) => void;
+  private sendLinkData: (uuid: string, link: string) => void;
 
   // Date
   // let currentDate = new Date();
-  constructor(eventID: string, send: (message: string) => void) {
+  constructor(eventID: string, send: (message: string) => void, sendLinkData: (uuid: string, link: string) => void) {
     this.send = send;
+    this.sendLinkData = sendLinkData;
     this.tsc = new TSC(eventID, this.send.bind(this));
     this.newCube();
   }
@@ -378,17 +380,18 @@ export default class tscCube {
       url.searchParams.set('alg', algValue);
       //Get the updated URL
       const updatedTwizzleLink = url.toString();
-      console.log(updatedTwizzleLink);
+      this.tsc.timeStampLog(updatedTwizzleLink);
       this.tsc.setTwizzleLink(updatedTwizzleLink);
-      this.send(this.tsc.getSolvedMessage());
+      this.tsc.sendSolvedMsg();
 
+      //Store if solve is under an hour and do not store if solves is custom
       if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble()){
-        const uuidMsg = await insertData(this.tsc.getSolvedData());
-        //this.send(`@${this.tsc.getCurrentUser()} your solve id is ${uuidMsg}`);
-      }
-
-      if (this.tsc.getTwizzleLink().length <= 500 ) {
-        this.send(this.tsc.getTwizzleLinkMsg());
+        //These set of lines allows it so the uuid from the database can append to the kutt URL
+        const uuid = await insertData(this.tsc.getSolvedData());
+        this.sendLinkData(this.tsc.getTwizzleLink(), uuid);
+        await delay(1000); //Required to to avoid undefined shortlinkResult
+        const shortlinkResult = await setShortlinkForUUID(uuid, this.tsc.getShortLink());
+        this.tsc.sendShortLinkMsg();
       }
 
       // Pause for 15 seconds to view Solved State
@@ -423,10 +426,5 @@ export default class tscCube {
 
   smootherStep(x: number): number {
     return x * x * x * (10 - x * (15 - 6 * x));
-  }
-
-  getCurrentDate() {
-    return new Date();
-  }
-  
+  }  
 }
