@@ -3,8 +3,8 @@ import * as db from './databaseQueries';
 const puzzleIDs: Array<string> = ["2x2x2", "3x3x3", "4x4x4", "5x5x5"];
 
 export async function topQuery(puzzle_id: string = "3x3x3"): Promise<string> {
-  const leaderboardText = await db.getTopSolveTimes(puzzle_id);
-  return leaderboardText;
+  const { leaderboardText } = await db.getTopSolveTimes(puzzle_id);
+  return leaderboardText ;
 }
 
 export async function userTopQuery(message: string, user: string): Promise<string> {
