@@ -20,6 +20,7 @@ export default class TSC {
   private turnTime: number = 300;
   private totalMoves: number = 0;
   private twizzleLink: string;
+  private shortLink: string;
 
   private queue: Array<string> = new Array();
   private turns: boolean = true;
@@ -318,14 +319,22 @@ export default class TSC {
     return this.twizzleLink;
   }
 
-  getTwizzleLinkMsg(): string {
-    return `Replay ${this.getTwizzleLink()}`;
+  setShortLink(shortLink: string): void {
+    this.shortLink = shortLink;
   }
 
-  getSolvedMessage(): string {
-    return `The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
+  getShortLink(): string {
+    return this.shortLink;
+  }
+
+  sendShortLinkMsg(): void {
+    this.send(`@${this.getCurrentUser()} view your replay here ${this.getShortLink()}`);
+  }
+
+  sendSolvedMsg(): void {
+    this.send(`The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
        `finished by @${this.getCurrentUser()} in ${this.getTotalMoves()} moves. The ` +
-       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`;
+       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`);
   }
 
   getSolvedData(): SolveData {
