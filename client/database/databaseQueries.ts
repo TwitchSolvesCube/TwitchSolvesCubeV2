@@ -1,8 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
-import { supabaseUrl } from '../../server/config.json';
-import { supabaseKey } from '../../server/config.json';
+import { createClient } from '@supabase/supabase-js';
+import { supabaseUrl, supabaseKey } from '../../server/config.json';
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface SolveData {
   username: string;
@@ -15,7 +14,6 @@ interface SolveData {
 
 export async function insertData(solve: SolveData): Promise<string | null> {
   const { username, puzzle_id, solve_time, total_moves, scramble, twizzle_link } = solve;
-  // TODO: shorten twizzlelink, add to database, return short link to chat
   // Get current highest solve_number for this user and puzzle
   const { data: existingSolves, error: fetchError } = await supabase
     .from('user_stats_dev')
@@ -54,8 +52,23 @@ export async function insertData(solve: SolveData): Promise<string | null> {
     return null;
   }
   
-  //return data?.[0]?.shortlink ?? null;
   return data?.[0]?.uuid ?? null;
+}
+
+export async function setShortlinkForUUID(uuid: string, shortlink: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('user_stats_dev')
+    .update({ shortlink })
+    .eq('uuid', uuid)
+    .select('shortlink')
+    .single();
+
+  if (error) {
+    console.error('Error updating shortlink:', error);
+    return null;
+  }
+
+  return data?.shortlink ?? null;
 }
 
 // Function to get top 5 solve times for a puzzle
