@@ -34,6 +34,11 @@ export default class TSC {
   private movesLabel: HTMLElement = document.getElementById("moveCount") as HTMLElement;
   private userLabel: HTMLElement = document.getElementById("userTurn") as HTMLElement;
 
+  private topUserHeader: HTMLElement = document.getElementById("topUserHeader") as HTMLElement;
+  private topUser1: HTMLElement = document.getElementById("topUser1") as HTMLElement;
+  private topUser2: HTMLElement = document.getElementById("topUser2") as HTMLElement;
+  private topUser3: HTMLElement = document.getElementById("topUser3") as HTMLElement;
+
   // Timers
   private userTurnTimer: NodeJS.Timer;
 
@@ -237,15 +242,6 @@ export default class TSC {
     return null;
   }
 
-  // getCurrentUser(): string {
-  //   if (this.queue && getQLength() > 0) {
-  //       this.timeStampLog(`${this.queue[0]}`);  //undefined when using !remove
-  //       return this.queue[0]!;
-  //   } else {
-  //       return "Queue is empty"; // This will return "@Queue is empty, it's your turn! Do !leave when done."
-  //   }
-  // }
-
   getCurrentUser(): string {
     return this.queue[0]!;
   }
@@ -341,13 +337,20 @@ export default class TSC {
     const solveData: SolveData = {
       username: this.getCurrentUser(),
       puzzle_id: this.getPuzzleID(),
-      solve_time: this.getTimeSinceSolved(),
+      solve_time: this.getTimeSinceSolved().slice(3),
       total_moves: this.getTotalMoves(),
       scramble: this.getScramble(),
       twizzle_link: this.getTwizzleLink()
     };
 
     return solveData;
+  }
+
+  setTopUsers(topUser1: string, topUser2: string, topUser3): void {
+    this.topUserHeader.textContent = `Top ${this.getPuzzleID()} Solves`;
+    this.topUser1.textContent = topUser1;
+    this.topUser2.textContent = topUser2;
+    this.topUser3.textContent = topUser3;
   }
 
   setDebug(enableDebug: boolean): void {
