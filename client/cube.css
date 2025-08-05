@@ -13,16 +13,43 @@ body {
 	gap: 1em;
 	background: #6441A5;
 }
-  
+
 twisty-player {
 	position: fixed;
-	width: 60%;
-	height: 60%;
 	top: 50%;
 	left: 50%;
+	width: 60%;
+	height: 60%;
 	transform: translate(-50%, -50%);
+	z-index: -9999;
 	vertical-align: middle;
 	background: #6441A5;
+}
+
+.topLeft {
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 0;
+	padding: 0;
+	text-align: left;
+	line-height: 1.25;
+	color: #FFF;
+	padding-top: 1vh;
+}
+
+.top-header {
+	display: block;
+	margin: 0;
+	margin-bottom: 0vh;
+	padding: 0;
+	font-size: 6.5vh;
+}
+
+.user-item {
+	margin: 0;
+	padding: 0;
+	font-size: 3vh;
 }
 
 .topRight {
@@ -30,8 +57,16 @@ twisty-player {
 	top: 0;
 	right: 0;
 	text-align: right;
+	line-height: 1.25;
+	padding-top: 1vh;
 }
-  
+
+.topRight p, .userTurn p {
+	margin: 0;
+	color: #FFF;
+	font-size: 8.5vh;
+}
+
 .userTurn {
 	position: absolute;
 	bottom: 0;
@@ -40,10 +75,3 @@ twisty-player {
 	text-align: center;
 	white-space: nowrap;
 }
-
-.topRight p, .userTurn p {
-	color: #FFF;
-	margin: 0;
-	font-size: 8.5vh;
-}
-  
