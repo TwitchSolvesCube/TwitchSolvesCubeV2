@@ -1,14 +1,6 @@
 import tscCube from "./cube";
 import { serverPort } from '../server/config.json';
 
-interface TwitchMessage {
-  user: string;
-  message: string;
-  isFollowing: boolean;
-  isSub: boolean;
-  isMod: boolean;
-}
-
 export class twitchClient {
 
   private ws: WebSocket;
@@ -17,7 +9,7 @@ export class twitchClient {
   constructor() {
     this.ws = new WebSocket(`ws://localhost:${serverPort}`);
     this.timeStampLog(`Running Websocket on Port ${serverPort}`);
-    this.cube = new tscCube("333", this.send.bind(this));
+    this.cube = new tscCube("333", this.send.bind(this), this.sendLinkData.bind(this));
     this.cube.scramblePuzzle();
     
     this.setupEventListeners();
@@ -36,7 +28,14 @@ export class twitchClient {
 
   private onMessage = async (event: MessageEvent) => {
     try {
-      const jsonData = JSON.parse(event.data) as TwitchMessage;
+      const jsonData = JSON.parse(event.data);
+
+      if (jsonData.type === 'shortlink') {
+        this.cube.tsc.setShortLink(jsonData.shortLink);
+        console.log(`Replay: ${jsonData.shortLink}`);
+        return;
+      }
+
       this.cube.handleMessage(
         jsonData.user,
         jsonData.message, //This is the puzzle move
@@ -66,10 +65,19 @@ export class twitchClient {
 
   public send(message: string) {
     if (this.ws.readyState === WebSocket.OPEN) {
-      this.timeStampLog(message);
       this.ws.send(JSON.stringify({ "type": "twitchChatMsg", "message": message }));
+      this.timeStampLog(`Sent message: ${message}`);
     } else {
       console.error('WebSocket is not open. Message not sent:', message);
+    }
+  }
+
+  public sendLinkData(twizzle_link: string, uuid: string) {
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ "type": "twizzleLink", "twizzle_link": twizzle_link, "uuid": uuid }));
+      this.timeStampLog(`Sent link data for ${twizzle_link} and ${uuid}`);
+    } else {
+      console.error('WebSocket is not open. Link data not sent.');
     }
   }
   

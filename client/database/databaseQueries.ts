@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { supabaseUrl, supabaseKey } from '../../server/config.json';
+import { supabaseUrl, supabaseTable, supabaseKey } from '../../server/config.json';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -16,7 +16,7 @@ export async function insertData(solve: SolveData): Promise<string | null> {
   const { username, puzzle_id, solve_time, total_moves, scramble, twizzle_link } = solve;
   // Get current highest solve_number for this user and puzzle
   const { data: existingSolves, error: fetchError } = await supabase
-    .from('user_stats_dev')
+    .from(supabaseTable)
     .select('solve_number')
     .eq('username', username)
     .eq('puzzle_id', puzzle_id)
@@ -33,7 +33,7 @@ export async function insertData(solve: SolveData): Promise<string | null> {
 
   // Insert new data with incremented solve_number
   const { data, error } = await supabase
-    .from('user_stats_dev')
+    .from(supabaseTable)
     .insert([
       {
         username,
@@ -57,7 +57,7 @@ export async function insertData(solve: SolveData): Promise<string | null> {
 
 export async function setShortlinkForUUID(uuid: string, shortlink: string): Promise<string | null> {
   const { data, error } = await supabase
-    .from('user_stats_dev')
+    .from(supabaseTable)
     .update({ shortlink })
     .eq('uuid', uuid)
     .select('shortlink')
@@ -74,7 +74,7 @@ export async function setShortlinkForUUID(uuid: string, shortlink: string): Prom
 // Function to get top 5 solve times for a puzzle
 export async function getTopSolveTimes(puzzle_id: string): Promise<string> {
   const { data, error } = await supabase
-    .from('user_stats_dev')
+    .from(supabaseTable)
     .select('username, solve_time')
     .eq('puzzle_id', puzzle_id)
     .order('solve_time', { ascending: true })
@@ -98,7 +98,7 @@ export async function getTopSolveTimes(puzzle_id: string): Promise<string> {
 
 export async function getUserTopSolveTimes(username: string, puzzle_id: string): Promise<string> {
   const { data, error } = await supabase
-    .from('user_stats_dev')
+    .from(supabaseTable)
     .select('solve_time')
     .eq('username', username)
     .eq('puzzle_id', puzzle_id)

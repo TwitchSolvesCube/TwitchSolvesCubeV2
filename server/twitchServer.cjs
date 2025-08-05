@@ -5,6 +5,8 @@ const { RefreshingAuthProvider } = require('@twurple/auth');
 const { ApiClient  } = require('@twurple/api');
 const { ChatClient  } = require('@twurple/chat');
 
+const { Kutt } = require("kutt");
+
 const confInfo = require('./config.json');
 
 const clientId = confInfo.clientId;
@@ -12,8 +14,15 @@ const clientSecret = confInfo.clientSecret;
 const channelName = confInfo.channelName;
 const channelID = confInfo.channelID;
 const serverPort = confInfo.serverPort;
+const kuttURL = confInfo.kuttURL;
+const kuttDomain = confInfo.kuttDomain;
+const kuttKey = confInfo.kuttKey;
 
 let chatClient = new ChatClient();
+
+const kutt = new Kutt()
+  .set("api", kuttURL)
+  .set("key", kuttKey);
 
 const wss = new WebSocket.Server({ port: serverPort });
 let activeConnection = null; 
@@ -32,16 +41,29 @@ wss.on('connection', (ws) => {
   ws.send('Welcome to the WebSocket server!');
 
   // Handle messages from clients
-  ws.on('message', (message) => {
+  ws.on('message', async (message) => {
     try {
       const jsonData = JSON.parse(message);
-      timeStampLog(jsonData.message);
-      chatClient.say(channelName, jsonData.message);
+
+      if (jsonData.type === 'twizzleLink') {
+        timeStampLog(`Twizzle Link Recieved: ${jsonData.twizzle_link}`);
+        timeStampLog(`UUID Recieved: ${jsonData.uuid}`);
+        const shortLink = await createShortLink(jsonData.twizzle_link, jsonData.uuid);
+
+        ws.send(JSON.stringify({
+          type: 'shortlink',
+          shortLink: shortLink
+        }));
+
+        return;
+      }
+      if (jsonData.type === `twitchChatMsg`) {
+        timeStampLog(jsonData.message);
+        chatClient.say(channelName, jsonData.message);
+      }
     } catch (error) {
       timeStampLog(`Received non-JSON data: ${message}`);
     }
-
-    // Handle client messages here if needed
   });
 
   // Handle disconnection
@@ -55,6 +77,22 @@ wss.on('connection', (ws) => {
     timeStampLog(`WebSocket error: ${err}`);
   });
 });
+
+async function createShortLink(twizzlelink, uuid) {
+  try {
+    const links = kutt.links();
+    const shortLink = await links.create({
+      target: twizzlelink,
+      customurl: uuid,
+      domain: kuttDomain
+    });
+    console.log("Shortened URL:", shortLink.link);
+    return shortLink.link;
+  } catch (err) {
+    console.error("Failed to create short link:", err);
+    return;
+  }
+}
 
 async function main() {
   timeStampLog(`Server running on port ${serverPort}`);
