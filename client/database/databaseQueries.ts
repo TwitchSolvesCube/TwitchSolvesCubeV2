@@ -71,14 +71,19 @@ export async function setShortlinkForUUID(uuid: string, shortlink: string): Prom
   return data?.shortlink ?? null;
 }
 
-// Function to get top 5 solve times for a puzzle
-export async function getTopSolveTimes(puzzle_id: string): Promise<string> {
+// Function to get top 3 solve times for a puzzle
+export async function getTopSolveTimes(puzzle_id: string): Promise<{
+  leaderboardText: string,
+  topUser1?: string,
+  topUser2?: string,
+  topUser3?: string
+}> {
   const { data, error } = await supabase
     .from(supabaseTable)
     .select('username, solve_time')
     .eq('puzzle_id', puzzle_id)
     .order('solve_time', { ascending: true })
-    .limit(5);
+    .limit(3);
 
   if (error) {
     console.error('Error fetching top solve times:', error);
@@ -86,14 +91,20 @@ export async function getTopSolveTimes(puzzle_id: string): Promise<string> {
   }
   
   if (!data || data.length === 0) {
-    return `${puzzle_id} is not a valid puzzle. Valid puzzles: 2x2x2, 3x3x3, 4x4x4, 5x5x5.`;
+    const errorMsg = `${puzzle_id} is not a valid puzzle. Valid puzzles: 2x2x2, 3x3x3, 4x4x4, 5x5x5.`;
+    return { leaderboardText: errorMsg };
   }
 
-  const header = `Top ${puzzle_id} Solves of All Time | `;
-  const timesList = data
-    .map((solve, index) => `${index + 1}. ${solve.username}: ${solve.solve_time}`);
-  
-  return `${header} ${timesList.join(' | ')}`;
+  const leaderboardText = data
+    .map((solve, index) => `${index + 1}. ${solve.username}: ${solve.solve_time}`)
+    .join(' | ');
+
+  return {
+    leaderboardText: `Top ${puzzle_id} Solves | ${leaderboardText}`,
+    topUser1: data[0] ? `1. ${data[0].username}: ${data[0].solve_time}` : undefined,
+    topUser2: data[1] ? `2. ${data[1].username}: ${data[1].solve_time}` : undefined,
+    topUser3: data[2] ? `3. ${data[2].username}: ${data[2].solve_time}` : undefined,
+  };
 }
 
 export async function getUserTopSolveTimes(username: string, puzzle_id: string): Promise<string> {

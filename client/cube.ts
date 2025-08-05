@@ -3,7 +3,7 @@ import { TwistyPlayer } from "cubing/twisty";
 import { Move, Alg } from "cubing/alg";
 import { cube2x2x2, cube3x3x3, puzzles } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
-import { insertData, setShortlinkForUUID } from "./database/databaseQueries";
+import { insertData, setShortlinkForUUID, getTopSolveTimes } from "./database/databaseQueries";
 import * as query from './database/chatQueries';
 
 import TSC from "./TSC";
@@ -103,6 +103,7 @@ export default class tscCube {
     this.sendLinkData = sendLinkData;
     this.tsc = new TSC(eventID, this.send.bind(this));
     this.newCube();
+    this.updateTopUsers(); //Update the topleft with the top 3 users
   }
 
   private async newCube() {
@@ -239,6 +240,7 @@ export default class tscCube {
     }
     if (this.validPuzzle.includes(message)) {
       this.tsc.setEventID(message);
+      this.updateTopUsers(); //Update the topleft with the top 3 users
       this.scramblePuzzle();
     }
 
@@ -390,8 +392,11 @@ export default class tscCube {
         const uuid = await insertData(this.tsc.getSolvedData());
         this.sendLinkData(this.tsc.getTwizzleLink(), uuid);
         await delay(1000); //Required to to avoid undefined shortlinkResult
-        const shortlinkResult = await setShortlinkForUUID(uuid, this.tsc.getShortLink());
+        await setShortlinkForUUID(uuid, this.tsc.getShortLink());
         this.tsc.sendShortLinkMsg();
+
+        //Update the topleft with the top 3 users
+        await this.updateTopUsers();
       }
 
       // Pause for 15 seconds to view Solved State
@@ -401,6 +406,11 @@ export default class tscCube {
       this.tsc.resetTimeSS();
       this.scramblePuzzle();
     }
+  }
+
+  async updateTopUsers(): Promise<void> {
+    const { topUser1, topUser2, topUser3 } = await getTopSolveTimes(this.tsc.getPuzzleID());
+    this.tsc.setTopUsers(topUser1, topUser2, topUser3);
   }
 
   spinCamera(options?: { numSpins?: number, durationMs: number }): void {
