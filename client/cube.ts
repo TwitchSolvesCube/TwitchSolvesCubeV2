@@ -333,15 +333,16 @@ export default class tscCube {
 
     //Database queries
     const topCommands: Array<string> = ["!top", "!leaderboard", "!lb"];
-
-    if (topCommands.includes(message) || topCommands.some(cmd => message.startsWith(cmd + " "))) {
-      const puzzle = message.split(" ")[1];
-      const topQueryResult = await query.topQuery(puzzle);
-      this.send(topQueryResult);
-    }
-    if (message.startsWith("!usertop") || message.startsWith("!ut")) {
-      const userTopResult: string = await query.userTopQuery(message, user);
-      this.send(userTopResult);
+    if (this.db.isInitialized()) {
+      if (topCommands.includes(message) || topCommands.some(cmd => message.startsWith(cmd + " "))) {
+        const puzzle = message.split(" ")[1];
+        const topQueryResult = await query.topQuery(puzzle);
+        this.send(topQueryResult);
+      }
+      if (message.startsWith("!usertop") || message.startsWith("!ut")) {
+        const userTopResult: string = await query.userTopQuery(message, user);
+        this.send(userTopResult);
+      }
     }
   }
 
@@ -389,7 +390,7 @@ export default class tscCube {
       this.tsc.sendSolvedMsg();
 
       //Store if solve is under an hour and do not store if solves is custom
-      if (this.tsc.getSecondsSinceSolved() <= 3600 && this.tsc.isCustomScramble()){
+      if (this.tsc.getSecondsSinceSolved() <= 3600 && this.tsc.isCustomScramble() && this.db.isInitialized()){
         //These set of lines allows it so the uuid from the database can append to the kutt URL
         const uuid = await this.db.insertData(this.tsc.getSolvedData());
         this.sendLinkData(this.tsc.getTwizzleLink(), uuid);
@@ -411,8 +412,12 @@ export default class tscCube {
   }
 
   async updateTopUsers(): Promise<void> {
-    const { topUser1, topUser2, topUser3 } = await this.db.getTopSolveTimes(this.tsc.getPuzzleID());
-    this.tsc.setTopUsers(topUser1, topUser2, topUser3);
+    const result = await this.db.getTopSolveTimes(this.tsc.getPuzzleID());
+    if (result) {
+      this.tsc.setTopUsers(result.topUser1, result.topUser2, result.topUser3);
+      return;
+    }
+    this.tsc.setTopUsers(null, null, null);
   }
 
   spinCamera(options?: { numSpins?: number, durationMs: number }): void {

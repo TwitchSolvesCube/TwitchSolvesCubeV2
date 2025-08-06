@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { supabaseUrl, supabaseTable, supabaseKey } from '../../server/config.json';
+
+const confInfo = require('../../server/config.json');
 
 interface SolveData {
   username: string;
@@ -18,18 +19,32 @@ interface LeaderboardResult {
 }
 
 export class tscSupabaseClient {
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
+  private initialized = false;
 
   constructor() {
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    try {
+      if (confInfo.supabaseUrl && confInfo.supabaseKey) {
+        this.supabase = createClient(confInfo.supabaseUrl, confInfo.supabaseKey);
+        this.initialized = true;
+      } else {
+        console.warn('Supabase URL or Key missing - running in offline mode');
+      }
+    } catch (error) {
+      console.warn('Config loading failed - running in offline mode', error);
+    }
   }
 
   async insertData(solve: SolveData): Promise<string | null> {
+    if (!this.isInitialized()) {
+      return null;
+    }
+
     const { username, puzzle_id, solve_time, total_moves, scramble, twizzle_link } = solve;
     
     // Get current highest solve_number for this user and puzzle
     const { data: existingSolves, error: fetchError } = await this.supabase
-      .from(supabaseTable)
+      .from(confInfo.supabaseTable)
       .select('solve_number')
       .eq('username', username)
       .eq('puzzle_id', puzzle_id)
@@ -46,7 +61,7 @@ export class tscSupabaseClient {
 
     // Insert new data with incremented solve_number
     const { data, error } = await this.supabase
-      .from(supabaseTable)
+      .from(confInfo.supabaseTable)
       .insert([
         {
           username,
@@ -69,8 +84,12 @@ export class tscSupabaseClient {
   }
 
   async setShortlinkForUUID(uuid: string, shortlink: string): Promise<string | null> {
+    if (!this.isInitialized()) {
+      return null;
+    }
+
     const { data, error } = await this.supabase
-      .from(supabaseTable)
+      .from(confInfo.supabaseTable)
       .update({ shortlink })
       .eq('uuid', uuid)
       .select('shortlink')
@@ -84,9 +103,13 @@ export class tscSupabaseClient {
     return data?.shortlink ?? null;
   }
 
-  async getTopSolveTimes(puzzle_id: string): Promise<LeaderboardResult> {
+  async getTopSolveTimes(puzzle_id: string): Promise<LeaderboardResult | null> {
+    if (!this.isInitialized()) {
+      return null;
+    }
+
     const { data, error } = await this.supabase
-      .from(supabaseTable)
+      .from(confInfo.supabaseTable)
       .select('username, solve_time')
       .eq('puzzle_id', puzzle_id)
       .order('solve_time', { ascending: true })
@@ -114,9 +137,13 @@ export class tscSupabaseClient {
     };
   }
 
-  async getUserTopSolveTimes(username: string, puzzle_id: string): Promise<string> {
+  async getUserTopSolveTimes(username: string, puzzle_id: string): Promise<string | null> {
+    if (!this.isInitialized()) {
+      return null;
+    }
+
     const { data, error } = await this.supabase
-      .from(supabaseTable)
+      .from(confInfo.supabaseTable)
       .select('solve_time')
       .eq('username', username)
       .eq('puzzle_id', puzzle_id)
@@ -137,5 +164,14 @@ export class tscSupabaseClient {
       .map((solve, index) => `${index + 1}. ${solve.solve_time}`);
     
     return `${header} ${timesList.join(' | ')}`;
+  }
+
+  isInitialized(): boolean {
+    if (this.initialized) {
+      console.log("Supabase is configured.");
+    } else {
+      console.log("Supabase is not configured.");
+    }
+    return this.initialized;
   }
 }
