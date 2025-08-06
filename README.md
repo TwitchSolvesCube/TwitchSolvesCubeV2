@@ -47,10 +47,10 @@ These are commands that can only be used when its a players turn.
 - `!top <puzzle_id>` Alias: `!leaderboard` `!lb`
   - `!top`
   - `!top 5x5x5`
-- `!usertop <user> <puzzle_id>` Alias: `!ut`
-  - `!usertop`
-  - `!usertop 4x4x4`
-  - `!usertop @username 4x4x4`
+- `!pb <user> <puzzle_id>` Alias: `!pb`
+  - `!pb`
+  - `!pb 4x4x4`
+  - `!pb @username 4x4x4`
 
 # Contributing
 
@@ -81,10 +81,12 @@ Paste in your `clientId`, `clientSecret`, and `channelName` you want to connect 
 
 Edit `clientPort` and `serverPort` if running more than two instances.
 
+
+### Optional configs
+
 If a database, aka leaderboards and stats, is desired add `supabaseUrl` and `supabaseKey`. More details at [supabase.com](https://supabase.com).
 
-In order to shorten twizzle links this project makes use of [kutt](https://github.com/thedevs-network/kutt).
-To use this feature set `kuttURL` `kuttDomain` and `kuttKey`.
+[Kutt](https://github.com/thedevs-network/kutt) shortens twizzle links to meet the character limit of twitchchat and is only used if supabase is configured. To use this feature set `kuttURL` `kuttDomain` and `kuttKey`.
 
 ## Setting Up Dev Enviroment
 
