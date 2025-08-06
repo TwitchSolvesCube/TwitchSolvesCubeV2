@@ -339,8 +339,8 @@ export default class tscCube {
         const topQueryResult = await query.topQuery(puzzle);
         this.send(topQueryResult);
       }
-      if (message.startsWith("!usertop") || message.startsWith("!ut")) {
-        const userTopResult: string = await query.userTopQuery(message, user);
+      if (message.startsWith("!pb")) {
+        const userTopResult: string = await query.userPBQuery(message, user);
         this.send(userTopResult);
       }
     }
