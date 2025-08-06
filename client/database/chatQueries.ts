@@ -1,4 +1,6 @@
-import * as db from './databaseQueries';
+import { tscSupabaseClient } from "./databaseQueries";
+
+const db = new tscSupabaseClient();
 
 const puzzleIDs: Array<string> = ["2x2x2", "3x3x3", "4x4x4", "5x5x5"];
 
