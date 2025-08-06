@@ -137,7 +137,7 @@ export class tscSupabaseClient {
     };
   }
 
-  async getUserTopSolveTimes(username: string, puzzle_id: string): Promise<string | null> {
+  async getUserPB(username: string, puzzle_id: string): Promise<string | null> {
     if (!this.isInitialized()) {
       return null;
     }

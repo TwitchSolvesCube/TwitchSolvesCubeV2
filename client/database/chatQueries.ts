@@ -9,7 +9,7 @@ export async function topQuery(puzzle_id: string = "3x3x3"): Promise<string> {
   return leaderboardText ;
 }
 
-export async function userTopQuery(message: string, user: string): Promise<string> {
+export async function userPBQuery(message: string, user: string): Promise<string> {
   const parts = message.split(" ").filter(part => part.trim() !== '');
   let username = user; // Default to user who sent msg
   let puzzleId = "3x3x3"; // Default puzzle
@@ -25,6 +25,6 @@ export async function userTopQuery(message: string, user: string): Promise<strin
       username = potentialUser;
       }
   }
-  const userTops = await db.getUserTopSolveTimes(username, puzzleId);
+  const userTops = await db.getUserPB(username, puzzleId);
   return userTops;
 }
