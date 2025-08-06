@@ -3,7 +3,7 @@ import { TwistyPlayer } from "cubing/twisty";
 import { Move, Alg } from "cubing/alg";
 import { cube2x2x2, cube3x3x3, puzzles } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
-import { insertData, setShortlinkForUUID, getTopSolveTimes } from "./database/databaseQueries";
+import { tscSupabaseClient } from "./database/databaseQueries";
 import * as query from './database/chatQueries';
 
 import TSC from "./TSC";
@@ -11,6 +11,7 @@ import delay from "delay";
 
 export default class tscCube {
   private player: TwistyPlayer;
+  private db: tscSupabaseClient;
   public tsc: TSC;
 
   //Not Supported upstream "clock", "pyram", "skewb", "minx"
@@ -103,6 +104,7 @@ export default class tscCube {
     this.sendLinkData = sendLinkData;
     this.tsc = new TSC(eventID, this.send.bind(this));
     this.newCube();
+    this.db = new tscSupabaseClient();
     this.updateTopUsers(); //Update the topleft with the top 3 users
   }
 
@@ -387,12 +389,12 @@ export default class tscCube {
       this.tsc.sendSolvedMsg();
 
       //Store if solve is under an hour and do not store if solves is custom
-      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble()){
+      if (this.tsc.getSecondsSinceSolved() <= 3600 && this.tsc.isCustomScramble()){
         //These set of lines allows it so the uuid from the database can append to the kutt URL
-        const uuid = await insertData(this.tsc.getSolvedData());
+        const uuid = await this.db.insertData(this.tsc.getSolvedData());
         this.sendLinkData(this.tsc.getTwizzleLink(), uuid);
         await delay(1000); //Required to to avoid undefined shortlinkResult
-        await setShortlinkForUUID(uuid, this.tsc.getShortLink());
+        await this.db.setShortlinkForUUID(uuid, this.tsc.getShortLink());
         this.tsc.sendShortLinkMsg();
 
         //Update the topleft with the top 3 users
@@ -409,7 +411,7 @@ export default class tscCube {
   }
 
   async updateTopUsers(): Promise<void> {
-    const { topUser1, topUser2, topUser3 } = await getTopSolveTimes(this.tsc.getPuzzleID());
+    const { topUser1, topUser2, topUser3 } = await this.db.getTopSolveTimes(this.tsc.getPuzzleID());
     this.tsc.setTopUsers(topUser1, topUser2, topUser3);
   }
 
