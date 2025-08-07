@@ -10,47 +10,41 @@ Multiple Puzzles
 Database functions to store solves and times  
 TODO: Followers 8 Minutes vs Non-Followers 5 Minutes  
 
-## Chat Commands!
+## 💬 Chat Commands!
 
-### Common commands
+### ⏳ Queue commands
 
-- `!join` or `!j`
-- `!leave` or `!l`
-- `!queue` or `!q`
+| Command        | Aliases  | Description                      |
+|----------------|----------|----------------------------------|
+| `!join`        | `!j`     | Join the current game/queue      |
+| `!leave`       | `!l`     | Leave the current game/queue     |
+| `!queue`       | `!q`     | Show the current player queue    |
 
-### Playing commands
+### 🎮 Playing commands
 
 These are commands that can only be used when its a players turn.
 
-- `scramble` completes a random scramble on the puzzle
-- `scramble <alg>` set a custom scramble 
-  - Example `scramble R U' L2 U2 B R2 B2 R2 D2 B' F2 L2 U2 F' U' F' L B' U2 L' F2`
-- `222`, `333`, `444`, or `555` to set the puzzle type
-- `!topright` or `!tr` (this is the default)
-<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/TopRight.png"  width="478" height="269">
+| Command              | Aliases   | Description                                                                 | Example                                                                 |
+|----------------------|-----------|-----------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `scramble`           | –         | Performs a random scramble on the current puzzle                           | –                                                                       |
+| `scramble <alg>`     | –         | Sets a custom scramble using the provided algorithm                        | `scramble R U' L2 U2 B R2 B2 R2 D2 B' F2 L2 U2 F' U' F' L B' U2 L' F2`   |
+| `222`, `333`, `444`, `555`   | –         | Sets the puzzle type: 2x2x2, 3x3x3, 4x4x4, 5x5x5                             |                                                                   |
+| `!topright`          | `!tr`     | Changes camera to top-right view *(default)*                               | ![TopRight](https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/TopRight.png)       |
+| `!sidebyside`        | `!sbs`    | Changes camera to side-by-side view                                        | ![SideBySide](https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/SideBySide.png)   |
+| `!blind`             | `!bld`    | Enables blind mode (hides cube)                                            | ![Blind](https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/Blind.png)             |
+| `!normal`            | `!norm`   | Returns cube from blind mode to normal view                                | –                                                                       |
+| `!speednotation`     | `!sn`     | Enables CSTimer-style keyboard shortcuts                                   | ![KeyMap](https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/VirtualCubeKeyMap.png) |
+| `!normalnotation`    | `!nn`     | Disables speednotation mode                                                | –                                                                       |                                                                    |
 
-- `!sidebyside` or `!sbs`
-<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/SideBySide.png"  width="478" height="269">
+### 📊 Statistics commands
 
-- `!blind` or `!bld`
-<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/Blind.png"  width="478" height="269">
-
-- `!normal` or `!norm` (brings back cube from blind)
-- `!speednotation` or `!sn`
-  - These keyboard shortcuts are from https://cstimer.net/
-<img src="https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2/blob/main/media/VirtualCubeKeyMap.png"  width="478" height="269">
-
-- `!normalnotation` or `!nn` to remove speednotation
-
-### Statistics commands
-
-- `!top <puzzle_id>` Alias: `!leaderboard` `!lb`
-  - `!top`
-  - `!top 5x5x5`
-- `!pb <user> <puzzle_id>` Alias: `!pb`
-  - `!pb`
-  - `!pb 4x4x4`
-  - `!pb @username 4x4x4`
+| Command                          | Aliases                     | Description                                                                 | Examples                                                                 |
+|----------------------------------|-----------------------------|-----------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| `!top <puzzle_id>`               | `!leaderboard`, `!lb`       | Shows top solvers for a puzzle. Defaults to 3x3x3 puzzle.     | `!top`<br>`!top 2x2x2`                                                   |
+| `!topsolvers <puzzle_id>`        | –                           | Shows users with most solves overall for a puzzle. Defaults to 3x3x3 puzzle.                      | `!topsolvers`<br>`!topsolvers 2x2x2`                                     |
+| `!pb <username> <puzzle_id>`     |                        | Shows personal best for a user and puzzle. Defaults to your PB and 3x3x3 puzzle.    | `!pb`<br>`!pb 2x2x2`<br>`!pb @user`<br>`!pb @user 2x2x2`                  |
+| `!view <uuid>`                   | –                           | Shows stats of a specific solve by its UUID.                                         | `!view 01234567-89ab-cdef-ghij-klmnopqrstuv`                             |
+| `!solves <username> <puzzle_id>` | –                           | Shows how many times a user has solved a puzzle. Defaults to your solves and 3x3x3 puzzle.  | `!solves`<br>`!solves 2x2x2`<br>`!solves @user`<br>`!solves @user 2x2x2` |
 
 # Contributing
 
