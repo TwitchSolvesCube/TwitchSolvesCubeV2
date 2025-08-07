@@ -2,12 +2,13 @@ import { wcaEventInfo } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 import type { PuzzleID } from "cubing/twisty";
 
-interface SolveData {
+interface SolveDataEntry {
   username: string;
   puzzle_id: string;
   solve_time: string;
   total_moves: number;
   scramble: string;
+  solve_alg: string;
   twizzle_link: string;
 }
 
@@ -19,6 +20,7 @@ export default class TSC {
   private secondsSinceSolved: number = 0;
   private turnTime: number = 300;
   private totalMoves: number = 0;
+  private solve_alg: string;
   private twizzleLink: string;
   private shortLink: string;
 
@@ -307,6 +309,14 @@ export default class TSC {
     this.customScramble = customScramble;
   }
 
+  setSolvedAlg(solve_alg: string): void {
+    this.solve_alg = solve_alg;
+  }
+
+  getSolvedAlg(): string {
+    return this.solve_alg;
+  }
+
   setTwizzleLink(twizzleLink: string): void {
     this.twizzleLink = twizzleLink;
   }
@@ -324,7 +334,8 @@ export default class TSC {
   }
 
   sendShortLinkMsg(): void {
-    this.send(`@${this.getCurrentUser()} view your replay here ${this.getShortLink()}`);
+    this.send(`@${this.getCurrentUser()} view your replay here ${this.getShortLink()} ` +
+      `Save this link id to view stats with !view.`);
   }
 
   sendSolvedMsg(): void {
@@ -333,13 +344,14 @@ export default class TSC {
        `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`);
   }
 
-  getSolvedData(): SolveData {
-    const solveData: SolveData = {
+  getSolvedData(): SolveDataEntry {
+    const solveData: SolveDataEntry = {
       username: this.getCurrentUser(),
       puzzle_id: this.getPuzzleID(),
       solve_time: this.getTimeSinceSolved().slice(3),
       total_moves: this.getTotalMoves(),
       scramble: this.getScramble(),
+      solve_alg: this.getSolvedAlg(),
       twizzle_link: this.getTwizzleLink()
     };
 
