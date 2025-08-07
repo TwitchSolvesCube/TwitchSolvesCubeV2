@@ -335,13 +335,24 @@ export default class tscCube {
     const topCommands: Array<string> = ["!top", "!leaderboard", "!lb"];
     if (this.db.isInitialized()) {
       if (topCommands.includes(message) || topCommands.some(cmd => message.startsWith(cmd + " "))) {
-        const puzzle = message.split(" ")[1];
-        const topQueryResult = await query.topQuery(puzzle);
+        const topQueryResult = await query.topQuery(message);
         this.send(topQueryResult);
+      }
+      if (message.startsWith("!topsolvers")) {
+        const topSolversResult: string = await query.topSolversQuery(message);
+        this.send(topSolversResult);
       }
       if (message.startsWith("!pb")) {
         const userTopResult: string = await query.userPBQuery(message, user);
         this.send(userTopResult);
+      }
+      if (message.startsWith("!view")) {
+        const viewResult: string = await query.viewSolve(message);
+        this.send(viewResult);
+      }
+      if (message.startsWith("!solves")) {
+        const userSolvesResult: string = await query.userSolves(message, user);
+        this.send(userSolvesResult);
       }
     }
   }
@@ -387,10 +398,11 @@ export default class tscCube {
       const updatedTwizzleLink = url.toString();
       this.tsc.timeStampLog(updatedTwizzleLink);
       this.tsc.setTwizzleLink(updatedTwizzleLink);
+      this.tsc.setSolvedAlg(algValue);
       this.tsc.sendSolvedMsg();
 
       //Store if solve is under an hour and do not store if solves is custom
-      if (this.tsc.getSecondsSinceSolved() <= 3600 && this.tsc.isCustomScramble() && this.db.isInitialized()){
+      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble() && this.db.isInitialized()){
         //These set of lines allows it so the uuid from the database can append to the kutt URL
         const uuid = await this.db.insertData(this.tsc.getSolvedData());
         this.sendLinkData(this.tsc.getTwizzleLink(), uuid);
