@@ -47,14 +47,15 @@ export async function userPBQuery(message: string, user: string): Promise<string
 }
 
 //!view
-//TODO: allow url links?
+//TODO: Parse url links?
+//TODO: Return this instead of solvedMsg for solved under 60 minutes
 export async function viewSolve(message: string): Promise<string> {
   const uuid = message.split(" ")[1];
   const solveData = await db.getSolveByUUID(uuid);
   if (solveData){ 
     return `This ${solveData.puzzle_id} was solved in ${solveData.solve_time} ` +
       `by @${solveData.username} in ${solveData.total_moves} moves on ${solveData.created_at.split('.')[0]} ` +
-      `Scramble: ${solveData.scramble} Solve number: 0 Replay: ${solveData.shortlink}`;
+      `Scramble: ${solveData.scramble} Solve number: ${solveData.global_puzzle_solve_number} Replay: ${solveData.shortlink}`;
   }
   return "That solve id does not exist.";
 }

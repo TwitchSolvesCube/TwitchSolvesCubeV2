@@ -404,10 +404,10 @@ export default class tscCube {
       //Store if solve is under an hour and do not store if solves is custom
       if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble() && this.db.isInitialized()){
         //These set of lines allows it so the uuid from the database can append to the kutt URL
-        const uuid = await this.db.insertData(this.tsc.getSolvedData());
-        this.sendLinkData(this.tsc.getTwizzleLink(), uuid);
+        const insertedData = await this.db.insertData(this.tsc.getSolvedData());
+        this.sendLinkData(this.tsc.getTwizzleLink(), insertedData.uuid);
         await delay(1000); //Required to to avoid undefined shortlinkResult
-        await this.db.setShortlinkForUUID(uuid, this.tsc.getShortLink());
+        await this.db.setShortlinkForUUID(insertedData.uuid, this.tsc.getShortLink());
         this.tsc.sendShortLinkMsg();
 
         //Update the topleft with the top 3 users

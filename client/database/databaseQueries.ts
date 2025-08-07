@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const confInfo = require('../../server/config.json');
 
-interface SolveDataEntry {
+interface SolveData {
   username: string;
   puzzle_id: string;
   solve_time: string;
@@ -10,21 +10,13 @@ interface SolveDataEntry {
   scramble: string;
   solve_alg: string;
   twizzle_link: string;
-}
-
-interface SolveDataQuery {
-  created_at: string;
-  uuid: string;
-  username: string;
-  puzzle_id: string;
-  solve_time: string;
-  solve_ao5: string;
-  solve_number: number,
-  total_moves: number;
-  scramble: string;
-  solve_alg: string;
-  twizzle_link: string;
-  shortlink: string;
+  // Optional
+  uuid?: string;
+  created_at?: string;
+  solve_ao5?: string;
+  solve_number?: number;
+  global_puzzle_solve_number?: number;
+  shortlink?: string;
 }
 
 interface LeaderboardResult {
@@ -51,7 +43,8 @@ export class tscSupabaseClient {
     }
   }
 
-  async insertData(solve: SolveDataEntry): Promise<string | null> {
+  //TODO: Break this function down into helper functions
+  async insertData(solve: SolveData): Promise<SolveData | null> {
     if (!this.isInitialized()) {
       return null;
     }
@@ -59,7 +52,7 @@ export class tscSupabaseClient {
     const { username, puzzle_id, solve_time, total_moves, scramble, solve_alg, twizzle_link } = solve;
 
     // Get current highest solve_number for this user and puzzle
-    const { data: existingSolves, error: fetchError } = await this.supabase
+    const { data: existingUserSolves, error: userFetchError } = await this.supabase
       .from(confInfo.supabaseTable)
       .select('solve_number')
       .eq('username', username)
@@ -67,13 +60,29 @@ export class tscSupabaseClient {
       .order('solve_number', { ascending: false })
       .limit(1);
 
-    if (fetchError) {
-      console.error('Error fetching current solve_number:', fetchError);
+    if (userFetchError) {
+      console.error('Error fetching user solve_number:', userFetchError);
       return null;
     }
 
-    const currentSolveNumber = existingSolves?.[0]?.solve_number || 0;
+    const currentSolveNumber = existingUserSolves?.[0]?.solve_number || 0;
     const newSolveNumber = currentSolveNumber + 1;
+
+    // Get current highest global_puzzle_solve_number for this puzzle_id
+    const { data: existingGlobalSolves, error: globalFetchError } = await this.supabase
+      .from(confInfo.supabaseTable)
+      .select('global_puzzle_solve_number')
+      .eq('puzzle_id', puzzle_id)
+      .order('global_puzzle_solve_number', { ascending: false })
+      .limit(1);
+
+    if (globalFetchError) {
+      console.error('Error fetching global_puzzle_solve_number:', globalFetchError);
+      return null;
+    }
+
+    const currentGlobalSolveNumber = existingGlobalSolves?.[0]?.global_puzzle_solve_number || 0;
+    const newGlobalSolveNumber = currentGlobalSolveNumber + 1;
 
     // Insert new data with incremented solve_number
     //TODO: Calculate ao5 and insert
@@ -85,20 +94,21 @@ export class tscSupabaseClient {
           puzzle_id,
           solve_time,
           solve_number: newSolveNumber,
+          global_puzzle_solve_number: newGlobalSolveNumber,
           total_moves,
           scramble,
           solve_alg,
           twizzle_link
         }
       ])
-      .select('uuid');
+      .select('*');
 
     if (error) {
       console.error('Error inserting data:', error);
       return null;
     }
 
-    return data?.[0]?.uuid ?? null;
+    return data?.[0] ?? null;
   }
 
   async setShortlinkForUUID(uuid: string, shortlink: string): Promise<string | null> {
@@ -217,7 +227,7 @@ export class tscSupabaseClient {
   }
 
   //!view
-  async getSolveByUUID(uuid: string): Promise<SolveDataQuery | null> {
+  async getSolveByUUID(uuid: string): Promise<SolveData | null> {
     if (!this.isInitialized()) {
       return null;
     }
@@ -233,7 +243,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    return solve as SolveDataQuery;
+    return solve as SolveData;
   }
 
   //!solves
