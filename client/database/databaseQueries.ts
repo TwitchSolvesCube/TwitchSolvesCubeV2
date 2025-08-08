@@ -5,7 +5,7 @@ const confInfo = require('../../server/config.json');
 interface SolveData {
   username: string;
   puzzle_id: string;
-  solve_time: string;
+  solve_time_sec: number;
   total_moves: number;
   scramble: string;
   solve_alg: string;
@@ -13,7 +13,7 @@ interface SolveData {
   // Optional
   uuid?: string;
   created_at?: string;
-  solve_ao5?: string;
+  solve_ao5_sec?: number;
   solve_number?: number;
   global_puzzle_solve_number?: number;
   shortlink?: string;
@@ -49,7 +49,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    const { username, puzzle_id, solve_time, total_moves, scramble, solve_alg, twizzle_link } = solve;
+    const { username, puzzle_id, solve_time_sec, total_moves, scramble, solve_alg, twizzle_link } = solve;
 
     // Get current highest solve_number for this user and puzzle
     const { data: existingUserSolves, error: userFetchError } = await this.supabase
@@ -84,14 +84,14 @@ export class tscSupabaseClient {
     const currentGlobalSolveNumber = existingGlobalSolves?.[0]?.global_puzzle_solve_number || 0;
     const newGlobalSolveNumber = currentGlobalSolveNumber + 1;
 
-    let solve_ao5: string | null = null;
+    let solve_ao5_sec: number | null = null;
 
     //Calculate ao5 if solve_number is divisible by 5 and there are at least 4 previous solves
     if (newSolveNumber % 5 === 0) {
       //Fetch last 4 solves before this one
       const { data: lastFourSolves, error: lastFourError } = await this.supabase
         .from(confInfo.supabaseTable)
-        .select('solve_time')
+        .select('solve_time_sec')
         .eq('username', username)
         .eq('puzzle_id', puzzle_id)
         .order('solve_number', { ascending: false })
@@ -104,26 +104,20 @@ export class tscSupabaseClient {
 
       if (lastFourSolves && lastFourSolves.length === 4) {
         // Collect the current solve time + the last 4 solves
-        const timeToSec = t => {
-          const [m, s] = t.split(':').map(Number);
-          return m * 60 + s;
-        };
+        const times = [
+          ...lastFourSolves.map(s => s.solve_time_sec),
+          solve_time_sec
+        ];
 
-        const secToTime = s => {
-          const m = Math.floor(s / 60);
-          const sec = (s % 60).toFixed(2); // keep 2 decimal places
-          return `${String(m).padStart(2, '0')}:${sec.padStart(5, '0')}`;
-        };
-
-        // Compute AO5
-        const times = [...lastFourSolves.map(s => timeToSec(s.solve_time)), timeToSec(solve_time)]
-          .sort((a, b) => a - b)
-          .slice(1, -1); // removes fastest and slowest
-
-        const avgSec = times.reduce((sum, t) => sum + t, 0) / times.length;
-        solve_ao5 = secToTime(avgSec);
+        // Compute AO5 (remove best & worst, average the rest)
+        const trimmed = times.sort((a, b) => a - b).slice(1, -1);
+        solve_ao5_sec = trimmed.reduce((sum, t) => sum + t, 0) / trimmed.length;
       }
     }
+
+    //TODO: Check best database
+
+    //TODO: Insert to best database
 
     // Insert new data with incremented solve_number and calculated ao5
     const { data, error } = await this.supabase
@@ -132,8 +126,8 @@ export class tscSupabaseClient {
         {
           username,
           puzzle_id,
-          solve_time,
-          solve_ao5,
+          solve_time_sec,
+          solve_ao5_sec: Math.round(solve_ao5_sec * 1000) / 1000,
           solve_number: newSolveNumber,
           global_puzzle_solve_number: newGlobalSolveNumber,
           total_moves,
@@ -181,9 +175,9 @@ export class tscSupabaseClient {
 
     const { data, error } = await this.supabase
       .from(confInfo.supabaseTable)
-      .select('username, solve_time')
+      .select('username, solve_time_sec')
       .eq('puzzle_id', puzzle_id)
-      .order('solve_time', { ascending: true })
+      .order('solve_time_sec', { ascending: true })
       .limit(3);
 
     if (error) {
@@ -197,14 +191,14 @@ export class tscSupabaseClient {
     }
 
     const leaderboardText = data
-      .map((solve, index) => `${index + 1}. ${solve.username}: ${solve.solve_time}`)
+      .map((solve, index) => `${index + 1}. ${solve.username}: ${solve.solve_time_sec}`)
       .join(' | ');
 
     return {
       leaderboardText: `Top ${puzzle_id} Solves | ${leaderboardText}`,
-      topUser1: data[0] ? `1. ${data[0].username}: ${data[0].solve_time}` : undefined,
-      topUser2: data[1] ? `2. ${data[1].username}: ${data[1].solve_time}` : undefined,
-      topUser3: data[2] ? `3. ${data[2].username}: ${data[2].solve_time}` : undefined,
+      topUser1: data[0] ? `1. ${data[0].username}: ${this.secToTime(data[0].solve_time_sec)}` : undefined,
+      topUser2: data[1] ? `2. ${data[1].username}: ${this.secToTime(data[1].solve_time_sec)}` : undefined,
+      topUser3: data[2] ? `3. ${data[2].username}: ${this.secToTime(data[2].solve_time_sec)}` : undefined,
     };
   }
 
@@ -245,10 +239,10 @@ export class tscSupabaseClient {
 
     const { data, error } = await this.supabase
       .from(confInfo.supabaseTable)
-      .select('solve_time')
+      .select('solve_time_sec')
       .eq('username', username)
       .eq('puzzle_id', puzzle_id)
-      .order('solve_time', { ascending: true })
+      .order('solve_time_sec', { ascending: true })
       .limit(5);
 
     if (error) {
@@ -262,7 +256,7 @@ export class tscSupabaseClient {
 
     const header = `Top ${puzzle_id} solves by ${username} | `;
     const timesList = data
-      .map((solve, index) => `${index + 1}. ${solve.solve_time}`);
+      .map((solve, index) => `${index + 1}. ${solve.solve_time_sec}`);
     
     return `${header} ${timesList.join(' | ')}`;
   }
@@ -311,6 +305,12 @@ export class tscSupabaseClient {
     }
 
     return `@${username} has ${data[0].solve_number} solves for ${puzzle_id}`;
+  }
+
+  secToTime(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
   isInitialized(): boolean {

@@ -4,6 +4,12 @@ const db = new tscSupabaseClient();
 
 const puzzleIDs: Array<string> = ["2x2x2", "3x3x3", "4x4x4", "5x5x5"];
 
+function secToTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 function parseUserAndPuzzle(message: string, defaultUser: string): { username: string, puzzle_id: string } {
   const parts = message.split(" ").filter(part => part.trim() !== '');
   let username = defaultUser;
@@ -53,7 +59,7 @@ export async function viewSolve(message: string): Promise<string> {
   const uuid = message.split(" ")[1];
   const solveData = await db.getSolveByUUID(uuid);
   if (solveData){ 
-    return `This ${solveData.puzzle_id} was solved in ${solveData.solve_time} ` +
+    return `This ${solveData.puzzle_id} was solved in ${secToTime(solveData.solve_time_sec)} ` +
       `by @${solveData.username} in ${solveData.total_moves} moves on ${solveData.created_at.split('.')[0]} ` +
       `Scramble: ${solveData.scramble} Solve number: ${solveData.global_puzzle_solve_number} Replay: ${solveData.shortlink}`;
   }
