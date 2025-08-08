@@ -84,8 +84,48 @@ export class tscSupabaseClient {
     const currentGlobalSolveNumber = existingGlobalSolves?.[0]?.global_puzzle_solve_number || 0;
     const newGlobalSolveNumber = currentGlobalSolveNumber + 1;
 
-    // Insert new data with incremented solve_number
-    //TODO: Calculate ao5 and insert
+    let solve_ao5: string | null = null;
+
+    //Calculate ao5 if solve_number is divisible by 5 and there are at least 4 previous solves
+    if (newSolveNumber % 5 === 0) {
+      //Fetch last 4 solves before this one
+      const { data: lastFourSolves, error: lastFourError } = await this.supabase
+        .from(confInfo.supabaseTable)
+        .select('solve_time')
+        .eq('username', username)
+        .eq('puzzle_id', puzzle_id)
+        .order('solve_number', { ascending: false })
+        .limit(4);
+
+      if (lastFourError) {
+        console.error('Error fetching last four solves for ao5:', lastFourError);
+        return null;
+      }
+
+      if (lastFourSolves && lastFourSolves.length === 4) {
+        // Collect the current solve time + the last 4 solves
+        const timeToSec = t => {
+          const [m, s] = t.split(':').map(Number);
+          return m * 60 + s;
+        };
+
+        const secToTime = s => {
+          const m = Math.floor(s / 60);
+          const sec = (s % 60).toFixed(2); // keep 2 decimal places
+          return `${String(m).padStart(2, '0')}:${sec.padStart(5, '0')}`;
+        };
+
+        // Compute AO5
+        const times = [...lastFourSolves.map(s => timeToSec(s.solve_time)), timeToSec(solve_time)]
+          .sort((a, b) => a - b)
+          .slice(1, -1); // removes fastest and slowest
+
+        const avgSec = times.reduce((sum, t) => sum + t, 0) / times.length;
+        solve_ao5 = secToTime(avgSec);
+      }
+    }
+
+    // Insert new data with incremented solve_number and calculated ao5
     const { data, error } = await this.supabase
       .from(confInfo.supabaseTable)
       .insert([
@@ -93,6 +133,7 @@ export class tscSupabaseClient {
           username,
           puzzle_id,
           solve_time,
+          solve_ao5,
           solve_number: newSolveNumber,
           global_puzzle_solve_number: newGlobalSolveNumber,
           total_moves,
