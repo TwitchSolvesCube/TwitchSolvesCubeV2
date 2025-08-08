@@ -339,9 +339,10 @@ export default class TSC {
   }
 
   sendSolvedMsg(): void {
-    this.send(`The ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
+    this.send(`This ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
        `finished by @${this.getCurrentUser()} in ${this.getTotalMoves()} moves. The ` +
-       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}.`);
+       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}. ` +
+       `Custom scrambles or solves over an hour are not recorded. For future reference, type scramble before solving.`);
   }
 
   getSolvedData(): SolveDataEntry {

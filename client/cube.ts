@@ -376,42 +376,44 @@ export default class tscCube {
       clearInterval(this.timeSinceSolvedTimer); //"Pauses Timer"
       this.spinCamera({ numSpins: 4, durationMs: 6000 });
 
-      //This is a long and complicated way to get the scramble to show in setup in the twizzle player
-      //This is because 'experimentalSetupAlg' cannot be used to animate cube movements
-      this.player.experimentalSetupAlg = this.tsc.getScramble(); //The cube can no longer be changed, so we configure the setupalg here to be the scramble
-      const twizzleLink = await this.player.experimentalModel.twizzleLink(); //The twizzlelink still has a scramble applied and needs to be removed
-
-      //Parse the twizzle URL
-      const url = new URL(twizzleLink);
-
-      //Get the value of 'alg=' and 'setup-alg='
-      let algValue = url.searchParams.get('alg');
-      const setupAlgValue = url.searchParams.get('setup-alg');
-
-      //Remove 'setup-alg=' from the beginning of 'alg=' which is the scramble from this.player.experimentalSetupAlg = this.tsc.getScramble(); above
-      if (algValue.startsWith(setupAlgValue)) {
-        algValue = algValue.slice(setupAlgValue.length).trim();
-      }
-      //Update the 'alg=' parameter with the new value that has the scramble removed
-      url.searchParams.set('alg', algValue);
-      //Get the updated URL
-      const updatedTwizzleLink = url.toString();
-      this.tsc.timeStampLog(updatedTwizzleLink);
-      this.tsc.setTwizzleLink(updatedTwizzleLink);
-      this.tsc.setSolvedAlg(algValue);
-      this.tsc.sendSolvedMsg();
-
       //Store if solve is under an hour and do not store if solves is custom
-      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble() && this.db.isInitialized()){
+      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble() && this.db.isInitialized()) {
+        //This is a long and complicated way to get the scramble to show in setup in the twizzle player
+        //This is because 'experimentalSetupAlg' cannot be used to animate cube movements
+        this.player.experimentalSetupAlg = this.tsc.getScramble(); //The cube can no longer be changed, so we configure the setupalg here to be the scramble
+        const twizzleLink = await this.player.experimentalModel.twizzleLink(); //The twizzlelink still has a scramble applied and needs to be removed
+
+        //Parse the twizzle URL
+        const url = new URL(twizzleLink);
+
+        //Get the value of 'alg=' and 'setup-alg='
+        let algValue = url.searchParams.get('alg');
+        const setupAlgValue = url.searchParams.get('setup-alg');
+
+        //Remove 'setup-alg=' from the beginning of 'alg=' which is the scramble from this.player.experimentalSetupAlg = this.tsc.getScramble(); above
+        if (algValue.startsWith(setupAlgValue)) {
+          algValue = algValue.slice(setupAlgValue.length).trim();
+        }
+        //Update the 'alg=' parameter with the new value that has the scramble removed
+        url.searchParams.set('alg', algValue);
+        //Get the updated URL
+        const updatedTwizzleLink = url.toString();
+        this.tsc.timeStampLog(updatedTwizzleLink);
+        this.tsc.setTwizzleLink(updatedTwizzleLink);
+        this.tsc.setSolvedAlg(algValue);
+
         //These set of lines allows it so the uuid from the database can append to the kutt URL
         const insertedData = await this.db.insertData(this.tsc.getSolvedData());
         this.sendLinkData(this.tsc.getTwizzleLink(), insertedData.uuid);
         await delay(1000); //Required to to avoid undefined shortlinkResult
         await this.db.setShortlinkForUUID(insertedData.uuid, this.tsc.getShortLink());
-        this.tsc.sendShortLinkMsg();
-
+        const solvedMsg: string = await query.viewSolve(`${insertedData.uuid}`, false);
+        this.send(solvedMsg);
+        this.send(`Save the ID at the end of the replay link to view these stats anytime. Example, !view 01234567-89ab-cdef-ghij-klmnopqrstuv`);
         //Update the topleft with the top 3 users
         await this.updateTopUsers();
+      } else {
+        this.tsc.sendSolvedMsg();
       }
 
       // Pause for 15 seconds to view Solved State
