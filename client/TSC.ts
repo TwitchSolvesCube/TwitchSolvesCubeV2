@@ -5,7 +5,7 @@ import type { PuzzleID } from "cubing/twisty";
 interface SolveDataEntry {
   username: string;
   puzzle_id: string;
-  solve_time: string;
+  solve_time_sec: number;
   total_moves: number;
   scramble: string;
   solve_alg: string;
@@ -348,7 +348,7 @@ export default class TSC {
     const solveData: SolveDataEntry = {
       username: this.getCurrentUser(),
       puzzle_id: this.getPuzzleID(),
-      solve_time: this.getTimeSinceSolved().slice(3),
+      solve_time_sec: this.getSecondsSinceSolved(),
       total_moves: this.getTotalMoves(),
       scramble: this.getScramble(),
       solve_alg: this.getSolvedAlg(),
