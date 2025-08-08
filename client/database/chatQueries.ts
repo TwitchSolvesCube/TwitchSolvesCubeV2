@@ -53,17 +53,17 @@ export async function userPBQuery(message: string, user: string): Promise<string
 }
 
 //!view
-//TODO: Parse url links?
-//TODO: Return this instead of solvedMsg for solved under 60 minutes
-export async function viewSolve(message: string): Promise<string> {
-  const uuid = message.split(" ")[1];
+export async function viewSolve(message: string, chatMsg: boolean = true): Promise<string> {
+  const uuid = chatMsg ? message.split(" ")[1] : message;
   const solveData = await db.getSolveByUUID(uuid);
   if (solveData){ 
-    return `This ${solveData.puzzle_id} was solved in ${secToTime(solveData.solve_time_sec)} ` +
-      `by @${solveData.username} in ${solveData.total_moves} moves on ${solveData.created_at.split('.')[0]} ` +
-      `Scramble: ${solveData.scramble} Solve number: ${solveData.global_puzzle_solve_number} Replay: ${solveData.shortlink}`;
+    return `Solve #${solveData.global_puzzle_solve_number} for the ${solveData.puzzle_id} ` +
+      `was solved in ${secToTime(solveData.solve_time_sec)} & finished by @${solveData.username} in ` +
+      `${solveData.total_moves} moves on ${solveData.created_at.split('.')[0]} ` +
+      `UTC.${solveData.solve_ao5_sec ? ` Average of 5: ${solveData.solve_ao5_sec}` : ``} Scramble: ` +
+      `${solveData.scramble} Replay: ${solveData.shortlink}`;
   }
-  return "That solve id does not exist.";
+  return `The solve id ${uuid} does not exist.`;
 }
 
 //!solves
