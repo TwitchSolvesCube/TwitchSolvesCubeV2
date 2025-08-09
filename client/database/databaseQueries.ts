@@ -32,7 +32,7 @@ export class tscSupabaseClient {
 
   constructor() {
     try {
-      if (confInfo.supabaseUrl && confInfo.supabaseKey) {
+      if (confInfo.supabaseUrl && confInfo.supabaseKey && confInfo.supabaseTable) {
         this.supabase = createClient(confInfo.supabaseUrl, confInfo.supabaseKey);
         this.initialized = true;
       } else {
@@ -115,10 +115,6 @@ export class tscSupabaseClient {
       }
     }
 
-    //TODO: Check best database
-
-    //TODO: Insert to best database
-
     // Insert new data with incremented solve_number and calculated ao5
     const { data, error } = await this.supabase
       .from(confInfo.supabaseTable)
@@ -166,7 +162,6 @@ export class tscSupabaseClient {
     return data?.shortlink ?? null;
   }
 
-  //TODO: getTopSolveTimes and getTopSolvers should only return unique users
   //!top
   async getTopSolveTimes(puzzle_id: string): Promise<LeaderboardResult | null> {
     if (!this.isInitialized()) {
@@ -174,11 +169,7 @@ export class tscSupabaseClient {
     }
 
     const { data, error } = await this.supabase
-      .from(confInfo.supabaseTable)
-      .select('username, solve_time_sec')
-      .eq('puzzle_id', puzzle_id)
-      .order('solve_time_sec', { ascending: true })
-      .limit(3);
+      .rpc('get_top3_solve_times', { puzzle_id: puzzle_id });
 
     if (error) {
       console.error('Error fetching top solve times:', error);
@@ -191,7 +182,7 @@ export class tscSupabaseClient {
     }
 
     const leaderboardText = data
-      .map((solve, index) => `${index + 1}. ${solve.username}: ${solve.solve_time_sec}`)
+      .map((solve, index) => `${index + 1}. @${solve.username}: ${this.secToTime(solve.solve_time_sec)}`)
       .join(' | ');
 
     return {
@@ -209,11 +200,7 @@ export class tscSupabaseClient {
     }
 
     const { data, error } = await this.supabase
-      .from(confInfo.supabaseTable)
-      .select('username, solve_number')
-      .eq('puzzle_id', puzzle_id)
-      .order('solve_number', { ascending: false })
-      .limit(3);
+      .rpc('get_top3_solvers', {puzzle_id: puzzle_id});
 
     if (error) {
       console.error('Error fetching top solvers:', error);
@@ -251,12 +238,12 @@ export class tscSupabaseClient {
     }
 
     if (!data || data.length === 0) {
-      return `${username} does not have any ${puzzle_id} entries`;
+      return `@${username} does not have any ${puzzle_id} entries`;
     }
 
-    const header = `Top ${puzzle_id} solves by ${username} | `;
+    const header = `Top ${puzzle_id} solves by @${username} | `;
     const timesList = data
-      .map((solve, index) => `${index + 1}. ${solve.solve_time_sec}`);
+      .map((solve, index) => `${index + 1}. ${this.secToTime(solve.solve_time_sec)}`);
     
     return `${header} ${timesList.join(' | ')}`;
   }
