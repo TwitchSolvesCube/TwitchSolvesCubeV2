@@ -2,13 +2,7 @@
 
 [![](https://img.shields.io/badge/Powered_By-cubing.js-blueviolet?logo=github)](https://github.com/cubing/cubing.js)  
 
-## Features
-
-Various cube perspectives  
-Back of cube is visible with "hints"  
-Multiple Puzzles
-Database functions to store solves and times  
-TODO: Followers 8 Minutes vs Non-Followers 5 Minutes  
+Head over to [twitch.tv/twitchsolvescube](https://www.twitch.tv/twitchsolvescube) to try out this project!
 
 ## 💬 Chat Commands!
 
@@ -46,65 +40,9 @@ These are commands that can only be used when its a players turn.
 | `!view <uuid>`                   | –                           | Shows stats of a specific solve by its UUID.                                         | `!view 01234567-89ab-cdef-ghij-klmnopqrstuv`                             |
 | `!solves <username> <puzzle_id>` | –                           | Shows how many times a user has solved a puzzle. Defaults to your solves and 3x3x3 puzzle.  | `!solves`<br>`!solves 2x2x2`<br>`!solves @user`<br>`!solves @user 2x2x2` |
 
-# Contributing
+# Contributing / Setting up
 
-## Install Requirements
-
-[NodeJs >=22.3.0](https://nodejs.org/en/download) and [Git](https://git-scm.com/download/win)
-
-#### Font (Optional)
-
-[Rubik](https://fonts.google.com/specimen/Rubik)
-
-## How to create `tokens.*.json`
-
-Follow Steps 1 & 2 from here https://twurple.js.org/docs/examples/chat/basic-bot.html  
-To make things easier you may use https://reqbin.com/post-online for your POST request (Use this site at your own risk)   
-
-Example link for scopes, enter your CLIENT_ID and REDIRECT_URI.
-
-```
-https://id.twitch.tv/oauth2/authorize?client_id=<CLIENT_ID>&redirect_uri=<REDIRECT_URI>&response_type=code&scope=chat:read+chat:edit+whispers:edit+whispers:read+channel:moderate+moderator:read:followers
-```
-
-Place the `tokens.*.json` file in the server folder.   
-
-## How to create `config.json`
-
-Paste in your `clientId`, `clientSecret`, and `channelName` you want to connect to.
-
-Edit `clientPort` and `serverPort` if running more than two instances.
-
-
-### Optional configs
-
-If a database, aka leaderboards and stats, is desired add `supabaseUrl` and `supabaseKey`. More details at [supabase.com](https://supabase.com).
-
-[Kutt](https://github.com/thedevs-network/kutt) shortens twizzle links to meet the character limit of twitchchat and is only used if supabase is configured. To use this feature set `kuttURL` `kuttDomain` and `kuttKey`.
-
-## Setting Up Dev Enviroment
-
-Run line by line
-
-```
-git clone https://github.com/TwitchSolvesCube/TwitchSolvesCubeV2  
-```
-
-```
-cd TwitchSolvesCubeV2
-```
-
-Installs npm packages
-
-```
-npm run packages
-```
-
-Starts the client and server
-
-```
-npm run tsc
-```
+For developing/contributing or setting up refer to the [CONTRIBUTING.md](CONTRIBUTING.md) doc.
 
 # License
 
