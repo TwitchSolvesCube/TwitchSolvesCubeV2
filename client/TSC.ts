@@ -4,6 +4,7 @@ import type { PuzzleID } from "cubing/twisty";
 
 interface SolveDataEntry {
   username: string;
+  solve_participants: string;
   puzzle_id: string;
   solve_time_sec: number;
   total_moves: number;
@@ -25,6 +26,7 @@ export default class TSC {
   private shortLink: string;
 
   private queue: Array<string> = new Array();
+  private solveParticipants: Array<string> = new Array();
   private turns: boolean = true;
   private speedNotation: boolean = false;
   private movable: boolean;
@@ -152,6 +154,23 @@ export default class TSC {
 
   getQLength(): number {
     return this.queue.length;
+  }
+
+  addParticipant(username: string): void {
+    this.solveParticipants.push(username);
+  }
+
+  getParticipants(): string {
+    return this.solveParticipants.toString();
+  }
+
+  clearParticipants(): void {
+    this.solveParticipants = new Array();
+  }
+
+  dedupParticipants(): void {
+    this.solveParticipants = [...new Set(this.solveParticipants)];
+    this.solveParticipants = this.solveParticipants.filter(user => user !== this.getCurrentUser());
   }
 
   setEventID(eventID: string): void {
@@ -342,12 +361,14 @@ export default class TSC {
     this.send(`This ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
        `finished by @${this.getCurrentUser()} in ${this.getTotalMoves()} moves. The ` +
        `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}. ` +
+       `${this.getParticipants() ? `Participants: ${this.getParticipants()}` : ''}` +
        `Custom scrambles or solves over an hour are not recorded. For future reference, type scramble before solving.`);
   }
 
   getSolvedData(): SolveDataEntry {
     const solveData: SolveDataEntry = {
       username: this.getCurrentUser(),
+      solve_participants: this.getParticipants(),
       puzzle_id: this.getPuzzleID(),
       solve_time_sec: this.getSecondsSinceSolved(),
       total_moves: this.getTotalMoves(),

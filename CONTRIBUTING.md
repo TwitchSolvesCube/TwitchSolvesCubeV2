@@ -71,6 +71,7 @@ npm run tsc
 | `uuid`                       | text       | gen_random_uuid()   | Unique identifier                    |
 | `created_at`                 | timestamp  | now()               | Timestamp of solve                   |
 | `username`                   | text       | NULL                | User who finished the puzzle         |
+| `solve_participants`         | text       | NULL                | Users who added a move to solve      |
 | `puzzle_id`                  | text       | NULL                | Puzzle type: "2x2x2" "3x3x3" etc     |
 | `solve_time_sec`             | float4     | NULL                | Solve time in seconds                |
 | `solve_ao5_sec`              | float4     | NULL                | Average of 5 solves in seconds       |

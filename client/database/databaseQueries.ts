@@ -4,6 +4,7 @@ const confInfo = require('../../server/config.json');
 
 interface SolveData {
   username: string;
+  solve_participants: string;
   puzzle_id: string;
   solve_time_sec: number;
   total_moves: number;
@@ -49,7 +50,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    const { username, puzzle_id, solve_time_sec, total_moves, scramble, solve_alg, twizzle_link } = solve;
+    const { username, solve_participants, puzzle_id, solve_time_sec, total_moves, scramble, solve_alg, twizzle_link } = solve;
 
     // Get current highest solve_number for this user and puzzle
     const { data: existingUserSolves, error: userFetchError } = await this.supabase
@@ -121,6 +122,7 @@ export class tscSupabaseClient {
       .insert([
         {
           username,
+          solve_participants,
           puzzle_id,
           solve_time_sec,
           solve_ao5_sec: Math.round(solve_ao5_sec * 1000) / 1000,

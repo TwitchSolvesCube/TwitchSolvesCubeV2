@@ -110,6 +110,7 @@ export default class tscCube {
 
   private async newCube() {
     const newPuzzleID = this.tsc.getPuzzleID();
+    this.tsc.clearParticipants();
 
     if (this.movesMap[this.tsc.getEventID()]) {
       this.validMove = this.movesMap[this.tsc.getEventID()];
@@ -328,6 +329,8 @@ export default class tscCube {
     if (currentUser === user) {
       if (this.tsc.isCubeEnabled()) {
         this.doCubeMoves(move);
+        this.tsc.addParticipant(currentUser); //TODO: Check if this is working correctly. Database currently has no records
+        this.tsc.dedupParticipants();
       }
     }
 
