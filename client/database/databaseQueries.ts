@@ -302,11 +302,13 @@ export class tscSupabaseClient {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  isInitialized(): boolean {
-    if (this.initialized) {
-      console.log("Supabase is configured.");
-    } else {
-      console.log("Supabase is not configured.");
+  isInitialized(printLog: boolean = true): boolean {
+    if (printLog) {
+      if (this.initialized) {
+        console.log("Supabase is configured.");
+      } else {
+        console.log("Supabase is not configured.");
+      }
     }
     return this.initialized;
   }
