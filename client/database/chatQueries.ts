@@ -61,7 +61,7 @@ export async function viewSolve(message: string, chatMsg: boolean = true): Promi
       `was solved in ${secToTime(solveData.solve_time_sec)} & finished by @${solveData.username} in ` +
       `${solveData.total_moves} moves on ${solveData.created_at.split('.')[0]} ` +
       `UTC.${solveData.solve_ao5_sec ? ` Average of 5: ${solveData.solve_ao5_sec}` : ``} Scramble: ` +
-      `${solveData.scramble} Replay: ${solveData.shortlink}`;
+      `${solveData.scramble} ${solveData.shortlink ? `Replay: ${solveData.shortlink}`: `ID: ${solveData.uuid}` }`;
   }
   return `The solve id ${uuid} does not exist.`;
 }

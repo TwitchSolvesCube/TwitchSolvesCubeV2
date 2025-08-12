@@ -98,8 +98,8 @@ wss.on('connection', (ws) => {
 
 async function createShortLink(twizzlelink, uuid) {
   if (!kuttConfig.enabled) {
-    timeStampLog(`Kutt not available, returning original link: ${twizzlelink}`);
-    return twizzlelink;
+    timeStampLog(`Kutt not available, returning null: ${twizzlelink}`);
+    return null;
   }
 
   try {
