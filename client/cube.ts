@@ -336,7 +336,7 @@ export default class tscCube {
 
     //Database queries
     const topCommands: Array<string> = ["!top", "!leaderboard", "!lb"];
-    if (this.db.isInitialized()) {
+    if (this.db.isInitialized(false)) {
       if (topCommands.includes(message) || topCommands.some(cmd => message.startsWith(cmd + " "))) {
         const topQueryResult = await query.topQuery(message);
         this.send(topQueryResult);
@@ -380,7 +380,7 @@ export default class tscCube {
       this.spinCamera({ numSpins: 4, durationMs: 6000 });
 
       //Store if solve is under an hour and do not store if solves is custom
-      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble() && this.db.isInitialized()) {
+      if (this.tsc.getSecondsSinceSolved() <= 3600 && !this.tsc.isCustomScramble() && this.db.isInitialized(false)) {
         //This is a long and complicated way to get the scramble to show in setup in the twizzle player
         //This is because 'experimentalSetupAlg' cannot be used to animate cube movements
         this.player.experimentalSetupAlg = this.tsc.getScramble(); //The cube can no longer be changed, so we configure the setupalg here to be the scramble
