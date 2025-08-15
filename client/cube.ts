@@ -18,8 +18,8 @@ export default class tscCube {
   private validPuzzle: Array<string> = ["222", "333", "444", "555"];
   private moreKpuzzles: Array<string> = ["4x4x4", "5x5x5", "skewb", "pyraminx", "megaminx", "clock"];
 
-  // Cubingjs does understand valid moves per puzzle, but that includes R* for any number. Ex, R100.
-  // This is not desirable for a future database, and is not standard notation.
+  //Cubingjs does understand valid moves per puzzle, but that includes R* for any number. Ex, R100.
+  //This is not desirable for a future database, and is not standard notation.
   private baseMoves = ["", "'", "2"];
   private rotations = ["x", "y", "z"];
   private standardFaces = ["R", "L", "U", "D", "F", "B"];
@@ -89,7 +89,7 @@ export default class tscCube {
       ";", "a",
       "p", "q"];
 
-  // Timers
+  //Timers
   private timeSinceSolvedTimer;
   private kpuzzle: KPuzzle;
   private puzzleState: KPattern;
@@ -97,8 +97,8 @@ export default class tscCube {
   private send: (message: string) => void;
   private sendLinkData: (uuid: string, link: string) => void;
 
-  // Date
-  // let currentDate = new Date();
+  //Date
+  //let currentDate = new Date();
   constructor(eventID: string, send: (message: string) => void, sendLinkData: (uuid: string, link: string) => void) {
     this.send = send;
     this.sendLinkData = sendLinkData;
@@ -126,7 +126,7 @@ export default class tscCube {
       experimentalDragInput: "none"
     }));
 
-    // kpuzzle needs to match the puzzleID in order to validate moves.
+    //kpuzzle needs to match the puzzleID in order to validate moves.
     if (newPuzzleID === "2x2x2") {
       this.kpuzzle = await cube2x2x2.kpuzzle();
     }
@@ -209,8 +209,8 @@ export default class tscCube {
         this.scramblePuzzle();
       } else {
         //Allows a user to use their own scrambles
-        const scramblePart = message.slice(8).trim(); // Remove "scramble" prefix
-        const userScramble = scramblePart.split(/\s+/); // Split on any whitespace
+        const scramblePart = message.slice(8).trim(); //Remove "scramble" prefix
+        const userScramble = scramblePart.split(/\s+/); //Split on any whitespace
 
         if (userScramble.every(move => this.validScramble.includes(move))) {
           this.scramblePuzzle(userScramble);
@@ -249,17 +249,17 @@ export default class tscCube {
 
     if (!this.isCubeStateSolved()) {
       if (!this.tsc.isSpeedNotation()) {
-        // Ensure moves can be done
+        //Ensure moves can be done
         msg = message.replace("`", "\'")
           .replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
           .replace("X", "x").replace("Y", "y").replace("Z", "z")
           .replace("m", "M").replace("e", "E").replace("s", "S");
 
-          // Moves with a "." are valid to prevent spam detection
+          //Moves with a "." are valid to prevent spam detection
           if (this.validMove.includes(msg) || this.validMove.some(move => msg.includes(move + "."))) {
             this.appendMove(msg.replace(/\.$/, ''));
           
-            // Update top right moves
+            //Update top right moves
             this.tsc.incMoves();
           }
       } else if (this.tsc.isSpeedNotation()) {
@@ -279,19 +279,19 @@ export default class tscCube {
           this.player.experimentalAddMove(newMove);
           this.puzzleState = this.puzzleState.applyMove(newMove);
 
-          // Update top right moves
+          //Update top right moves
           this.tsc.incMoves();
         }
       }
 
-      // if (twitch.isSubscriber() && message.length >= 3) {
-      //   //User is subscribed and typed a message longer than 2 characters (i.e R U)
-      //   let algArray = message.split(' ');
+      //if (twitch.isSubscriber() && message.length >= 3) {
+      //  //User is subscribed and typed a message longer than 2 characters (i.e R U)
+      //  let algArray = message.split(' ');
 
-      //   if (algArray.every(v => moves333.includes(v))) {
-      //     appendAlg(algArray);
-      //   }
-      // }
+      //  if (algArray.every(v => moves333.includes(v))) {
+      //    appendAlg(algArray);
+      //  }
+      //}
     }
   }
 
@@ -419,10 +419,10 @@ export default class tscCube {
         this.tsc.sendSolvedMsg();
       }
 
-      // Pause for 15 seconds to view Solved State
+      //Pause for 15 seconds to view Solved State
       await delay(15000);
 
-      // Reset
+      //Reset
       this.tsc.resetTimeSS();
       this.scramblePuzzle();
     }

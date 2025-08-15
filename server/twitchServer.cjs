@@ -55,10 +55,10 @@ wss.on('connection', (ws) => {
   activeConnection = ws;
   timeStampLog('Client connected');
 
-  // Send a message to the connected client
+  //Send a message to the connected client
   ws.send('Welcome to the WebSocket server!');
 
-  // Handle messages from clients
+  //Handle messages from clients
   ws.on('message', async (message) => {
     try {
       const jsonData = JSON.parse(message);
@@ -84,7 +84,7 @@ wss.on('connection', (ws) => {
     }
   });
 
-  // Handle disconnection
+  //Handle disconnection
   ws.on('close', () => {
     activeConnection = null;
     timeStampLog('Client disconnected');
