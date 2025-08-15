@@ -43,7 +43,7 @@ export default class TSC {
   private topUser2: HTMLElement = document.getElementById("topUser2") as HTMLElement;
   private topUser3: HTMLElement = document.getElementById("topUser3") as HTMLElement;
 
-  // Timers
+  //Timers
   private userTurnTimer: NodeJS.Timer;
 
   private send: (message: string) => void;
@@ -88,13 +88,13 @@ export default class TSC {
       if (userIndex !== -1) {
         this.queue.splice(userIndex, 1);
         let currentUser = this.getCurrentUser();
-        // If the removed user was at index 0 then reset the timer for the next user
+        //If the removed user was at index 0 then reset the timer for the next user
         if (userIndex === 0) {
           this.setTurnTime(300);
           this.setSpeedNotation(false);
         }
         //this.clearAfkCountdown();
-        if (currentUser && !chatRemoval) { // If the user is removed by the timer queue next player
+        if (currentUser && !chatRemoval) { //If the user is removed by the timer queue next player
           //isFollowing(currentUser);
           this.userTurnTime();
           this.send(`@${currentUser}, it's your turn! Do !leave when done. `);
@@ -238,7 +238,7 @@ export default class TSC {
     }
     this.clearUserTurnTimer();
     this.timeStampLog(`Queue Length: ${this.getQLength()}`);
-    if (this.getQLength() === 1){ // length is 1 before last player is removed where this function is called
+    if (this.getQLength() === 1){ //length is 1 before last player is removed where this function is called
       this.setUserLabel("");
     }
     return false;
@@ -302,7 +302,7 @@ export default class TSC {
   
   async newScrambleArray(): Promise<string[][]> {
     var scramString = await randomScrambleForEvent(this.eventID);
-    // Turn scramble string into an array
+    //Turn scramble string into an array
     this.scramble = scramString.toString().split(' ');
     this.timeStampLog(`Scramble: ${this.scramble}`);
     return Array(this.scramble);

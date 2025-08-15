@@ -11,7 +11,7 @@ interface SolveData {
   scramble: string;
   solve_alg: string;
   twizzle_link: string;
-  // Optional
+  //Optional
   uuid?: string;
   created_at?: string;
   solve_ao5_sec?: number;
@@ -52,7 +52,7 @@ export class tscSupabaseClient {
 
     const { username, solve_participants, puzzle_id, solve_time_sec, total_moves, scramble, solve_alg, twizzle_link } = solve;
 
-    // Get current highest solve_number for this user and puzzle
+    //Get current highest solve_number for this user and puzzle
     const { data: existingUserSolves, error: userFetchError } = await this.supabase
       .from(confInfo.supabaseTable)
       .select('solve_number')
@@ -69,7 +69,7 @@ export class tscSupabaseClient {
     const currentSolveNumber = existingUserSolves?.[0]?.solve_number || 0;
     const newSolveNumber = currentSolveNumber + 1;
 
-    // Get current highest global_puzzle_solve_number for this puzzle_id
+    //Get current highest global_puzzle_solve_number for this puzzle_id
     const { data: existingGlobalSolves, error: globalFetchError } = await this.supabase
       .from(confInfo.supabaseTable)
       .select('global_puzzle_solve_number')
@@ -104,19 +104,19 @@ export class tscSupabaseClient {
       }
 
       if (lastFourSolves && lastFourSolves.length === 4) {
-        // Collect the current solve time + the last 4 solves
+        //Collect the current solve time + the last 4 solves
         const times = [
           ...lastFourSolves.map(s => s.solve_time_sec),
           solve_time_sec
         ];
 
-        // Compute AO5 (remove best & worst, average the rest)
+        //Compute AO5 (remove best & worst, average the rest)
         const trimmed = times.sort((a, b) => a - b).slice(1, -1);
         solve_ao5_sec = trimmed.reduce((sum, t) => sum + t, 0) / trimmed.length;
       }
     }
 
-    // Insert new data with incremented solve_number and calculated ao5
+    //Insert new data with incremented solve_number and calculated ao5
     const { data, error } = await this.supabase
       .from(confInfo.supabaseTable)
       .insert([
