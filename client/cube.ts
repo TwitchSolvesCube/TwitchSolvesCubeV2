@@ -105,7 +105,15 @@ export default class tscCube {
     this.tsc = new TSC(eventID, this.send.bind(this));
     this.newCube();
     this.db = new tscSupabaseClient();
-    this.updateTopUsers(); //Update the topleft with the top 3 users
+
+    //Cycle through leaderboards
+    const cycPuzzles = ["2x2x2", "3x3x3", "4x4x4", "5x5x5"];
+    let currentPuzzleIndex = 0;
+    this.updateTopUsers(cycPuzzles[currentPuzzleIndex]);
+    setInterval(() => {
+      currentPuzzleIndex = (currentPuzzleIndex + 1) % cycPuzzles.length;
+      this.updateTopUsers(cycPuzzles[currentPuzzleIndex]);
+    }, 10000);
   }
 
   private async newCube() {
@@ -243,7 +251,6 @@ export default class tscCube {
     }
     if (this.validPuzzle.includes(message)) {
       this.tsc.setEventID(message);
-      this.updateTopUsers(); //Update the topleft with the top 3 users
       this.scramblePuzzle();
     }
 
@@ -413,8 +420,6 @@ export default class tscCube {
         const solvedMsg: string = await query.viewSolve(`${insertedData.uuid}`, false);
         this.send(solvedMsg);
         this.send(`Save the ID at the end of the replay link to view these stats anytime. Example, !view 01234567-89ab-cdef-ghij-klmnopqrstuv`);
-        //Update the topleft with the top 3 users
-        await this.updateTopUsers();
       } else {
         this.tsc.sendSolvedMsg();
       }
@@ -428,13 +433,13 @@ export default class tscCube {
     }
   }
 
-  async updateTopUsers(): Promise<void> {
-    const result = await this.db.getTopSolveTimes(this.tsc.getPuzzleID());
+  async updateTopUsers(puzzle_id: string): Promise<void> {
+    const result = await this.db.getTopSolveTimes(puzzle_id);
     if (result) {
-      this.tsc.setTopUsers(result.topUser1, result.topUser2, result.topUser3);
+      this.tsc.setTopUsers(puzzle_id, result.topUser1, result.topUser2, result.topUser3);
       return;
     }
-    this.tsc.setTopUsers(null, null, null);
+    this.tsc.setTopUsers(null, null, null, null);
   }
 
   spinCamera(options?: { numSpins?: number, durationMs: number }): void {

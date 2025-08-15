@@ -197,10 +197,10 @@ export default class TSC {
   }
 
   incTimeSS(): void {
+    ++this.secondsSinceSolved;
     if (this.showLabels) {
       this.timeLabel.textContent = `${this.getTimeSinceSolved()}`;
     }
-    ++this.secondsSinceSolved;
   }
 
   resetTimeSS(): void {
@@ -380,8 +380,8 @@ export default class TSC {
     return solveData;
   }
 
-  setTopUsers(topUser1: string, topUser2: string, topUser3): void {
-    this.topUserHeader.textContent = `Top ${this.getPuzzleID()} Solves`;
+  setTopUsers(puzzle_id: string, topUser1: string, topUser2: string, topUser3): void {
+    this.topUserHeader.textContent = `Top ${puzzle_id} Solves`;
     this.topUser1.textContent = topUser1;
     this.topUser2.textContent = topUser2;
     this.topUser3.textContent = topUser3;
