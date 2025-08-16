@@ -1,5 +1,5 @@
 import tscCube from "./cube";
-import { serverPort } from '../server/config.json';
+import { serverPort } from '../config.json';
 
 export class twitchClient {
 
