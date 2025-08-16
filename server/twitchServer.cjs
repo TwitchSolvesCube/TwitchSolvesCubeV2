@@ -7,19 +7,19 @@ const { ChatClient  } = require('@twurple/chat');
 
 const { Kutt } = require("kutt");
 
-const confInfo = require('../config.json');
+const config = require('../config.json');
 
-const clientId = confInfo.clientId;
-const clientSecret = confInfo.clientSecret;
-const channelName = confInfo.channelName;
-const channelID = confInfo.channelID;
-const serverPort = confInfo.serverPort;
+const clientId = config.clientId;
+const clientSecret = config.clientSecret;
+const channelName = config.channelName;
+const channelID = config.channelID;
+const serverPort = config.serverPort;
 
 const kuttConfig = {
-  enabled: confInfo.kuttKey && confInfo.kuttURL && confInfo.kuttDomain,
-  url: confInfo.kuttURL,
-  domain: confInfo.kuttDomain,
-  key: confInfo.kuttKey
+  enabled: config.kuttKey && config.kuttURL && config.kuttDomain,
+  url: config.kuttURL,
+  domain: config.kuttDomain,
+  key: config.kuttKey
 };
 
 const timeStampLog = (message) => console.log(`[${new Date().toLocaleString()}] ${message}`);
