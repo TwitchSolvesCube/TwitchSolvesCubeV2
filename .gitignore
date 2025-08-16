@@ -1,6 +1,6 @@
 node_modules
-.parcel-cache
 dist
 config*.json
+!configTemplate.json
 tokens.*.json
-configTemplate.json
+notes.md

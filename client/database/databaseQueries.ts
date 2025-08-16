@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const confInfo = require('../../server/config.json');
+const confInfo = require('../../config.json');
 
 interface SolveData {
   username: string;

@@ -7,7 +7,7 @@ const { ChatClient  } = require('@twurple/chat');
 
 const { Kutt } = require("kutt");
 
-const confInfo = require('./config.json');
+const confInfo = require('../config.json');
 
 const clientId = confInfo.clientId;
 const clientSecret = confInfo.clientSecret;

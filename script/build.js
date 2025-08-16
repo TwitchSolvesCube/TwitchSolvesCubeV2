@@ -3,7 +3,7 @@
 import {barelyServe} from "barely-a-dev-server";
 import { readFileSync } from 'fs';
 
-const { clientPort } = JSON.parse(readFileSync('./server/config.json', 'utf-8'));
+const { clientPort } = JSON.parse(readFileSync('config.json', 'utf-8'));
 
 export const COMMON_BUILD_OPTIONS = {
   entryRoot: "./client",
