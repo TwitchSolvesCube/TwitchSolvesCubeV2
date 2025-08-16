@@ -1,4 +1,4 @@
-# TwitchSolvesCubeV2
+# <img src="./client/favicon.ico" alt="Favicon" width="32" height="32"> TwitchSolvesCubeV2 
 
 [![](https://img.shields.io/badge/Powered_By-cubing.js-blueviolet?logo=github)](https://github.com/cubing/cubing.js)  
 
