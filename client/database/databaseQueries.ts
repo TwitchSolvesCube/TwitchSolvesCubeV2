@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const confInfo = require('../../config.json');
+const config = require('../../config.json');
 
 interface SolveData {
   username: string;
@@ -33,8 +33,8 @@ export class tscSupabaseClient {
 
   constructor() {
     try {
-      if (confInfo.supabaseUrl && confInfo.supabaseKey && confInfo.supabaseTable) {
-        this.supabase = createClient(confInfo.supabaseUrl, confInfo.supabaseKey);
+      if (config.supabaseUrl && config.supabaseKey && config.supabaseTable) {
+        this.supabase = createClient(config.supabaseUrl, config.supabaseKey);
         this.initialized = true;
       } else {
         console.warn('Supabase URL or Key missing - running in offline mode');
@@ -54,7 +54,7 @@ export class tscSupabaseClient {
 
     //Get current highest solve_number for this user and puzzle
     const { data: existingUserSolves, error: userFetchError } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .select('solve_number')
       .eq('username', username)
       .eq('puzzle_id', puzzle_id)
@@ -71,7 +71,7 @@ export class tscSupabaseClient {
 
     //Get current highest global_puzzle_solve_number for this puzzle_id
     const { data: existingGlobalSolves, error: globalFetchError } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .select('global_puzzle_solve_number')
       .eq('puzzle_id', puzzle_id)
       .order('global_puzzle_solve_number', { ascending: false })
@@ -91,7 +91,7 @@ export class tscSupabaseClient {
     if (newSolveNumber % 5 === 0) {
       //Fetch last 4 solves before this one
       const { data: lastFourSolves, error: lastFourError } = await this.supabase
-        .from(confInfo.supabaseTable)
+        .from(config.supabaseTable)
         .select('solve_time_sec')
         .eq('username', username)
         .eq('puzzle_id', puzzle_id)
@@ -118,7 +118,7 @@ export class tscSupabaseClient {
 
     //Insert new data with incremented solve_number and calculated ao5
     const { data, error } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .insert([
         {
           username,
@@ -150,7 +150,7 @@ export class tscSupabaseClient {
     }
 
     const { data, error } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .update({ shortlink })
       .eq('uuid', uuid)
       .select('shortlink')
@@ -227,7 +227,7 @@ export class tscSupabaseClient {
     }
 
     const { data, error } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .select('solve_time_sec')
       .eq('username', username)
       .eq('puzzle_id', puzzle_id)
@@ -257,7 +257,7 @@ export class tscSupabaseClient {
     }
 
     const { data: solve, error: solveError } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .select('*')
       .eq('uuid', uuid)
       .single();
@@ -277,7 +277,7 @@ export class tscSupabaseClient {
     }
 
     const { data, error } = await this.supabase
-      .from(confInfo.supabaseTable)
+      .from(config.supabaseTable)
       .select('solve_number,username,puzzle_id')
       .eq('username', username)
       .eq('puzzle_id', puzzle_id)
