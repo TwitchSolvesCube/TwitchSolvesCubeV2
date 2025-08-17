@@ -76,6 +76,7 @@ wss.on('connection', (ws) => {
         return;
       }
       if (jsonData.type === `twitchChatMsg`) {
+        //TODO: When sending a msg from client there should be a username
         timeStampLog(jsonData.message);
         chatClient.say(channelName, jsonData.message);
       }
