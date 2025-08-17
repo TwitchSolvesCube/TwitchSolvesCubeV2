@@ -53,13 +53,18 @@ export default class TSC {
     this.send = send;
   }
 
-  async joinQueue(username: string) {
+  async joinQueue(username: string): Promise<boolean> {
+    let resetcube: boolean = false;
     username = username.toLowerCase();
+
     if (this.isTurns()) {
       const queue = this.getQueue();
       const qLength = this.getQLength();
 
       if (qLength === 0) {
+        if ( this.getSecondsSinceSolved() >= 10800 ) {
+          resetcube = true;
+        }
         this.enqueue(username);
         //isFollowing(username);
         this.userTurnTime();
@@ -76,8 +81,7 @@ export default class TSC {
     } else {
        this.send("The cube is currently in Vote mode. No need to !join, just type a move in chat");
     }
-
-    //this.timeStampLog(`Response ${response}`);
+    return resetcube;
   }
 
   async removePlayer(username: string, chatRemoval: boolean = false) {
