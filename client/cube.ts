@@ -316,7 +316,9 @@ export default class tscCube {
         this.send("There's currently no one in the queue, do !join");
       }
     } else if (joinCommands.includes(message)) {
-      await this.tsc.joinQueue(user);
+      if (await this.tsc.joinQueue(user)) {
+        this.scramblePuzzle();
+      }
     } else if (leaveCommands.includes(message)) {
       await this.tsc.removePlayer(user, true);
     } else if ((message.startsWith("!remove") || message.startsWith("!rm")) && isMod) {
