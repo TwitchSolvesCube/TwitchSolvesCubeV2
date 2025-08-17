@@ -189,9 +189,9 @@ export class tscSupabaseClient {
 
     return {
       leaderboardText: `Top ${puzzle_id} Solves | ${leaderboardText}`,
-      topUser1: data[0] ? `1. ${data[0].username}: ${this.secToTime(data[0].solve_time_sec)}` : undefined,
-      topUser2: data[1] ? `2. ${data[1].username}: ${this.secToTime(data[1].solve_time_sec)}` : undefined,
-      topUser3: data[2] ? `3. ${data[2].username}: ${this.secToTime(data[2].solve_time_sec)}` : undefined,
+      topUser1: data[0] ? `1. ${data[0].username}: ${this.secToTime(data[0].solve_time_sec)} in ${data[0].total_moves} moves` : undefined,
+      topUser2: data[1] ? `2. ${data[1].username}: ${this.secToTime(data[1].solve_time_sec)} in ${data[1].total_moves} moves` : undefined,
+      topUser3: data[2] ? `3. ${data[2].username}: ${this.secToTime(data[2].solve_time_sec)} in ${data[2].total_moves} moves` : undefined,
     };
   }
 

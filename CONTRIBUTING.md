@@ -89,17 +89,25 @@ Replace `<TABLE_NAME>` with the name of the supabase table.
 
 ```sql
 create or replace function get_top3_solve_times(puzzle_id text)
-returns table (username text, solve_time_sec numeric) as $$
+returns table (username text, solve_time_sec numeric, total_moves numeric) as $$
   with best_times as (
-    select username, min(solve_time_sec) as solve_time_sec
+    select distinct on (username)
+      username,
+      solve_time_sec,
+      total_moves
     from <TABLE_NAME>
     where puzzle_id = $1
-    group by username
-    order by solve_time_sec asc
-    limit 3
+    order by username, solve_time_sec asc
   )
-  select * from best_times;
+  select username, solve_time_sec, total_moves
+  from best_times
+  order by solve_time_sec asc
+  limit 3;
 $$ language sql;
+```
+
+```sql
+select * from get_top3_solve_times('3x3x3');
 ```
 
 ```sql
@@ -112,4 +120,8 @@ returns table (username text, solve_number bigint) as $$
   order by solve_number desc
   limit 3;
 $$ language sql;
+```
+
+```sql
+select * from get_top3_solvers('3x3x3');
 ```
