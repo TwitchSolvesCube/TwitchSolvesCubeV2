@@ -63,6 +63,7 @@ export class twitchClient {
     console.error('WebSocket error:', event);
   }
 
+    //TODO: This does not return/send json messages if used directly with this.send() as its been done...
   public send(message: string) {
     if (this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ "type": "twitchChatMsg", "message": message }));
