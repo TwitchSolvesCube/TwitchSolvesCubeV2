@@ -14,9 +14,10 @@ export default class tscCube {
   private db: tscSupabaseClient;
   public tsc: TSC;
 
-  //Not Supported upstream "clock", "pyram", "skewb", "minx"
+  //experimentalIsSolved is not Supported upstream for "666", "777", "skewb", "pyram", "minx", "clock"
+  //When that is supported just add it to the validPuzzle array below
   private validPuzzle: Array<string> = ["222", "333", "444", "555"];
-  private moreKpuzzles: Array<string> = ["4x4x4", "5x5x5", "skewb", "pyraminx", "megaminx", "clock"];
+  private moreKpuzzles: Array<string> = ["4x4x4", "5x5x5", "6x6x6", "7x7x7", "skewb", "pyraminx", "megaminx", "clock"];
 
   //Cubingjs does understand valid moves per puzzle, but that includes R* for any number. Ex, R100.
   //This is not desirable for a future database, and is not standard notation.
@@ -90,6 +91,8 @@ export default class tscCube {
     "333": this.generateFaceMoves(3),
     "444": this.generateFaceMoves(4),
     "555": this.generateFaceMoves(5),
+    "666": this.generateFaceMoves(6),
+    "777": this.generateFaceMoves(7),
   };
 
   private rotationMoves = this.generateMoves(this.rotations, this.baseMoves);
@@ -98,14 +101,18 @@ export default class tscCube {
     "222": [...this.faceMoves["222"], ...this.rotationMoves],
     "333": [...this.faceMoves["333"], ...this.rotationMoves],
     "444": [...this.faceMoves["444"], ...this.rotationMoves],
-    "555": [...this.faceMoves["555"], ...this.rotationMoves]
+    "555": [...this.faceMoves["555"], ...this.rotationMoves],
+    "666": [...this.faceMoves["666"], ...this.rotationMoves],
+    "777": [...this.faceMoves["777"], ...this.rotationMoves]
   };
 
   private scrambleMap = {
     "222": [...this.faceMoves["222"]],
     "333": [...this.faceMoves["333"]],
     "444": [...this.faceMoves["444"]],
-    "555": [...this.faceMoves["555"]]
+    "555": [...this.faceMoves["555"]],
+    "666": [...this.faceMoves["666"]],
+    "777": [...this.faceMoves["777"]]
   };
 
   private validMove: Array<string> = [];
