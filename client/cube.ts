@@ -23,39 +23,73 @@ export default class tscCube {
   private baseMoves = ["", "'", "2"];
   private rotations = ["x", "y", "z"];
   private standardFaces = ["R", "L", "U", "D", "F", "B"];
-  private wideFaces = ["r", "l", "u", "d", "f", "b"];
   private sliceMoves = ["M", "E", "S"];
-  private wideNotationFaces = ["Rw", "Lw", "Uw", "Dw", "Fw", "Bw"];
-  private innerSliceFaces = ["3Rw", "3Lw", "3Uw", "3Dw", "3Fw", "3Bw"];
 
   private generateMoves(faces: string[], suffixes: string[]): string[] {
-    return faces.flatMap(face => 
+    return faces.flatMap(face =>
       suffixes.map(suffix => `${face}${suffix}`)
     );
   }
 
+  //Generate wide moves (Rw, 2Rw, … and lowercase: r, 2r, …)
+  private generateWideFaces(baseFace: string, size: number): string[] {
+    const wideFaces: string[] = [];
+    for (let i = 1; i < size; i++) {
+      //Wide notation (Rw, 2Rw, …)
+      wideFaces.push(i === 1 ? `${baseFace}w` : `${i}${baseFace}w`);
+      //Lowercase equivalent (r = Rw, 2r = 2Rw, …)
+      wideFaces.push(i === 1 ? baseFace.toLowerCase() : `${i}${baseFace.toLowerCase()}`);
+    }
+    return wideFaces;
+  }
+
+  //Generate inner slices (2R, 3R, … N-1R)
+  private generateInnerSlices(baseFace: string, size: number): string[] {
+    const innerSlices: string[] = [];
+    for (let i = 2; i < size; i++) {
+      innerSlices.push(`${i}${baseFace}`);
+    }
+    return innerSlices;
+  }
+
+  private generateFaceMoves(size: number): string[] {
+    const moves: string[] = [];
+    
+    //Standard outer faces
+    moves.push(...this.generateMoves(this.standardFaces, this.baseMoves));
+    
+    if (size < 3) return moves;
+    
+    //3x3 moves
+    if (size === 3) {
+      this.standardFaces.forEach(face => {
+        moves.push(...this.generateMoves(this.generateWideFaces(face, 2), this.baseMoves));
+      });
+      moves.push(...this.generateMoves(this.sliceMoves, this.baseMoves));
+    }
+    
+    //4x4 and larger moves
+    if (size >= 4) {
+      const isEvenSize = size % 2 === 0;
+      this.standardFaces.forEach(face => {
+        //Even cubes, don't support slices
+        moves.push(...this.generateMoves(this.generateWideFaces(face, size), this.baseMoves));
+        moves.push(...this.generateMoves(this.generateInnerSlices(face, size), this.baseMoves));
+      }); 
+      //Add slices for odd cubes
+      if (!isEvenSize) {
+        moves.push(...this.generateMoves(this.sliceMoves, this.baseMoves));
+      }
+    }
+    return moves;
+  }
+
+  //Maps for specific cube sizes
   private faceMoves = {
-    "222": [
-      ...this.generateMoves(this.standardFaces, this.baseMoves)
-    ],
-    "333": [
-      ...this.generateMoves(this.standardFaces, this.baseMoves),
-      ...this.generateMoves(this.wideFaces, this.baseMoves),
-      ...this.generateMoves(this.sliceMoves, this.baseMoves)
-    ],
-    "444": [
-      ...this.generateMoves(this.standardFaces, this.baseMoves),
-      ...this.generateMoves(this.wideFaces, this.baseMoves),
-      ...this.generateMoves(this.wideNotationFaces, this.baseMoves),
-      ...this.generateMoves(this.innerSliceFaces, this.baseMoves)
-    ],
-    "555": [
-      ...this.generateMoves(this.standardFaces, this.baseMoves),
-      ...this.generateMoves(this.wideFaces, this.baseMoves),
-      ...this.generateMoves(this.sliceMoves, this.baseMoves),
-      ...this.generateMoves(this.wideNotationFaces, this.baseMoves),
-      ...this.generateMoves(this.innerSliceFaces, this.baseMoves)
-    ]
+    "222": this.generateFaceMoves(2),
+    "333": this.generateFaceMoves(3),
+    "444": this.generateFaceMoves(4),
+    "555": this.generateFaceMoves(5),
   };
 
   private rotationMoves = this.generateMoves(this.rotations, this.baseMoves);
