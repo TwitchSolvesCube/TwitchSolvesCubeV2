@@ -71,16 +71,12 @@ export default class tscCube {
     
     //4x4 and larger moves
     if (size >= 4) {
-      const isEvenSize = size % 2 === 0;
       this.standardFaces.forEach(face => {
         //Even cubes, don't support slices
         moves.push(...this.generateMoves(this.generateWideFaces(face, size), this.baseMoves));
         moves.push(...this.generateMoves(this.generateInnerSlices(face, size), this.baseMoves));
       }); 
-      //Add slices for odd cubes
-      if (!isEvenSize) {
-        moves.push(...this.generateMoves(this.sliceMoves, this.baseMoves));
-      }
+      moves.push(...this.generateMoves(this.sliceMoves, this.baseMoves));
     }
     return moves;
   }
@@ -196,6 +192,10 @@ export default class tscCube {
 
   appendMove(myMove: string) {
     if (this.validMove.includes(myMove)) {
+      if (this.tsc.getEventID() == "444" && myMove == "M"){
+        this.appendAlg(["2R", "3R"]);
+        return;
+      }
       const newMove = new Move(myMove);
       this.player.experimentalAddMove(newMove);
       this.puzzleState = this.puzzleState.applyMove(newMove);
