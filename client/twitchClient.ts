@@ -5,6 +5,7 @@ export class twitchClient {
 
   private ws: WebSocket;
   private cube: tscCube;
+  private pendingShortlinks: Map<string, { resolve: (link: string | null) => void }> = new Map();
 
   constructor() {
     this.ws = new WebSocket(`ws://localhost:${serverPort}`);
@@ -33,6 +34,11 @@ export class twitchClient {
       if (jsonData.type === 'shortlink') {
         this.cube.tsc.setShortLink(jsonData.shortLink);
         console.log(`Replay: ${jsonData.shortLink}`);
+        const pending = this.pendingShortlinks.get(jsonData.uuid);
+        if (pending) {
+          pending.resolve(jsonData.shortLink);
+          this.pendingShortlinks.delete(jsonData.uuid);
+        }
         return;
       }
 
@@ -43,7 +49,7 @@ export class twitchClient {
         jsonData.isFollowing,
         jsonData.isSub,
         jsonData.isMod
-      );
+      ).catch(err => this.timeStampLog(`handleMessage error: ${err.message}`));
 
       this.timeStampLog((`${jsonData.user}: ${jsonData.message}`));
       this.cube.tsc.timeStampLog(`isMod: ${jsonData.isMod}`);
@@ -51,7 +57,7 @@ export class twitchClient {
       this.cube.tsc.timeStampLog(`isFollowing: ${jsonData.isFollowing}`);
   
     } catch (error) {
-      this.timeStampLog(`Received non-JSON data: ${event}`);
+      this.timeStampLog(`Error handling message: ${error instanceof Error ? error.message : error}`);
     }
   }
   
@@ -73,13 +79,24 @@ export class twitchClient {
     }
   }
 
-  public sendLinkData(twizzle_link: string, uuid: string) {
-    if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ "type": "twizzleLink", "twizzle_link": twizzle_link, "uuid": uuid }));
-      this.timeStampLog(`Sent link data for ${twizzle_link} and ${uuid}`);
-    } else {
-      console.error('WebSocket is not open. Link data not sent.');
-    }
+  public sendLinkData(twizzle_link: string, uuid: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.pendingShortlinks.set(uuid, { resolve });
+      if (this.ws.readyState === WebSocket.OPEN) {
+        try {
+          this.ws.send(JSON.stringify({ "type": "twizzleLink", "twizzle_link": twizzle_link, "uuid": uuid }));
+          this.timeStampLog(`Sent link data for ${twizzle_link} and ${uuid}`);
+        } catch (err) {
+          console.error('WebSocket send failed:', err);
+          resolve(null);
+          this.pendingShortlinks.delete(uuid);
+        }
+      } else {
+        console.error('WebSocket is not open. Link data not sent.');
+        resolve(null);
+        this.pendingShortlinks.delete(uuid);
+      }
+    });
   }
   
   private timeStampLog(message: string): void {

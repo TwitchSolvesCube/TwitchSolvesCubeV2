@@ -27,7 +27,6 @@ const timeStampLog = (message) => console.log(`[${new Date().toLocaleString()}] 
 let kutt;
 if (kuttConfig.enabled) {
   try {
-    const { Kutt } = require("kutt");
     kutt = new Kutt()
       .set("api", kuttConfig.url)
       .set("key", kuttConfig.key);
@@ -40,62 +39,62 @@ if (kuttConfig.enabled) {
   timeStampLog("Kutt not configured, falling back to twizzle URLs");
 }
 
-let chatClient = new ChatClient();
+let chatClient;
+let activeConnection = null;
+let wss;
 
-const wss = new WebSocket.Server({ port: serverPort });
-let activeConnection = null; 
-
-wss.on('connection', (ws) => {
-  if (activeConnection) {
-    ws.close(1008, 'Only one client allowed at a time');
-    timeStampLog('Rejected duplicate client');
-    return;
-  }
-
-  activeConnection = ws;
-  timeStampLog('Client connected');
-
-  //Send a message to the connected client
-  ws.send('Welcome to the WebSocket server!');
-
-  //Handle messages from clients
-  ws.on('message', async (message) => {
-    try {
-      const jsonData = JSON.parse(message);
-
-      if (jsonData.type === 'twizzleLink') {
-        timeStampLog(`Twizzle Link Recieved: ${jsonData.twizzle_link}`);
-        timeStampLog(`UUID Recieved: ${jsonData.uuid}`);
-        const shortLink = await createShortLink(jsonData.twizzle_link, jsonData.uuid);
-
-        ws.send(JSON.stringify({
-          type: 'shortlink',
-          shortLink: shortLink
-        }));
-
-        return;
-      }
-      if (jsonData.type === `twitchChatMsg`) {
-        //TODO: When sending a msg from client there should be a username
-        timeStampLog(jsonData.message);
-        chatClient.say(channelName, jsonData.message);
-      }
-    } catch (error) {
-      timeStampLog(`Received non-JSON data: ${message}`);
+function setupWebSocket(port) {
+  wss = new WebSocket.Server({ port });
+  wss.on('connection', (ws) => {
+    if (activeConnection) {
+      ws.close(1008, 'Only one client allowed at a time');
+      timeStampLog('Rejected duplicate client');
+      return;
     }
-  });
 
-  //Handle disconnection
-  ws.on('close', () => {
-    activeConnection = null;
-    timeStampLog('Client disconnected');
-  });
+    activeConnection = ws;
+    timeStampLog('Client connected');
 
-  ws.on('error', (err) => {
-    activeConnection = null;
-    timeStampLog(`WebSocket error: ${err}`);
+    //Handle messages from clients
+    ws.on('message', async (message) => {
+      try {
+        const jsonData = JSON.parse(message);
+
+        if (jsonData.type === 'twizzleLink') {
+          timeStampLog(`Twizzle Link Received: ${jsonData.twizzle_link}`);
+          timeStampLog(`UUID Received: ${jsonData.uuid}`);
+          const shortLink = await createShortLink(jsonData.twizzle_link, jsonData.uuid);
+
+          ws.send(JSON.stringify({
+            type: 'shortlink',
+            shortLink: shortLink,
+            uuid: jsonData.uuid
+          }));
+
+          return;
+        }
+        if (jsonData.type === `twitchChatMsg`) {
+          //TODO: When sending a msg from client there should be a username
+          timeStampLog(jsonData.message);
+          chatClient.say(channelName, jsonData.message).catch(err => timeStampLog(`Chat say error: ${err.message}`));
+        }
+      } catch (error) {
+        timeStampLog(`Error handling message: ${error.message}`);
+      }
+    });
+
+    //Handle disconnection
+    ws.on('close', () => {
+      activeConnection = null;
+      timeStampLog('Client disconnected');
+    });
+
+    ws.on('error', (err) => {
+      activeConnection = null;
+      timeStampLog(`WebSocket error: ${err}`);
+    });
   });
-});
+}
 
 async function createShortLink(twizzlelink, uuid) {
   if (!kuttConfig.enabled) {
@@ -114,7 +113,7 @@ async function createShortLink(twizzlelink, uuid) {
     return shortLink.link;
   } catch (err) {
     console.error("Failed to create short link:", err);
-    return;
+    return null;
   }
 }
 
@@ -137,7 +136,6 @@ async function main() {
 
     const apiClient = new ApiClient({ authProvider });
     chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
-    chatClient.connect();
 
     chatClient.onMessage(async (channel, user, message, tags) => {
       if (!activeConnection) {
@@ -146,14 +144,14 @@ async function main() {
       }
 
       //https://twurple.js.org/reference/api/classes/HelixChannelFollower.html
-      const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId);
-      const isFollowing = typeof follow !== 'undefined' && follow !== '';
+      // const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId);
+      // const isFollowing = typeof follow !== 'undefined' && follow !== '';
       timeStampLog(`${user}: ${message}`);
 
       const twitchData = JSON.stringify({
         "user": user,
         "message": message,
-        "isFollowing": isFollowing,
+        "isFollowing": false,
         "isSub": tags.userInfo.isSubscriber,
         "isMod": tags.userInfo.isMod
       });
@@ -161,9 +159,12 @@ async function main() {
       activeConnection.send(twitchData);
     });
 
+    await chatClient.connect();
+
+    setupWebSocket(serverPort);
 	} catch (error) {
 	  console.error('Error:', error);
 	}
 }
 
-main();
+main().catch(err => console.error('Fatal server error:', err));

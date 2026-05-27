@@ -1,6 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-const config = require('../../config.json');
+import config from '../../config.json' with { type: 'json' };
 
 interface SolveData {
   username: string;
@@ -53,7 +52,7 @@ export class tscSupabaseClient {
     const { username, solve_participants, puzzle_id, solve_time_sec, total_moves, scramble, solve_alg, twizzle_link } = solve;
 
     //Get current highest solve_number for this user and puzzle
-    const { data: existingUserSolves, error: userFetchError } = await this.supabase
+    const { data: existingUserSolves, error: userFetchError } = await this.supabase!
       .from(config.supabaseTable)
       .select('solve_number')
       .eq('username', username)
@@ -70,7 +69,7 @@ export class tscSupabaseClient {
     const newSolveNumber = currentSolveNumber + 1;
 
     //Get current highest global_puzzle_solve_number for this puzzle_id
-    const { data: existingGlobalSolves, error: globalFetchError } = await this.supabase
+    const { data: existingGlobalSolves, error: globalFetchError } = await this.supabase!
       .from(config.supabaseTable)
       .select('global_puzzle_solve_number')
       .eq('puzzle_id', puzzle_id)
@@ -90,7 +89,7 @@ export class tscSupabaseClient {
     //Calculate ao5 if solve_number is divisible by 5 and there are at least 4 previous solves
     if (newSolveNumber % 5 === 0) {
       //Fetch last 4 solves before this one
-      const { data: lastFourSolves, error: lastFourError } = await this.supabase
+      const { data: lastFourSolves, error: lastFourError } = await this.supabase!
         .from(config.supabaseTable)
         .select('solve_time_sec')
         .eq('username', username)
@@ -117,23 +116,25 @@ export class tscSupabaseClient {
     }
 
     //Insert new data with incremented solve_number and calculated ao5
-    const { data, error } = await this.supabase
+    const insertPayload: Record<string, unknown> = {
+      username,
+      solve_participants,
+      puzzle_id,
+      solve_time_sec,
+      solve_number: newSolveNumber,
+      global_puzzle_solve_number: newGlobalSolveNumber,
+      total_moves,
+      scramble,
+      solve_alg,
+      twizzle_link
+    };
+    if (solve_ao5_sec != null) {
+      insertPayload.solve_ao5_sec = Math.round(solve_ao5_sec * 1000) / 1000;
+    }
+
+    const { data, error } = await this.supabase!
       .from(config.supabaseTable)
-      .insert([
-        {
-          username,
-          solve_participants,
-          puzzle_id,
-          solve_time_sec,
-          solve_ao5_sec: Math.round(solve_ao5_sec * 1000) / 1000,
-          solve_number: newSolveNumber,
-          global_puzzle_solve_number: newGlobalSolveNumber,
-          total_moves,
-          scramble,
-          solve_alg,
-          twizzle_link
-        }
-      ])
+      .insert([insertPayload])
       .select('*');
 
     if (error) {
@@ -149,7 +150,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase!
       .from(config.supabaseTable)
       .update({ shortlink })
       .eq('uuid', uuid)
@@ -166,11 +167,11 @@ export class tscSupabaseClient {
 
   //!top
   async getTopSolveTimes(puzzle_id: string): Promise<LeaderboardResult | null> {
-    if (!this.isInitialized()) {
+    if (!this.isInitialized() || !this.supabase) {
       return null;
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase!
       .rpc('get_top3_solve_times', { puzzle_id: puzzle_id });
 
     if (error) {
@@ -184,7 +185,7 @@ export class tscSupabaseClient {
     }
 
     const leaderboardText = data
-      .map((solve, index) => `${index + 1}. @${solve.username}: ${this.secToTime(solve.solve_time_sec)}`)
+      .map((solve: { username: string; solve_time_sec: number }, index: number) => `${index + 1}. @${solve.username}: ${this.secToTime(solve.solve_time_sec)}`)
       .join(' | ');
 
     return {
@@ -201,7 +202,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase!
       .rpc('get_top3_solvers', {puzzle_id: puzzle_id});
 
     if (error) {
@@ -215,18 +216,18 @@ export class tscSupabaseClient {
     
     let header = `Top solvers for puzzle ${puzzle_id} |`;
     const solversList = data
-      .map((solver, index) => `${index + 1}. @${solver.username}: ${solver.solve_number} solves`);
+      .map((solver: { username: string; solve_number: number }, index: number) => `${index + 1}. @${solver.username}: ${solver.solve_number} solves`);
 
     return `${header} ${solversList.join(' | ')}`;
   }
 
   //!pb
   async getUserPB(username: string, puzzle_id: string): Promise<string | null> {
-    if (!this.isInitialized()) {
+    if (!this.isInitialized() || !this.supabase) {
       return null;
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase!
       .from(config.supabaseTable)
       .select('solve_time_sec')
       .eq('username', username)
@@ -256,7 +257,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    const { data: solve, error: solveError } = await this.supabase
+    const { data: solve, error: solveError } = await this.supabase!
       .from(config.supabaseTable)
       .select('*')
       .eq('uuid', uuid)
@@ -276,7 +277,7 @@ export class tscSupabaseClient {
       return null;
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase!
       .from(config.supabaseTable)
       .select('solve_number,username,puzzle_id')
       .eq('username', username)

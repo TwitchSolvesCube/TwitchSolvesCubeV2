@@ -1,6 +1,6 @@
 import "cubing/twisty";
 import { TwistyPlayer } from "cubing/twisty";
-import { Move, Alg } from "cubing/alg";
+import { Move } from "cubing/alg";
 import { cube2x2x2, cube3x3x3, puzzles } from "cubing/puzzles";
 import { KPuzzle, KPattern } from "cubing/kpuzzle";
 import { tscSupabaseClient } from "./database/databaseQueries";
@@ -10,7 +10,7 @@ import TSC from "./TSC";
 import delay from "delay";
 
 export default class tscCube {
-  private player: TwistyPlayer;
+  private player!: TwistyPlayer;
   private db: tscSupabaseClient;
   public tsc: TSC;
 
@@ -93,7 +93,7 @@ export default class tscCube {
 
   private rotationMoves = this.generateMoves(this.rotations, this.baseMoves);
 
-  private movesMap = {
+  private movesMap: Record<string, string[]> = {
     "222": [...this.faceMoves["222"], ...this.rotationMoves],
     "333": [...this.faceMoves["333"], ...this.rotationMoves],
     "444": [...this.faceMoves["444"], ...this.rotationMoves],
@@ -102,7 +102,7 @@ export default class tscCube {
     "777": [...this.faceMoves["777"], ...this.rotationMoves]
   };
 
-  private scrambleMap = {
+  private scrambleMap: Record<string, string[]> = {
     "222": [...this.faceMoves["222"]],
     "333": [...this.faceMoves["333"]],
     "444": [...this.faceMoves["444"]],
@@ -127,16 +127,16 @@ export default class tscCube {
       "p", "q"];
 
   //Timers
-  private timeSinceSolvedTimer;
-  private kpuzzle: KPuzzle;
-  private puzzleState: KPattern;
+  private timeSinceSolvedTimer: ReturnType<typeof setInterval> | undefined;
+  private kpuzzle!: KPuzzle;
+  private puzzleState!: KPattern;
 
   private send: (message: string) => void;
-  private sendLinkData: (uuid: string, link: string) => void;
+  private sendLinkData: (twizzle_link: string, uuid: string) => Promise<string | null>;
 
   //Date
   //let currentDate = new Date();
-  constructor(eventID: string, send: (message: string) => void, sendLinkData: (uuid: string, link: string) => void) {
+  constructor(eventID: string, send: (message: string) => void, sendLinkData: (twizzle_link: string, uuid: string) => Promise<string | null>) {
     this.send = send;
     this.sendLinkData = sendLinkData;
     this.tsc = new TSC(eventID, this.send.bind(this));
@@ -149,7 +149,7 @@ export default class tscCube {
     this.updateTopUsers(cycPuzzles[currentPuzzleIndex]);
     setInterval(() => {
       currentPuzzleIndex = (currentPuzzleIndex + 1) % cycPuzzles.length;
-      this.updateTopUsers(cycPuzzles[currentPuzzleIndex]);
+      this.updateTopUsers(cycPuzzles[currentPuzzleIndex]).catch(err => console.error('Leaderboard update error:', err));
     }, 10000);
   }
 
@@ -160,6 +160,10 @@ export default class tscCube {
     if (this.movesMap[this.tsc.getEventID()]) {
       this.validMove = this.movesMap[this.tsc.getEventID()];
       this.validScramble = this.scrambleMap[this.tsc.getEventID()];
+    }
+
+    if (this.player) {
+      this.player.remove();
     }
 
     this.player = document.body.appendChild(new TwistyPlayer({
@@ -174,12 +178,13 @@ export default class tscCube {
     //kpuzzle needs to match the puzzleID in order to validate moves.
     if (newPuzzleID === "2x2x2") {
       this.kpuzzle = await cube2x2x2.kpuzzle();
-    }
-    if (newPuzzleID === "3x3x3") {
+    } else if (newPuzzleID === "3x3x3") {
       this.kpuzzle = await cube3x3x3.kpuzzle();
-    }
-    if (this.moreKpuzzles.includes(newPuzzleID)) {
+    } else if (this.moreKpuzzles.includes(newPuzzleID)) {
       this.kpuzzle = await puzzles[newPuzzleID].kpuzzle();
+    } else {
+      this.tsc.timeStampLog(`Unknown puzzle "${newPuzzleID}", falling back to 3x3x3`);
+      this.kpuzzle = await cube3x3x3.kpuzzle();
     }
     
     this.puzzleState = this.kpuzzle.identityTransformation().toKPattern();
@@ -203,7 +208,7 @@ export default class tscCube {
         this.playAudio('./sounds/doubleMove.mp3');
       }
       this.playAudio('./sounds/singleMove.mp3');
-      this.checkSolved();
+      this.checkSolved().catch(err => this.tsc.timeStampLog(`checkSolved error: ${err.message}`));
     } else {
       this.tsc.timeStampLog(`${myMove} is not a move.`);
     }
@@ -211,13 +216,13 @@ export default class tscCube {
 
   async appendAlg(myAlg: Array<string>) {
     this.tsc.enableCube(false); //Can't move cube while appending move
-    for (var i = 0; i <= myAlg.length - 1; i++) {
+    for (let i = 0; i <= myAlg.length - 1; i++) {
       await delay(400);
       this.appendMove(myAlg[i]);
     }
     this.tsc.enableCube(true); //Allows moves on cube again
     //Debug
-    //appendMove(myAlg[0]);
+    //this.appendMove(myAlg[0]);
   }
 
   async scramblePuzzle(scramble?: Array<string>) {
@@ -270,7 +275,11 @@ export default class tscCube {
       }
     }
     if (msg === "!speednotation" || msg === "!sn") {
-      this.tsc.setSpeedNotation(true)
+      if (this.tsc.getEventID() === "333") {
+        this.tsc.setSpeedNotation(true);
+      } else {
+        this.send("Speed notation is only available for 3x3x3.");
+      }
     }
     if (msg === "!normalnotation" || msg === "!nn") {
       this.tsc.setSpeedNotation(false);
@@ -298,15 +307,15 @@ export default class tscCube {
     if (!this.isCubeStateSolved()) {
       if (!this.tsc.isSpeedNotation()) {
         //Ensure moves can be done
-        msg = message.replace("`", "\'")
-          .replace("‘", "\'").replace("’", "\'").replace("\"", "\'")
-          .replace("X", "x").replace("Y", "y").replace("Z", "z")
-          .replace("m", "M").replace("e", "E").replace("s", "S");
+        msg = message.replaceAll("`", "\'")
+          .replaceAll("‘", "\'").replaceAll("’", "\'").replaceAll("\"", "\'")
+          .replaceAll("X", "x").replaceAll("Y", "y").replaceAll("Z", "z")
+          .replaceAll("m", "M").replaceAll("e", "E").replaceAll("s", "S");
 
           //Moves with a "." are valid to prevent spam detection
           if (this.validMove.includes(msg) || this.validMove.some(move => msg.includes(move + "."))) {
             this.appendMove(msg.replace(/\.$/, ''));
-          
+            
             //Update top right moves
             this.tsc.incMoves();
           }
@@ -314,14 +323,14 @@ export default class tscCube {
         msg = message.toLowerCase();
 
         if (this.snMoves333.find(elem => elem === msg) != undefined) {
-          msg = msg.replace("5", "M").replace("6", "M").replace("x", "M\'").replace("t", "x")
-            .replace("y", "x").replace("b", "x\'").replace("n", "x\'").replace(";", "y")
-            .replace("a", "y\'").replace("d", "L").replace("z", "d").replace("?", "d'")
-            .replace("q", "z\'").replace("w", "B").replace("e", "L\'").replace("i", "R")
-            .replace("o", "B\'").replace("p", "z").replace("s", "D").replace("f", "U\'")
-            .replace("g", "F\'").replace("h", "F").replace("j", "U").replace("k", "R\'")
-            .replace("l", "D\'").replace("v", "l").replace("r", "l'").replace("m", "r'")
-            .replace("u", "r").replace(",", "u").replace("c", "u'");
+          msg = msg.replaceAll("5", "M").replaceAll("6", "M").replaceAll("x", "M\'").replaceAll("t", "x")
+            .replaceAll("y", "x").replaceAll("b", "x\'").replaceAll("n", "x\'").replaceAll(";", "y")
+            .replaceAll("a", "y\'").replaceAll("d", "L").replaceAll("z", "d").replaceAll("?", "d'")
+            .replaceAll("q", "z\'").replaceAll("w", "B").replaceAll("e", "L\'").replaceAll("i", "R")
+            .replaceAll("o", "B\'").replaceAll("p", "z").replaceAll("s", "D").replaceAll("f", "U\'")
+            .replaceAll("g", "F\'").replaceAll("h", "F").replaceAll("j", "U").replaceAll("k", "R\'")
+            .replaceAll("l", "D\'").replaceAll("v", "l").replaceAll("r", "l'").replaceAll("m", "r'")
+            .replaceAll("u", "r").replaceAll(",", "u").replaceAll("c", "u'");
 
           const newMove = new Move(msg);
           this.player.experimentalAddMove(newMove);
@@ -352,7 +361,7 @@ export default class tscCube {
   
     if (message === "!queue" || message === "!q") {
       if (queue.length > 0) {
-        this.send(`${queue}`);
+        this.send(queue.join(', '));
       } else {
         this.send("There's currently no one in the queue, do !join");
       }
@@ -375,12 +384,14 @@ export default class tscCube {
     }
   
     currentUser = this.tsc.getCurrentUser();
-  
-    if (currentUser === user) {
-      if (this.tsc.isCubeEnabled()) {
-        this.doCubeMoves(move);
-        this.tsc.addParticipant(currentUser); //TODO: Check if this is working correctly. Database currently has no records
-        this.tsc.dedupParticipants();
+
+    if (this.tsc.isCubeEnabled()) {
+      if (this.tsc.isTurns()) {
+        if (currentUser === user) {
+          this.doCubeMoves(move);
+          this.tsc.addParticipant(currentUser);
+          this.tsc.dedupParticipants();
+        }
       }
     }
 
@@ -423,7 +434,7 @@ export default class tscCube {
       this.tsc.setSolvedState(true);
       this.tsc.enableCube(false); //Can't move cube once solved
 
-      await delay(1000)
+      await delay(1000);
       this.player.backView = "none";
 
       clearInterval(this.timeSinceSolvedTimer); //"Pauses Timer"
@@ -440,8 +451,8 @@ export default class tscCube {
         const url = new URL(twizzleLink);
 
         //Get the value of 'alg=' and 'setup-alg='
-        let algValue = url.searchParams.get('alg');
-        const setupAlgValue = url.searchParams.get('setup-alg');
+        let algValue = url.searchParams.get('alg') ?? '';
+        const setupAlgValue = url.searchParams.get('setup-alg') ?? '';
 
         //Remove 'setup-alg=' from the beginning of 'alg=' which is the scramble from this.player.experimentalSetupAlg = this.tsc.getScramble(); above
         if (algValue.startsWith(setupAlgValue)) {
@@ -456,14 +467,30 @@ export default class tscCube {
         this.tsc.setSolvedAlg(algValue);
 
         //These set of lines allows it so the uuid from the database can append to the kutt URL
-        const insertedData = await this.db.insertData(this.tsc.getSolvedData());
-        this.sendLinkData(this.tsc.getTwizzleLink(), insertedData.uuid);
-        await delay(1000); //Required to to avoid undefined shortlinkResult
-        await this.db.setShortlinkForUUID(insertedData.uuid, this.tsc.getShortLink());
+        const solveData = this.tsc.getSolvedData();
+        if (!solveData) {
+          this.tsc.sendSolvedMsg();
+          return;
+        }
+        const insertedData = await this.db.insertData(solveData);
+        if (!insertedData) {
+          this.tsc.sendSolvedMsg();
+          return;
+        }
+        const shortLink = await this.sendLinkData(this.tsc.getTwizzleLink(), insertedData.uuid!);
+        if (shortLink) {
+          this.tsc.setShortLink(shortLink);
+          this.tsc.sendShortLinkMsg();
+        }
+        await this.db.setShortlinkForUUID(insertedData.uuid!, this.tsc.getShortLink());
         const solvedMsg: string = await query.viewSolve(`${insertedData.uuid}`, false);
         this.send(solvedMsg);
-        this.send(`Save the ID at the end of the replay link to view these stats anytime. Example, !view 01234567-89ab-cdef-ghij-klmnopqrstuv`);
       } else {
+        if (this.tsc.isCustomScramble()) {
+          this.send("Custom scrambles are not recorded. For future reference, type scramble before solving.");
+        } else if (this.tsc.getSecondsSinceSolved() > 3600) {
+          this.send("This solve took over an hour and was not recorded.");
+        }
         this.tsc.sendSolvedMsg();
       }
 
@@ -478,11 +505,11 @@ export default class tscCube {
 
   async updateTopUsers(puzzle_id: string): Promise<void> {
     const result = await this.db.getTopSolveTimes(puzzle_id);
-    if (result) {
-      this.tsc.setTopUsers(puzzle_id, result.topUser1, result.topUser2, result.topUser3);
+    if (result && result.topUser1) {
+      this.tsc.setTopUsers(puzzle_id, result.topUser1, result.topUser2 ?? "", result.topUser3 ?? "");
       return;
     }
-    this.tsc.setTopUsers(null, null, null, null);
+    this.tsc.setTopUsers(puzzle_id, "", "", "");
   }
 
   spinCamera(options?: { numSpins?: number, durationMs: number }): void {

@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
+    "module": "esnext",
     "moduleResolution": "bundler",
+    "strict": true,
     "verbatimModuleSyntax": true, //avoids surprises with `cubing/twisty`
   }
 }

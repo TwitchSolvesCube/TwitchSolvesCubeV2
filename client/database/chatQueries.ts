@@ -34,8 +34,8 @@ function parseUserAndPuzzle(message: string, defaultUser: string): { username: s
 export async function topQuery(message: string): Promise<string> {
   const parts = message.split(" ");
   const puzzle_id = parts[1] || "3x3x3";
-  const { leaderboardText } = await db.getTopSolveTimes(puzzle_id);
-  return leaderboardText ;
+  const result = await db.getTopSolveTimes(puzzle_id);
+  return result?.leaderboardText ?? "Database is not configured.";
 }
 
 //!topsolvers
@@ -43,13 +43,13 @@ export async function topSolversQuery(message: string): Promise<string> {
   const parts = message.split(" ");
   const puzzle_id = parts[1] || "3x3x3";
   const topSolvers = await db.getTopSolvers(puzzle_id);
-  return topSolvers;
+  return topSolvers ?? "Unable to fetch top solvers.";
 }
 
 //!pb
 export async function userPBQuery(message: string, user: string): Promise<string> {
   const { username, puzzle_id } = parseUserAndPuzzle(message, user);
-  return await db.getUserPB(username, puzzle_id);
+  return (await db.getUserPB(username, puzzle_id)) ?? "Unable to fetch PB.";
 }
 
 //!view
@@ -59,7 +59,7 @@ export async function viewSolve(message: string, chatMsg: boolean = true): Promi
   if (solveData){ 
     return `Solve #${solveData.global_puzzle_solve_number} for the ${solveData.puzzle_id} ` +
       `was solved in ${secToTime(solveData.solve_time_sec)} & finished by @${solveData.username} in ` +
-      `${solveData.total_moves} moves on ${solveData.created_at.split('.')[0]} ` +
+      `${solveData.total_moves} moves on ${(solveData.created_at ?? '').split('.')[0]} ` +
       `UTC.${solveData.solve_ao5_sec ? ` Average of 5: ${solveData.solve_ao5_sec}` : ``} Scramble: ` +
       `${solveData.scramble} ${solveData.shortlink ? `Replay: ${solveData.shortlink}`: `ID: ${solveData.uuid}` }`;
   }
@@ -69,5 +69,5 @@ export async function viewSolve(message: string, chatMsg: boolean = true): Promi
 //!solves
 export async function userSolves(message: string, user: string): Promise<string> {
   const { username, puzzle_id } = parseUserAndPuzzle(message, user);
-  return await db.getSolveTotal(username, puzzle_id);
+  return (await db.getSolveTotal(username, puzzle_id)) ?? "Unable to fetch solve count.";
 }
