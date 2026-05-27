@@ -21,15 +21,15 @@ export default class TSC {
   private secondsSinceSolved: number = 0;
   private turnTime: number = 300;
   private totalMoves: number = 0;
-  private solve_alg: string;
-  private twizzleLink: string;
-  private shortLink: string;
+  private solve_alg: string = '';
+  private twizzleLink: string = '';
+  private shortLink: string = '';
 
   private queue: Array<string> = new Array();
   private solveParticipants: Array<string> = new Array();
   private turns: boolean = true;
   private speedNotation: boolean = false;
-  private movable: boolean;
+  private movable: boolean = false;
   private solved: boolean = false;
   private enableDebug = false;
 
@@ -44,7 +44,7 @@ export default class TSC {
   private topUser3: HTMLElement = document.getElementById("topUser3") as HTMLElement;
 
   //Timers
-  private userTurnTimer: NodeJS.Timer;
+  private userTurnTimer: ReturnType<typeof setInterval> | undefined;
 
   private send: (message: string) => void;
 
@@ -74,7 +74,7 @@ export default class TSC {
         this.send(`@${username}, it's currently your turn!`);
       } else if (!queue.includes(username)) {
         this.enqueue(username);
-        this.send(`@${username}, you have joined the queue! There ${qLength > 2 ? 'are' : 'is'} ${qLength} user${qLength > 2 ? 's' : ''} in front of you`);
+        this.send(`@${username}, you have joined the queue! There ${qLength > 1 ? 'are' : 'is'} ${qLength} user${qLength > 1 ? 's' : ''} in front of you`);
       } else {
         this.send(`@${username}, you're already in the queue. Please wait :)`);
       }
@@ -91,14 +91,14 @@ export default class TSC {
     if (this.isTurns()) {
       if (userIndex !== -1) {
         this.queue.splice(userIndex, 1);
-        let currentUser = this.getCurrentUser();
+        const currentUser = this.getCurrentUser();
         //If the removed user was at index 0 then reset the timer for the next user
         if (userIndex === 0) {
           this.setTurnTime(300);
           this.setSpeedNotation(false);
         }
         //this.clearAfkCountdown();
-        if (currentUser && !chatRemoval) { //If the user is removed by the timer queue next player
+        if (currentUser != null && !chatRemoval) { //If the user is removed by the timer queue next player
           //isFollowing(currentUser);
           this.userTurnTime();
           this.send(`@${currentUser}, it's your turn! Do !leave when done. `);
@@ -121,8 +121,9 @@ export default class TSC {
   }
 
   clearUserTurnTimer(): void {
-    if (typeof this.userTurnTimer === 'number') {
+    if (this.userTurnTimer != null) {
       clearInterval(this.userTurnTimer);
+      this.userTurnTimer = undefined;
     }
   }
 
@@ -132,9 +133,10 @@ export default class TSC {
         //this.clearAfkCountdown();
         this.setTurnTime(300);
         this.setSpeedNotation(false);
-        if (this.getQLength() > 0) {
+        const expiredUser = this.getCurrentUser();
+        if (expiredUser != null) {
           //TODO: Once a player's time is out there is no return to twitch chat because messages are only sent on moves
-          this.removePlayer(this.getCurrentUser(), false);
+          this.removePlayer(expiredUser, false).catch(err => this.timeStampLog(`removePlayer error: ${err.message}`));
         }
       }
     }, 1000);
@@ -208,8 +210,9 @@ export default class TSC {
   }
 
   resetTimeSS(): void {
+    this.secondsSinceSolved = 0;
     if (this.showLabels) {
-      this.secondsSinceSolved = 0;
+      this.timeLabel.textContent = "00:00:00";
     }
   }
 
@@ -267,8 +270,8 @@ export default class TSC {
     return null;
   }
 
-  getCurrentUser(): string {
-    return this.queue[0]!;
+  getCurrentUser(): string | undefined {
+    return this.queue[0];
   }
 
   setTurns(turns: boolean): void {
@@ -304,12 +307,12 @@ export default class TSC {
     return this.solved;
   }
   
-  async newScrambleArray(): Promise<string[][]> {
+  async newScrambleArray(): Promise<string[]> {
     var scramString = await randomScrambleForEvent(this.eventID);
     //Turn scramble string into an array
     this.scramble = scramString.toString().split(' ');
     this.timeStampLog(`Scramble: ${this.scramble}`);
-    return Array(this.scramble);
+    return this.scramble;
   }
 
   setScrambleArray(scramArray: Array<string>): void {
@@ -357,21 +360,26 @@ export default class TSC {
   }
 
   sendShortLinkMsg(): void {
-    this.send(`@${this.getCurrentUser()} view your replay here ${this.getShortLink()} ` +
+    const currentUser = this.getCurrentUser();
+    if (currentUser == null) return;
+    this.send(`@${currentUser} view your replay here ${this.getShortLink()} ` +
       `Save this link id to view stats with !view.`);
   }
 
   sendSolvedMsg(): void {
+    const currentUser = this.getCurrentUser();
+    if (currentUser == null) return;
     this.send(`This ${this.getPuzzleID()} was solved in ${this.getTimeSinceSolved()} and ` +
-       `finished by @${this.getCurrentUser()} in ${this.getTotalMoves()} moves. The ` +
-       `${this.isCustomScramble() ? 'custom' : ''} scramble was ${this.getScramble()}. ` +
-       `${this.getParticipants() ? `Participants: ${this.getParticipants()}` : ''}` +
-       `Custom scrambles or solves over an hour are not recorded. For future reference, type scramble before solving.`);
+       `finished by @${currentUser} in ${this.getTotalMoves()} moves. The` +
+       `${this.isCustomScramble() ? ' custom' : ''} scramble was ${this.getScramble()}.` +
+       `${this.getParticipants() ? ` Participants: ${this.getParticipants()}` : ''}`);
   }
 
-  getSolvedData(): SolveDataEntry {
+  getSolvedData(): SolveDataEntry | null {
+    const currentUser = this.getCurrentUser();
+    if (currentUser == null) return null;
     const solveData: SolveDataEntry = {
-      username: this.getCurrentUser(),
+      username: currentUser,
       solve_participants: this.getParticipants(),
       puzzle_id: this.getPuzzleID(),
       solve_time_sec: this.getSecondsSinceSolved(),
@@ -384,7 +392,7 @@ export default class TSC {
     return solveData;
   }
 
-  setTopUsers(puzzle_id: string, topUser1: string, topUser2: string, topUser3): void {
+  setTopUsers(puzzle_id: string, topUser1: string, topUser2: string, topUser3: string): void {
     this.topUserHeader.textContent = `Top ${puzzle_id} Solves`;
     this.topUser1.textContent = topUser1;
     this.topUser2.textContent = topUser2;
