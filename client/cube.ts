@@ -356,7 +356,7 @@ export default class tscCube {
     const queue = this.tsc.getQueue();
     let currentUser = this.tsc.getCurrentUser();
 
-    const joinCommands = ["!join", "!j", "!joinq", "!jq"];
+    const joinCommands = ["!join", "!j", "!joinq", "!jq", "!play", "!enter"];
     const leaveCommands = ["!leave", "!l", "!leaveq", "!lq"];
   
     if (message === "!queue" || message === "!q") {
