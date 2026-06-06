@@ -139,7 +139,19 @@ async function main() {
     authProvider.addUser(channelID, tokenData, ['chat']);
 
     const apiClient = new ApiClient({ authProvider });
-    chatClient = new ChatClient({ authProvider, channels: [ channelName ] });
+    chatClient = new ChatClient({ authProvider, channels: [ channelName ], rejoinChannelsOnReconnect: true });
+
+    chatClient.onDisconnect((manually) => {
+      timeStampLog(`Chat disconnected${manually ? ' (manual)' : ''}, reconnecting...`);
+    });
+
+    chatClient.onConnect(() => {
+      timeStampLog('Chat connected');
+    });
+
+    chatClient.onJoin((channel) => {
+      timeStampLog(`Joined channel ${channel}`);
+    });
 
     chatClient.onMessage(async (channel, user, message, tags) => {
       if (!activeConnection) {
