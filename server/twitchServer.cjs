@@ -24,6 +24,10 @@ const kuttConfig = {
 
 const timeStampLog = (message) => console.log(`[${new Date().toLocaleString()}] ${message}`);
 
+process.on('unhandledRejection', (reason) => {
+  timeStampLog(`Unhandled Rejection: ${reason}`);
+});
+
 let kutt;
 if (kuttConfig.enabled) {
   try {
@@ -143,15 +147,19 @@ async function main() {
         return; 
       }
 
-      //https://twurple.js.org/reference/api/classes/HelixChannelFollower.html
-      // const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId);
-      // const isFollowing = typeof follow !== 'undefined' && follow !== '';
+      let isFollowing = false;
+      try {
+        const { data: [follow] } = await apiClient.channels.getChannelFollowers(channelID, tags.userInfo.userId);
+        isFollowing = typeof follow !== 'undefined' && follow !== '';
+      } catch (err) {
+        timeStampLog(`Failed to check follow status: ${err.message}`);
+      }
       timeStampLog(`${user}: ${message}`);
 
       const twitchData = JSON.stringify({
         "user": user,
         "message": message,
-        "isFollowing": false,
+        "isFollowing": isFollowing,
         "isSub": tags.userInfo.isSubscriber,
         "isMod": tags.userInfo.isMod
       });

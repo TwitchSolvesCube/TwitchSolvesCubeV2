@@ -366,7 +366,7 @@ export default class tscCube {
         this.send("There's currently no one in the queue, do !join");
       }
     } else if (joinCommands.includes(message)) {
-      if (await this.tsc.joinQueue(user)) {
+      if (await this.tsc.joinQueue(user, isFollowing)) {
         this.scramblePuzzle();
       }
     } else if (leaveCommands.includes(message)) {
