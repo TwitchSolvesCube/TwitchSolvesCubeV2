@@ -172,38 +172,54 @@ export class tscSupabaseClient {
     }
 
     const { data, error } = await this.supabase!
-      .rpc('get_top3_solve_times', { puzzle_id: puzzle_id });
+      .from(config.supabaseTable)
+      .select('username, solve_time_sec, total_moves')
+      .eq('puzzle_id', puzzle_id)
+      .order('solve_time_sec', { ascending: true })
+      .order('total_moves', { ascending: true });
 
     if (error) {
       console.error('Error fetching top solve times:', error);
       throw error;
     }
-    
+
     if (!data || data.length === 0) {
-      const errorMsg = `${puzzle_id} is not a valid puzzle. Valid puzzles: 2x2x2, 3x3x3, 4x4x4, 5x5x5.`;
-      return { leaderboardText: errorMsg };
+      return { leaderboardText: `No solves recorded for ${puzzle_id}.` };
     }
 
-    const leaderboardText = data
-      .map((solve: { username: string; solve_time_sec: number }, index: number) => `${index + 1}. @${solve.username}: ${this.secToTime(solve.solve_time_sec)}`)
+    const seen = new Set<string>();
+    const top3: typeof data = [];
+    for (const row of data) {
+      if (!seen.has(row.username)) {
+        seen.add(row.username);
+        top3.push(row);
+        if (top3.length === 3) break;
+      }
+    }
+
+    const leaderboardText = top3
+      .map((solve, index) => `${index + 1}. @${solve.username}: ${this.secToTime(solve.solve_time_sec)}`)
       .join(' | ');
 
     return {
       leaderboardText: `Top ${puzzle_id} Solves | ${leaderboardText}`,
-      topUser1: data[0] ? `1. ${data[0].username}: ${this.secToTime(data[0].solve_time_sec)} in ${data[0].total_moves} moves` : undefined,
-      topUser2: data[1] ? `2. ${data[1].username}: ${this.secToTime(data[1].solve_time_sec)} in ${data[1].total_moves} moves` : undefined,
-      topUser3: data[2] ? `3. ${data[2].username}: ${this.secToTime(data[2].solve_time_sec)} in ${data[2].total_moves} moves` : undefined,
+      topUser1: top3[0] ? `1. ${top3[0].username}: ${this.secToTime(top3[0].solve_time_sec)} in ${top3[0].total_moves} moves` : undefined,
+      topUser2: top3[1] ? `2. ${top3[1].username}: ${this.secToTime(top3[1].solve_time_sec)} in ${top3[1].total_moves} moves` : undefined,
+      topUser3: top3[2] ? `3. ${top3[2].username}: ${this.secToTime(top3[2].solve_time_sec)} in ${top3[2].total_moves} moves` : undefined,
     };
   }
 
   //!topsolvers
   async getTopSolvers(puzzle_id: string): Promise<string | null> {
-    if (!this.isInitialized()) {
+    if (!this.isInitialized() || !this.supabase) {
       return null;
     }
 
     const { data, error } = await this.supabase!
-      .rpc('get_top3_solvers', {puzzle_id: puzzle_id});
+      .from(config.supabaseTable)
+      .select('username, solve_number')
+      .eq('puzzle_id', puzzle_id)
+      .order('solve_number', { ascending: false });
 
     if (error) {
       console.error('Error fetching top solvers:', error);
@@ -213,10 +229,20 @@ export class tscSupabaseClient {
     if (!data || data.length === 0) {
       return `No one has solved ${puzzle_id} or it doesn't exist.`;
     }
-    
+
+    const seen = new Set<string>();
+    const top3: { username: string; solve_number: number }[] = [];
+    for (const row of data) {
+      if (!seen.has(row.username)) {
+        seen.add(row.username);
+        top3.push({ username: row.username, solve_number: row.solve_number });
+        if (top3.length === 3) break;
+      }
+    }
+
     let header = `Top solvers for puzzle ${puzzle_id} |`;
-    const solversList = data
-      .map((solver: { username: string; solve_number: number }, index: number) => `${index + 1}. @${solver.username}: ${solver.solve_number} solves`);
+    const solversList = top3
+      .map((solver, index) => `${index + 1}. @${solver.username}: ${solver.solve_number} solves`);
 
     return `${header} ${solversList.join(' | ')}`;
   }
