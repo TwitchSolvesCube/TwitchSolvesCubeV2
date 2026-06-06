@@ -20,12 +20,14 @@ export default class TSC {
   private customScramble: boolean = false;
   private secondsSinceSolved: number = 0;
   private turnTime: number = 300;
+  private followerTurnTime: number = 480;
   private totalMoves: number = 0;
   private solve_alg: string = '';
   private twizzleLink: string = '';
   private shortLink: string = '';
 
   private queue: Array<string> = new Array();
+  private followers: Set<string> = new Set();
   private solveParticipants: Array<string> = new Array();
   private turns: boolean = true;
   private speedNotation: boolean = false;
@@ -53,7 +55,7 @@ export default class TSC {
     this.send = send;
   }
 
-  async joinQueue(username: string): Promise<boolean> {
+  async joinQueue(username: string, isFollowing: boolean = false): Promise<boolean> {
     let resetcube: boolean = false;
     username = username.toLowerCase();
 
@@ -66,7 +68,10 @@ export default class TSC {
           resetcube = true;
         }
         this.enqueue(username);
-        //isFollowing(username);
+        if (isFollowing) {
+          this.addFollower(username);
+        }
+        this.setTurnTime(this.isFollower(username) ? this.followerTurnTime : 300);
         this.userTurnTime();
         this.send(`@${username}, it's your turn! Do !leave when done`);
         //response = await this.kickAFK(); //TODO: Response
@@ -74,6 +79,9 @@ export default class TSC {
         this.send(`@${username}, it's currently your turn!`);
       } else if (!queue.includes(username)) {
         this.enqueue(username);
+        if (isFollowing) {
+          this.addFollower(username);
+        }
         this.send(`@${username}, you have joined the queue! There ${qLength > 1 ? 'are' : 'is'} ${qLength} user${qLength > 1 ? 's' : ''} in front of you`);
       } else {
         this.send(`@${username}, you're already in the queue. Please wait :)`);
@@ -94,12 +102,11 @@ export default class TSC {
         const currentUser = this.getCurrentUser();
         //If the removed user was at index 0 then reset the timer for the next user
         if (userIndex === 0) {
-          this.setTurnTime(300);
           this.setSpeedNotation(false);
+          this.setTurnTime(currentUser != null ? (this.isFollower(currentUser) ? this.followerTurnTime : 300) : 300);
         }
         //this.clearAfkCountdown();
         if (currentUser != null && !chatRemoval) { //If the user is removed by the timer queue next player
-          //isFollowing(currentUser);
           this.userTurnTime();
           this.send(`@${currentUser}, it's your turn! Do !leave when done. `);
           //this.kickAFK();
@@ -140,6 +147,14 @@ export default class TSC {
         }
       }
     }, 1000);
+  }
+
+  addFollower(username: string): void {
+    this.followers.add(username.toLowerCase());
+  }
+
+  isFollower(username: string): boolean {
+    return this.followers.has(username.toLowerCase());
   }
 
   enqueue(username: string): void {
